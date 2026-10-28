@@ -1,292 +1,137 @@
 ﻿function Invoke-JiraMethod {
     # .ExternalHelp ..\JiraPS-help.xml
-    [CmdletBinding( SupportsPaging )]
+    [CmdletBinding(SupportsPaging, SupportsShouldProcess, PositionalBinding = $false, DefaultParameterSetName = 'Connection')]
     param(
-        [Parameter( Mandatory )]
+        [Parameter(Mandatory, Position = 0)]
         [Uri]
-        $URI,
+        $Uri,
 
         [Microsoft.PowerShell.Commands.WebRequestMethod]
-        $Method = "GET",
+        $Method = 'Get',
 
-        [String]
+        [Object]
         $Body,
 
-        [Switch]
-        $RawBody,
+        [ValidateNotNullOrEmpty()]
+        [String]
+        $ContentType,
 
+        [ValidateNotNull()]
         [Hashtable]
         $Headers = @{},
 
+        [ValidateNotNull()]
         [Hashtable]
-        $GetParameter = @{},
+        $QueryParameter = @{},
 
         [Switch]
         $Paging,
 
-        [String]
-        $InFile,
+        [ValidateRange(1, [int]::MaxValue)]
+        [Int]
+        $PageSize = $script:DefaultPageSize,
 
+        [ValidateNotNullOrEmpty()]
         [String]
         $OutFile,
 
         [Switch]
-        $StoreSession,
+        $RawResponse,
 
-        [ValidateSet(
-            "JiraComment",
-            "JiraIssue",
-            "JiraUser",
-            "JiraVersion",
-            "JiraWorklogItem"
-        )]
-        [String]
-        $OutputType,
-
-        [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential,
-
-        [Parameter( DontShow )]
-        [ValidateNotNullOrEmpty()]
-        [System.Management.Automation.PSCmdlet]
-        $Cmdlet = $PSCmdlet,
-
-        [Parameter( DontShow )]
-        [int]
-        $_RetryCount = 0,
-
-        [Parameter()]
-        [String]
-        $CacheKey,
-
-        [Parameter()]
-        [TimeSpan]
-        $CacheExpiry = [TimeSpan]::FromHours(1),
-
-        [Parameter()]
-        [Switch]
-        $BypassCache,
-
-        [Parameter()]
         [ValidateRange(0, [int]::MaxValue)]
         [Int]
         $TimeoutSec = 100,
 
-        [Alias('Session')]
+        [Parameter(ParameterSetName = 'Connection')]
+        [ValidateNotNull()]
         [AtlassianPS.Connection]
         $Connection,
 
+        [Parameter(Mandatory, ParameterSetName = 'NamedConnection')]
+        [ValidateNotNullOrEmpty()]
         [String]
         $ConnectionName,
 
+        [Parameter(Mandatory, ParameterSetName = 'Basic')]
+        [Parameter(Mandatory, ParameterSetName = 'CloudToken')]
+        [Parameter(Mandatory, ParameterSetName = 'PersonalAccessToken')]
+        [Parameter(Mandatory, ParameterSetName = 'Anonymous')]
+        [ValidateNotNull()]
         [Uri]
         $BaseUri,
 
+        [Parameter(Mandatory, ParameterSetName = 'Basic')]
+        [ValidateNotNull()]
+        [System.Management.Automation.Credential()]
+        [PSCredential]
+        $Credential,
+
+        [Parameter(Mandatory, ParameterSetName = 'CloudToken')]
+        [ValidateNotNullOrEmpty()]
         [String]
         $EmailAddress,
 
+        [Parameter(Mandatory, ParameterSetName = 'CloudToken')]
+        [ValidateNotNull()]
         [Object]
         $ApiToken,
 
+        [Parameter(Mandatory, ParameterSetName = 'PersonalAccessToken')]
         [Alias('PAT', 'BearerToken')]
+        [ValidateNotNull()]
         [Object]
         $PersonalAccessToken,
 
+        [Parameter(Mandatory, ParameterSetName = 'Anonymous')]
         [Switch]
-        $Anonymous,
-
-        [Parameter( DontShow )]
-        [AtlassianPS.Connection]
-        $RequestContext,
-
-        [Parameter( DontShow )]
-        [Switch]
-        $Discovery
+        $Anonymous
     )
 
-    begin {
-        $requestCompleted = $false
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
-
-        try {
-            $ownsRequestContext = -not $PSBoundParameters.ContainsKey('RequestContext')
-            if ($StoreSession) { throw 'StoreSession is obsolete. Use Connect-Jira to create a reusable connection.' }
-            if ($Discovery) {
-                $PSDefaultParameterValues = @{}
-                $discoveryParameters = @{
-                    Uri                = $Uri
-                    Method             = 'Get'
-                    Headers            = @{ Accept = 'application/json' }
-                    MaximumRedirection = 0
-                    UseBasicParsing    = $true
-                    TimeoutSec         = 30
-                    ErrorAction        = 'Stop'
-                }
-                $discoveryResponse = Microsoft.PowerShell.Utility\Invoke-WebRequest @discoveryParameters
-                if ([int]$discoveryResponse.StatusCode -ne 200 -or $discoveryResponse.Headers['Content-Type'] -notmatch 'application/json') {
-                    throw 'Expected a successful JSON discovery response.'
-                }
-                $discoveryResult = $discoveryResponse.Content | ConvertFrom-Json -ErrorAction Stop
-                return
-            }
-            $selection = Get-JiraAuthenticationParameter -BoundParameters $PSBoundParameters
-            foreach ($key in @('Connection', 'ConnectionName', 'BaseUri')) {
-                if ($PSBoundParameters.ContainsKey($key)) { $selection[$key] = $PSBoundParameters[$key] }
-            }
-
-            if ($RequestContext) {
-                if ($selection.Count) {
-                    throw 'An internal context cannot be combined with another selector or authentication input.'
-                }
-                $RequestContext = AtlassianPS.Configuration\Resolve-AtlassianRequestContext -Product Jira -RequestContext $RequestContext
-            }
-            else {
-                $RequestContext = Resolve-JiraOperationContext -BoundParameters $selection
-            }
-            if ($RequestContext.State -eq 'Candidate' -and
-                ($Method -ne 'GET' -or $Uri.OriginalString -notin @('/rest/api/2/serverInfo', '/rest/api/2/myself'))
-            ) {
-                throw 'Unregistered candidates are restricted to creation-time Jira validation GETs.'
-            }
-            $PSBoundParameters['RequestContext'] = $RequestContext
-            foreach ($key in $selection.Keys) {
-                $null = $PSBoundParameters.Remove($key)
-            }
-            Set-TlsLevel -Tls12
-
-            Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
-            Write-DebugMessage -BoundParameters $PSBoundParameters
-
-            #region Manage URI
-            $resourceParameters = @{
-                Uri             = $Uri
-                GetParameter    = $GetParameter
-                DefaultPageSize = $script:DefaultPageSize
-                Cmdlet          = $PSCmdlet
-                RequestContext  = $RequestContext
-            }
-            $resourceContext = Resolve-JiraRequestContext @resourceParameters
-            [Uri]$Uri = $resourceContext.Uri
-            [Uri]$PaginatedUri = $resourceContext.PaginatedUri
-            #endregion Manage URI
-
-            # load DefaultParameters for Invoke-WebRequest
-            # as the global PSDefaultParameterValues is not used
-            $PSDefaultParameterValues = Resolve-DefaultParameterValue -Reference $global:PSDefaultParameterValues -CommandName 'Invoke-WebRequest'
-
-            foreach ($key in $PSDefaultParameterValues.Keys) {
-                if ($key -match ':(Credential|Certificate|CertificateThumbprint|UseDefaultCredentials|WebSession|SessionVariable|Authentication|Token|PreserveAuthorizationOnRedirect)$') {
-                    throw "Remove conflicting low-level authentication default $key and use Jira authentication parameters."
-                }
-            }
-            foreach ($headerSet in @($Headers, $PSDefaultParameterValues['Invoke-WebRequest:Headers'])) {
-                if ($headerSet -and @($headerSet.Keys | Where-Object { $_ -match '^(Authorization|Proxy-Authorization|Cookie|Cookie2)$' }).Count) {
-                    throw 'Authentication headers are unsupported. Use the Jira authentication parameters.'
-                }
-            }
-
-            #region Cache Check
-            if ($CacheKey) {
-                $CacheKey = '{0}:{1}:{2}' -f $RequestContext.InstanceId, $PaginatedUri.AbsoluteUri, $CacheKey
-            }
-            if ($RequestContext.State -ne 'Active') { $BypassCache = $true }
-            $cached = Get-JiraCachedResponse -CacheKey $CacheKey -Method $Method -BypassCache:$BypassCache -CommandName $MyInvocation.MyCommand.Name
-            if ($cached) {
-                Set-TlsLevel -Revert
-                $requestCompleted = $true
-                return $cached.Data
-            }
-            #endregion Cache Check
-
-            #region Headers
-            # Construct the Headers with the folling priority:
-            # - Headers passes as parameters
-            # - User's Headers in $PSDefaultParameterValues
-            # - Module's default Headers
-            $_headers = Join-Hashtable -Hashtable $script:DefaultHeaders, $PSDefaultParameterValues["Invoke-WebRequest:Headers"], $Headers
-            #endregion Headers
-
-            #region Constructe IWR Parameter
-            $requestParameters = @{
-                Uri                = $PaginatedUri
-                Method             = $Method
-                Headers            = $_headers
-                Body               = $Body
-                RawBody            = $RawBody
-                RequestContext     = $RequestContext
-                TimeoutSec         = $TimeoutSec
-                InFile             = $InFile
-                OutFile            = $OutFile
-                DefaultContentType = $script:DefaultContentType
-            }
-            $splatParameters = New-JiraWebRequestSplat @requestParameters
-            #endregion Constructe IWR Parameter
-
-            #region Execute the actual query
-            Write-Verbose "[$($MyInvocation.MyCommand.Name)] $($splatParameters.Method) $($splatParameters.Uri.GetLeftPart([UriPartial]::Path))"
-            $webRequestResult = Invoke-JiraWebRequestSafely -SplatParameters $splatParameters
-            $webResponse = $webRequestResult.WebResponse
-            $exception = $webRequestResult.Exception
-            if ($webRequestResult.SessionVariableName -and $null -ne $webRequestResult.SessionVariableValue) {
-                Set-Variable -Name $webRequestResult.SessionVariableName -Value $webRequestResult.SessionVariableValue -Scope Local
-            }
-            if ($exception) { Write-Verbose "[$($MyInvocation.MyCommand.Name)] Failed to get an answer from the server" }
-
-            Write-DebugMessage "Executed WebRequest. Access `$webResponse to see details"
-            if ($webResponse -and [int]$webResponse.StatusCode -ge 300 -and [int]$webResponse.StatusCode -lt 400) {
-                throw 'Jira redirected the request. Use the final product endpoint to create a new connection.'
-            }
-            $shouldRetry = Test-ServerResponse -InputObject $webResponse -Cmdlet $Cmdlet -RetryCount $_RetryCount
-            if ($shouldRetry) {
-                $PSBoundParameters['_RetryCount'] = $_RetryCount + 1
-                $requestCompleted = $true
-                Invoke-JiraMethod @PSBoundParameters
-                return
-            }
-            if ($script:JiraResponseHeaderLogConfiguration) {
-                Write-DebugMessage "Jira response headers"
-                try { Write-JiraResponseHeaderLog -InputObject $webResponse }
-                catch { Write-Debug "[$($MyInvocation.MyCommand.Name)] Failed to log response headers: $_" }
-            }
-            #endregion Execute the actual query
-        }
-        catch {
-            if ($ownsRequestContext -and $RequestContext -and $RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
-            Set-TlsLevel -Revert
-            throw
-        }
-    }
-
     process {
+        if (-not $Paging -and @('PageSize', 'First', 'Skip', 'IncludeTotalCount' | Where-Object { $PSBoundParameters.ContainsKey($_) }).Count) {
+            throw 'PageSize, First, Skip and IncludeTotalCount require -Paging.'
+        }
+        if (@($Paging, $RawResponse, [bool]$OutFile | Where-Object { $_ }).Count -gt 1) {
+            throw 'Choose only one response mode: Paging, RawResponse or OutFile.'
+        }
+        if ($Paging -and $Method -ne 'Get') { throw 'Automatic paging supports GET requests. Manage continuation explicitly for other methods.' }
+        if ($PSBoundParameters.ContainsKey('PageSize') -and $QueryParameter.ContainsKey('maxResults')) {
+            throw 'Supply PageSize or QueryParameter.maxResults, not both.'
+        }
+        if ($PSCmdlet.ParameterSetName -eq 'Anonymous' -and -not $Anonymous) { throw 'Supply -Anonymous to request anonymous access.' }
+
+        if ($OutFile) {
+            $provider = $null
+            $drive = $null
+            $OutFile = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($OutFile, [ref]$provider, [ref]$drive)
+            if ($provider.Name -ne 'FileSystem') { throw 'OutFile must be a file-system path.' }
+            if (Test-Path -LiteralPath $OutFile -PathType Container) { throw 'OutFile must name a file, not a directory.' }
+        }
+        $target = $Uri.OriginalString.Split('?')[0]
+        if ($OutFile) { $target = "$target -> $OutFile" }
+        if (($Method -notin @('Get', 'Head', 'Options') -or $OutFile) -and -not $PSCmdlet.ShouldProcess($target, "$Method Jira request")) { return }
+
+        $selection = Get-JiraAuthenticationParameter -BoundParameters $PSBoundParameters
+        foreach ($key in @('Connection', 'ConnectionName', 'BaseUri')) {
+            if ($PSBoundParameters.ContainsKey($key)) { $selection[$key] = $PSBoundParameters[$key] }
+        }
+        $context = Resolve-JiraOperationContext -BoundParameters $selection
         try {
-            if ($requestCompleted) { return }
-            if ($Discovery) { return $discoveryResult }
-            $responseParameters = @{
-                WebResponse     = $webResponse
-                Exception       = $exception
-                CacheKey        = $(if ($BypassCache) { $null } else { $CacheKey })
-                Method          = $Method
-                CacheExpiry     = $CacheExpiry
-                Paging          = $Paging
-                BoundParameters = $PSBoundParameters
-                Cmdlet          = $Cmdlet
-                CommandName     = $MyInvocation.MyCommand.Name
+            $request = @{
+                Uri            = $Uri
+                Method         = $Method
+                GetParameter   = $QueryParameter
+                RequestContext = $context
+                Cmdlet         = $PSCmdlet
             }
-            Resolve-JiraWebResponse @responseParameters
+            foreach ($key in @('Body', 'ContentType', 'Headers', 'Paging', 'PageSize', 'RawResponse', 'TimeoutSec', 'First', 'Skip', 'IncludeTotalCount')) {
+                if ($PSBoundParameters.ContainsKey($key)) { $request[$key] = $PSBoundParameters[$key] }
+            }
+            if ($OutFile) { $request['OutFile'] = $OutFile }
+            Invoke-JiraRequest @request
         }
-        catch {
-            if ($ownsRequestContext -and $RequestContext -and $RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
-            Set-TlsLevel -Revert
-            throw
+        finally {
+            if ($context.State -eq 'Standalone') { $context.Dispose() }
         }
-    }
-
-    end {
-        if ($ownsRequestContext -and $RequestContext -and $RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }
-        Set-TlsLevel -Revert
-
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function ended"
     }
 }

@@ -45,14 +45,14 @@ InModuleScope JiraPS {
                 ConvertTo-JiraFilter
             }
 
-            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Post' -and $URI -like "/rest/api/*/filter" } {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri', 'Body'
+            Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter { $Method -eq 'Post' -and $URI -like "/rest/api/*/filter" } {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri', 'Body'
                 ConvertFrom-Json $responseFilter
             }
 
-            Mock Invoke-JiraMethod -ModuleName JiraPS {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-                throw "Unidentified call to Invoke-JiraMethod"
+            Mock Invoke-JiraRequest -ModuleName JiraPS {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
+                throw "Unidentified call to Invoke-JiraRequest"
             }
             #endregion Mocks
         }
@@ -100,7 +100,7 @@ InModuleScope JiraPS {
                     New-JiraFilter @newData
                 } | Should -Not -Throw
 
-                Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
+                Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                     $Method -eq 'Post' -and
                     $URI -like '*/rest/api/*/filter' -and
                     $Body -match "`"name`":\s*`"myName`"" -and
@@ -122,7 +122,7 @@ InModuleScope JiraPS {
                         New-JiraFilter @parameter
                     } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
+                    Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1
                 }
 
                 It "-Name and -Description and -JQL" {
@@ -135,7 +135,7 @@ InModuleScope JiraPS {
                         New-JiraFilter @parameter
                     } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
+                    Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1
                 }
 
                 It "-Name and -Description and -JQL and -Favorite" {
@@ -149,7 +149,7 @@ InModuleScope JiraPS {
                         New-JiraFilter @parameter
                     } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
+                    Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1
                 }
 
                 It "maps the properties of an object to the parameters" {

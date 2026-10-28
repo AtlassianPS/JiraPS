@@ -46,15 +46,17 @@ InModuleScope JiraPS {
             if ($previousDefault -and $previousDefault.State -eq 'Active') { $null = $previousDefault | Select-JiraConnection }
         }
 
-        It 'uses the selected identity and isolates override cookies without changing the default' {
+        It 'uses the selected identity and cookies while rejecting authentication overrides' {
             $null = $first | Select-JiraConnection
             $cookie = [Net.Cookie]::new('session', 'original-cookie', '/', 'jira.example.com')
             $first.GetWebSession().Cookies.Add($cookie)
-            $null = Invoke-JiraMethod -Uri '/rest/api/2/field' -Connection $first -PersonalAccessToken override-secret
+            { Invoke-JiraMethod -Uri '/rest/api/2/field' -Connection $first -PersonalAccessToken override-secret } | Should -Throw
+            $requests.Count | Should -Be 0
+            $null = Invoke-JiraMethod -Uri '/rest/api/2/field' -Connection $first
 
-            $requests[0].Authorization | Should -Be 'Bearer override-secret'
-            $requests[0].Session.Cookies.Count | Should -Be 0
-            [Object]::ReferenceEquals($requests[0].Session, $first.GetWebSession()) | Should -BeFalse
+            $requests[0].Authorization | Should -Be 'Bearer first-secret'
+            $requests[0].Session.Cookies.Count | Should -Be 1
+            [Object]::ReferenceEquals($requests[0].Session, $first.GetWebSession()) | Should -BeTrue
             $first.GetWebSession().Cookies.Count | Should -Be 1
             $first.GetAuthorizationHeader() | Should -Be 'Bearer first-secret'
             (Get-JiraConnection -Default).InstanceId | Should -Be $first.InstanceId
@@ -99,17 +101,17 @@ InModuleScope JiraPS {
                 }
                 $false
             }
-            $result = Invoke-JiraMethod -Uri '/rest/api/2/field' -PersonalAccessToken override-secret
+            $result = Invoke-JiraMethod -Uri '/rest/api/2/field' -Connection $first
 
             $result.name | Should -Be 'result'
             $requests.Count | Should -Be 2
-            foreach ($request in $requests) { $request.Authorization | Should -Be 'Bearer override-secret' }
+            foreach ($request in $requests) { $request.Authorization | Should -Be 'Bearer first-secret' }
             [Object]::ReferenceEquals($requests[0].Session, $requests[1].Session) | Should -BeTrue
             (Get-JiraConnection -Default).InstanceId | Should -Be $second.InstanceId
             $first.GetAuthorizationHeader() | Should -Be 'Bearer first-secret'
         }
 
-        It 'retains override identity across pages after another connection becomes default' {
+        It 'retains the selected identity across pages after another connection becomes default' {
             $null = $first | Select-JiraConnection
             Mock Invoke-WebRequest {
                 $script:requests.Add([PSCustomObject]@{
@@ -134,11 +136,11 @@ InModuleScope JiraPS {
                     Headers          = @{ 'Content-Type' = 'application/json' }
                 }
             }
-            $result = @(Invoke-JiraMethod -Uri '/rest/api/2/search?maxResults=1' -Paging -PersonalAccessToken override-secret)
+            $result = @(Invoke-JiraMethod -Uri '/rest/api/2/search?maxResults=1' -Paging -Connection $first)
 
             $result.Count | Should -Be 2
             $requests.Count | Should -Be 2
-            foreach ($request in $requests) { $request.Authorization | Should -Be 'Bearer override-secret' }
+            foreach ($request in $requests) { $request.Authorization | Should -Be 'Bearer first-secret' }
             [Object]::ReferenceEquals($requests[0].Session, $requests[1].Session) | Should -BeTrue
             (Get-JiraConnection -Default).InstanceId | Should -Be $second.InstanceId
         }

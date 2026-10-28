@@ -65,7 +65,7 @@
             }
             Write-DebugMessage "Invoking JiraMethod with `$parameter"
             if ($PSCmdlet.ShouldProcess($UserName, "Creating new User on JIRA")) {
-                $result = Invoke-JiraMethod -RequestContext $RequestContext @parameter
+                $result = Invoke-JiraRequest -RequestContext $RequestContext @parameter
 
                 Write-Output (ConvertTo-JiraUser -InputObject $result)
             }

@@ -196,14 +196,14 @@ InModuleScope JiraPS {
                 $InputObject
             }
 
-            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $URI -like "*/rest/api/*/issue/$issueID/editmeta" } {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+            Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $URI -like "*/rest/api/*/issue/$issueID/editmeta" } {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
                 ConvertFrom-Json $restResult
             }
 
-            Mock Invoke-JiraMethod -ModuleName JiraPS {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-                throw "Unidentified call to Invoke-JiraMethod"
+            Mock Invoke-JiraRequest -ModuleName JiraPS {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
+                throw "Unidentified call to Invoke-JiraRequest"
             }
             #endregion Mocks
         }
@@ -222,12 +222,12 @@ InModuleScope JiraPS {
             Context "Behavior testing" {
                 It "Queries Jira for metadata information about editing an issue" {
                     { Get-JiraIssueEditMetadata -Issue $issueID } | Should -Not -Throw
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
+                    Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1
                 }
 
                 It "Uses ConvertTo-JiraEditMetaField to output EditMetaField objects if JIRA returns data" {
                     { Get-JiraIssueEditMetadata -Issue $issueID } | Should -Not -Throw
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
+                    Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1
 
                     # The editmeta endpoint returns a single envelope { fields: { fieldId: ... } }
                     # which is forwarded to ConvertTo-JiraEditMetaField as one object,
@@ -246,7 +246,7 @@ InModuleScope JiraPS {
         Describe "Error handling" {
             Context "When the API returns no body" {
                 BeforeAll {
-                    Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $URI -like "*$issueID/editmeta" } { $null }
+                    Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter { $URI -like "*$issueID/editmeta" } { $null }
                 }
 
                 It "Throws a terminating ObjectNotFound error when no metadata is returned" {

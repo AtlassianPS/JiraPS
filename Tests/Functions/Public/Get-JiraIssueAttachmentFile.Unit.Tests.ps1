@@ -63,17 +63,17 @@ InModuleScope JiraPS {
                 $script:attachmentFixtures
             }
 
-            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
+            Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter {
                 $Method -eq 'Get' -and
                 $URI -like "$jiraServer/secure/attachment/*"
             } {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri', 'OutFile'
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri', 'OutFile'
             }
 
             # Generic catch-all. This will throw an exception if we forgot to mock something.
-            Mock Invoke-JiraMethod -ModuleName JiraPS {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-                throw "Unidentified call to Invoke-JiraMethod"
+            Mock Invoke-JiraRequest -ModuleName JiraPS {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
+                throw "Unidentified call to Invoke-JiraRequest"
             }
             #endregion Mocks
         }
@@ -114,17 +114,17 @@ InModuleScope JiraPS {
         }
 
         Describe "Behavior" {
-            It 'uses Invoke-JiraMethod for saving to disk' {
+            It 'uses Invoke-JiraRequest for saving to disk' {
                 $fooIssue = [AtlassianPS.JiraPS.Issue]@{ Key = 'Foo' }
 
                 Get-JiraIssueAttachment -Issue $fooIssue | Get-JiraIssueAttachmentFile
                 Get-JiraIssueAttachment -Issue $fooIssue | Get-JiraIssueAttachmentFile -Path "../"
 
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
+                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter {
                     $OutFile -in @("foo.pdf", "bar.pdf")
                 } -Exactly 2
 
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
+                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter {
                     $OutFile -like "..*.pdf"
                 } -Exactly 2
             }
@@ -133,10 +133,10 @@ InModuleScope JiraPS {
                 $cloud = AtlassianPS.Configuration\New-AtlassianConnectionContext -Name attachment-cloud -Product Jira -BaseUri https://api.atlassian.com/ex/jira/11111111-1111-1111-1111-111111111111 -Anonymous
                 $cloud.SetValidationResult('Cloud', $null)
                 $null = AtlassianPS.Configuration\Register-AtlassianConnection -Connection $cloud
-                Mock Invoke-JiraMethod {} -ParameterFilter { "$Uri" -eq '/rest/api/3/attachment/content/10013?redirect=false' }
+                Mock Invoke-JiraRequest {} -ParameterFilter { "$Uri" -eq '/rest/api/3/attachment/content/10013?redirect=false' }
                 try {
                     Get-JiraIssueAttachmentFile -Attachment $attachmentFixtures[0] -Connection $cloud
-                    Should -Invoke Invoke-JiraMethod -Exactly 1 -ParameterFilter { "$Uri" -eq '/rest/api/3/attachment/content/10013?redirect=false' -and [Object]::ReferenceEquals($RequestContext, $cloud) }
+                    Should -Invoke Invoke-JiraRequest -Exactly 1 -ParameterFilter { "$Uri" -eq '/rest/api/3/attachment/content/10013?redirect=false' -and [Object]::ReferenceEquals($RequestContext, $cloud) }
                 }
                 finally { AtlassianPS.Configuration\Disconnect-AtlassianConnection -Connection $cloud }
             }
@@ -146,7 +146,7 @@ InModuleScope JiraPS {
 
                 Get-JiraIssueAttachment -Issue $fooIssue | Get-JiraIssueAttachmentFile
 
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
+                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter {
                     -not $PSBoundParameters.ContainsKey('Headers')
                 } -Exactly 2
             }

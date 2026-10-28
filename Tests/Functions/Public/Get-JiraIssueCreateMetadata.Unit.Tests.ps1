@@ -103,23 +103,23 @@ InModuleScope JiraPS {
         Describe "Behavior" {
             Context "Behavior testing" {
                 BeforeAll {
-                    # Default mock: Invoke-JiraMethod -Paging would yield the
+                    # Default mock: Invoke-JiraRequest -Paging would yield the
                     # expanded field items, so the mock returns values directly.
-                    Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $URI -like "/rest/api/*/issue/createmeta/*/issuetypes/*" } {
-                        Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+                    Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $URI -like "/rest/api/*/issue/createmeta/*/issuetypes/*" } {
+                        Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
                         (ConvertFrom-Json $restResult).values
                     }
 
-                    Mock Invoke-JiraMethod -ModuleName JiraPS {
-                        Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-                        throw "Unidentified call to Invoke-JiraMethod"
+                    Mock Invoke-JiraRequest -ModuleName JiraPS {
+                        Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
+                        throw "Unidentified call to Invoke-JiraRequest"
                     }
                 }
 
                 It "Queries Jira for metadata information about creating an issue" {
                     { Get-JiraIssueCreateMetadata -Project 10003 -IssueType 2 } | Should -Not -Throw
 
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
+                    Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter {
                         $Method -eq 'Get' -and
                         $URI -like "/rest/api/*/issue/createmeta/*/issuetypes/*" -and
                         $Paging -eq $true
@@ -130,7 +130,7 @@ InModuleScope JiraPS {
                     # Test-JiraCloudServer is already mocked to $false in BeforeAll.
                     { Get-JiraIssueCreateMetadata -Project 10003 -IssueType 2 } | Should -Not -Throw
 
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
+                    Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter {
                         $Method -eq 'Get' -and $URI -like "/rest/api/2/issue/createmeta/*"
                     } -Exactly -Times 1
                 }
@@ -140,11 +140,11 @@ InModuleScope JiraPS {
 
                     { Get-JiraIssueCreateMetadata -Project 10003 -IssueType 2 } | Should -Not -Throw
 
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
+                    Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter {
                         $Method -eq 'Get' -and $URI -like "/rest/api/3/issue/createmeta/*"
                     } -Exactly -Times 1
 
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
+                    Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter {
                         $Method -eq 'Get' -and $URI -like "/rest/api/2/issue/createmeta/*"
                     } -Exactly -Times 0
                 }

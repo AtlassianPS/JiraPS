@@ -45,14 +45,14 @@ InModuleScope JiraPS {
                 }
             }
 
-            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/*/filter/*/permission" } {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+            Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $URI -like "$jiraServer/rest/api/*/filter/*/permission" } {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
                 ConvertFrom-Json $sampleResponse
             }
 
-            Mock Invoke-JiraMethod -ModuleName JiraPS {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-                throw "Unidentified call to Invoke-JiraMethod"
+            Mock Invoke-JiraRequest -ModuleName JiraPS {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
+                throw "Unidentified call to Invoke-JiraRequest"
             }
             #endregion Mocks
         }
@@ -83,13 +83,13 @@ InModuleScope JiraPS {
                     $arguments = @{ $parameter = @('12345', '67890') }
                     Get-JiraFilterPermission @arguments
 
-                    Should -Invoke Invoke-JiraMethod -Exactly -Times 2
+                    Should -Invoke Invoke-JiraRequest -Exactly -Times 2
                 }
 
                 It "accepts numeric strings from the pipeline" {
                     '12345', '67890' | Get-JiraFilterPermission
 
-                    Should -Invoke Invoke-JiraMethod -Exactly -Times 2
+                    Should -Invoke Invoke-JiraRequest -Exactly -Times 2
                 }
 
                 It "accepts a complete typed filter from the pipeline" {
@@ -100,7 +100,7 @@ InModuleScope JiraPS {
                     }
                     $filter | Get-JiraFilterPermission
 
-                    Should -Invoke Invoke-JiraMethod -Exactly -Times 1
+                    Should -Invoke Invoke-JiraRequest -Exactly -Times 1
                 }
             }
 
@@ -112,13 +112,13 @@ InModuleScope JiraPS {
                     Should -Invoke Get-JiraFilterOperation -Exactly -Times 1 -ParameterFilter {
                         $RequestContext.Username -eq 'filter-owner' -and $ErrorAction -eq 'Stop'
                     }
-                    Should -Invoke Invoke-JiraMethod -Exactly -Times 1 -ParameterFilter { $RequestContext.Username -eq 'filter-owner' }
+                    Should -Invoke Invoke-JiraRequest -Exactly -Times 1 -ParameterFilter { $RequestContext.Username -eq 'filter-owner' }
                 }
 
                 It "Retrieves the permissions of a Filter by Object" {
                     { Get-JiraFilter -Id 23456 | Get-JiraFilterPermission } | Should -Not -Throw
 
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
+                    Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                         $Method -eq 'Get' -and
                         $URI -like '*/rest/api/*/filter/23456/permission'
                     }
@@ -127,7 +127,7 @@ InModuleScope JiraPS {
                 It "Retrieves the permissions of a Filter by Id" {
                     { 23456 | Get-JiraFilterPermission } | Should -Not -Throw
 
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
+                    Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                         $Method -eq 'Get' -and
                         $URI -like '*/rest/api/*/filter/23456/permission'
                     }
@@ -143,7 +143,7 @@ InModuleScope JiraPS {
                     { Get-JiraFilterPermission -Id 23456, 23456 } | Should -Not -Throw
 
                     Should -Invoke Get-JiraFilterOperation -ModuleName JiraPS -Exactly -Times 2
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 2
+                    Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 2
                 }
 
                 It "can only process one Filter objects" {
@@ -153,18 +153,18 @@ InModuleScope JiraPS {
 
                     { Get-JiraFilterPermission -Filter $filter } | Should -Not -Throw
 
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 2
+                    Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 2
                 }
 
                 It "resolves positional parameters" {
                     { Get-JiraFilterPermission 23456 } | Should -Not -Throw
 
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
+                    Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1
 
                     $filter = Get-JiraFilter -Id 23456
                     { Get-JiraFilterPermission $filter } | Should -Not -Throw
 
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 2
+                    Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 2
                 }
             }
         }

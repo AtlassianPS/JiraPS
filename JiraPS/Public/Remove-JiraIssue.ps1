@@ -97,7 +97,7 @@
 
                 if ($PSCmdlet.ShouldProcess($_issue.ToString(), $ActionText)) {
                     Write-DebugMessage "Invoking JiraMethod with `$parameter"
-                    Invoke-JiraMethod -RequestContext $RequestContext @parameter
+                    Invoke-JiraRequest -RequestContext $RequestContext @parameter
                 }
             }
         }

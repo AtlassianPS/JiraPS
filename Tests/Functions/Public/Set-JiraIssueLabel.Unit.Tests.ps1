@@ -38,13 +38,13 @@ InModuleScope JiraPS {
                 Get-JiraIssue -Key $InputObject.Key
             }
 
-            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq "Put" -and $Uri -like "$jiraServer/rest/api/*/issue/12345" } {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri', 'Body'
+            Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter { $Method -eq "Put" -and $Uri -like "$jiraServer/rest/api/*/issue/12345" } {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri', 'Body'
             }
 
-            Mock Invoke-JiraMethod -ModuleName JiraPS {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-                throw "Unidentified call to Invoke-JiraMethod"
+            Mock Invoke-JiraRequest -ModuleName JiraPS {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
+                throw "Unidentified call to Invoke-JiraRequest"
             }
             #endregion Mocks
         }
@@ -77,14 +77,14 @@ InModuleScope JiraPS {
         Describe "Behavior" {
             It "Does not update labels when WhatIf is supplied" {
                 Set-JiraIssueLabel -Issue TEST-001 -Set 'testLabel1' -WhatIf
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 0 -Exactly -ParameterFilter {
+                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Times 0 -Exactly -ParameterFilter {
                     $Method -eq 'Put'
                 }
             }
 
             It "Replaces all issue labels if the Set parameter is supplied" {
                 { Set-JiraIssueLabel -Issue TEST-001 -Set 'testLabel1', 'testLabel2' } | Should -Not -Throw
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -ParameterFilter {
+                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Times 1 -ParameterFilter {
                     $Method -eq 'Put' -and
                     $URI -like '*/rest/api/2/issue/12345' -and
                     $Body -like '*update*labels*set*testLabel1*testLabel2*'
@@ -93,7 +93,7 @@ InModuleScope JiraPS {
 
             It "Adds new labels if the Add parameter is supplied" {
                 { Set-JiraIssueLabel -Issue TEST-001 -Add 'testLabel3' } | Should -Not -Throw
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -ParameterFilter {
+                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Times 1 -ParameterFilter {
                     $Method -eq 'Put' -and
                     $URI -like '*/rest/api/2/issue/12345' -and
                     $Body -like '*update*labels*set*testLabel3*'
@@ -102,7 +102,7 @@ InModuleScope JiraPS {
 
             It "Removes labels if the Remove parameter is supplied" {
                 { Set-JiraIssueLabel -Issue TEST-001 -Remove 'existingLabel1' } | Should -Not -Throw
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -ParameterFilter {
+                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Times 1 -ParameterFilter {
                     $Method -eq 'Put' -and
                     $URI -like '*/rest/api/2/issue/12345' -and
                     $Body -like '*update*labels*set*existingLabel2*'
@@ -111,7 +111,7 @@ InModuleScope JiraPS {
 
             It "Clears all labels if the Clear parameter is supplied" {
                 { Set-JiraIssueLabel -Issue TEST-001 -Clear } | Should -Not -Throw
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -ParameterFilter {
+                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Times 1 -ParameterFilter {
                     $Method -eq 'Put' -and
                     $URI -like '*/rest/api/2/issue/12345' -and
                     $Body -like '*update*labels*set*'
@@ -136,20 +136,20 @@ InModuleScope JiraPS {
                 It "Accepts an issue key for the -Issue parameter" {
                     { Set-JiraIssueLabel -Issue TEST-001 -Set 'testLabel1' } | Should -Not -Throw
                     Should -Invoke Get-JiraIssueOperation -ModuleName JiraPS -Exactly -Times 1
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
+                    Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1
                 }
 
                 It "Accepts an issue object for the -Issue parameter" {
                     $issue = Get-JiraIssue -Key TEST-001
                     { Set-JiraIssueLabel -Issue $issue -Set 'testLabel1' } | Should -Not -Throw
                     Should -Invoke Get-JiraIssueOperation -ModuleName JiraPS -Exactly -Times 2
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
+                    Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1
                 }
 
                 It "Accepts the output of Get-JiraIssue by pipeline for the -Issue parameter" {
                     { Get-JiraIssue -Key TEST-001 | Set-JiraIssueLabel -Set 'testLabel1' } | Should -Not -Throw
                     Should -Invoke Get-JiraIssueOperation -ModuleName JiraPS -Exactly -Times 2
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
+                    Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1
                 }
             }
 

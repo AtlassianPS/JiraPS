@@ -43,14 +43,14 @@
                 URI          = "{0}/worklog" -f $issueObj.RestURL
                 Method       = "GET"
                 GetParameter = @{
-                    maxResults = $PageSize
+                    maxResults = $script:DefaultPageSize
                 }
                 OutputType   = "JiraWorklogItem"
                 Paging       = $true
             }
 
             Write-DebugMessage "Invoking JiraMethod with `$parameter"
-            Invoke-JiraMethod -RequestContext $RequestContext @parameter
+            Invoke-JiraRequest -RequestContext $RequestContext @parameter
         }
         catch {
             if ($RequestContext -and $RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }

@@ -67,7 +67,7 @@
                     Method = "DELETE"
                 }
                 Write-DebugMessage "Invoking JiraMethod with `$parameter"
-                if ($PSCmdlet.ShouldProcess($issueObj.Key, "Remove RemoteLink '$_link'")) { Invoke-JiraMethod -RequestContext $RequestContext @parameter }
+                if ($PSCmdlet.ShouldProcess($issueObj.Key, "Remove RemoteLink '$_link'")) { Invoke-JiraRequest -RequestContext $RequestContext @parameter }
             }
         }
         catch {

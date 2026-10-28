@@ -75,15 +75,15 @@ InModuleScope JiraPS {
                 $result
             }
 
-            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Put' -and $URI -like "$jiraServer/rest/api/*/version/$versionID" } {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+            Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter { $Method -eq 'Put' -and $URI -like "$jiraServer/rest/api/*/version/$versionID" } {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
                 ConvertFrom-Json $testJsonOne
             }
 
             # Generic catch-all. This will throw an exception if we forgot to mock something.
-            Mock Invoke-JiraMethod -ModuleName JiraPS {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-                throw "Unidentified call to Invoke-JiraMethod"
+            Mock Invoke-JiraRequest -ModuleName JiraPS {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
+                throw "Unidentified call to Invoke-JiraRequest"
             }
             #endregion Mocks
         }
@@ -125,7 +125,7 @@ InModuleScope JiraPS {
                     Should -Invoke 'Get-JiraVersionOperation' -Times 2 -ModuleName JiraPS -Exactly
                     Should -Invoke 'Get-JiraProjectOperation' -Times 0 -ModuleName JiraPS -Exactly
                     Should -Invoke 'ConvertTo-JiraVersion' -Times 3 -ModuleName JiraPS -Exactly
-                    Should -Invoke 'Invoke-JiraMethod' -Times 1 -ModuleName JiraPS -Exactly -ParameterFilter { $Method -eq 'Put' -and $URI -like "$jiraServer/rest/api/*/version/$versionID" }
+                    Should -Invoke 'Invoke-JiraRequest' -Times 1 -ModuleName JiraPS -Exactly -ParameterFilter { $Method -eq 'Put' -and $URI -like "$jiraServer/rest/api/*/version/$versionID" }
                 }
 
                 It "sets an Issue's Version Name using the pipeline" {
@@ -135,14 +135,14 @@ InModuleScope JiraPS {
                     Should -Invoke 'Get-JiraVersionOperation' -Times 2 -ModuleName JiraPS -Exactly
                     Should -Invoke 'Get-JiraProjectOperation' -Times 0 -ModuleName JiraPS -Exactly
                     Should -Invoke 'ConvertTo-JiraVersion' -Times 3 -ModuleName JiraPS -Exactly
-                    Should -Invoke 'Invoke-JiraMethod' -Times 1 -ModuleName JiraPS -Exactly -ParameterFilter { $Method -eq 'Put' -and $URI -like "$jiraServer/rest/api/*/version/$versionID" }
+                    Should -Invoke 'Invoke-JiraRequest' -Times 1 -ModuleName JiraPS -Exactly -ParameterFilter { $Method -eq 'Put' -and $URI -like "$jiraServer/rest/api/*/version/$versionID" }
                 }
 
                 It "rejects a name-only Version stub where an ID is required" {
                     { Set-JiraVersion -Version ([AtlassianPS.JiraPS.Version]::new('My Version')) -Name 'NewName' -ErrorAction Stop } |
                         Should -Throw '*version ID*'
 
-                    Should -Invoke 'Invoke-JiraMethod' -Times 0 -ModuleName JiraPS -ParameterFilter { $Method -eq 'Put' }
+                    Should -Invoke 'Invoke-JiraRequest' -Times 0 -ModuleName JiraPS -ParameterFilter { $Method -eq 'Put' }
                 }
             }
         }

@@ -84,14 +84,14 @@ InModuleScope JiraPS {
                 }
             }
 
-            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Put' -and $URI -like "$jiraServer/rest/api/*/filter/*" } {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri', 'Body'
+            Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter { $Method -eq 'Put' -and $URI -like "$jiraServer/rest/api/*/filter/*" } {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri', 'Body'
                 ConvertFrom-Json $responseFilter
             }
 
-            Mock Invoke-JiraMethod -ModuleName JiraPS {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-                throw "Unidentified call to Invoke-JiraMethod"
+            Mock Invoke-JiraRequest -ModuleName JiraPS {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
+                throw "Unidentified call to Invoke-JiraRequest"
             }
             #endregion Mocks
         }
@@ -137,7 +137,7 @@ InModuleScope JiraPS {
                         Get-JiraFilter -Id 12844 | Set-JiraFilter @newData
                     } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
+                    Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                         $Method -eq 'Put' -and
                         $URI -like '*/rest/api/*/filter/12844' -and
                         $Body -match "`"name`":\s*`"newName`"" -and
@@ -155,7 +155,7 @@ InModuleScope JiraPS {
                         Get-JiraFilter -Id 12844 | Set-JiraFilter @newData
                     } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
+                    Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                         $Method -eq 'Put' -and
                         $URI -like '*/rest/api/*/filter/12844' -and
                         $Body -match "`"description`":\s*`"`""
@@ -165,7 +165,7 @@ InModuleScope JiraPS {
                 It "Skips the filter if no value was changed" {
                     { Get-JiraFilter -Id 12844 | Set-JiraFilter } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 0
+                    Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 0
                 }
             }
         }
@@ -182,7 +182,7 @@ InModuleScope JiraPS {
                     $arguments = @{ $parameter = $value }
                     Set-JiraFilter -InputObject (Get-JiraFilter '12844') @arguments -Confirm:$false
 
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
+                    Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                         $payload = ConvertFrom-Json -InputObject $Body
                         $Method -eq 'Put' -and $URI -like '*/rest/api/*/filter/12844' -and
                         @($payload.PSObject.Properties).Count -eq 1 -and
@@ -193,19 +193,19 @@ InModuleScope JiraPS {
                 It "accepts a filter object for the -InputObject parameter" {
                     { Set-JiraFilter -InputObject (Get-JiraFilter "12345") -Name "test" } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
+                    Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1
                 }
 
                 It "accepts a filter object without the -InputObject parameter" {
                     { Set-JiraFilter (Get-JiraFilter "12345") -Name "test" } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
+                    Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1
                 }
 
                 It "accepts a AtlassianPS.JiraPS.Filter object via pipeline" {
                     { Get-JiraFilter 12345, 12345 | Set-JiraFilter -Name "test" } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 2
+                    Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 2
                 }
             }
 

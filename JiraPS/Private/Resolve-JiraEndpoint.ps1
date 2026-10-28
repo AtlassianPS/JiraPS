@@ -31,7 +31,7 @@
         if ($Uri.AbsolutePath -ne '/') { throw 'Supply the normal Jira Cloud site origin.' }
         $discoveryUri = [Uri]($Uri.GetLeftPart('Authority') + '/_edge/tenant_info')
         try {
-            $tenant = Invoke-JiraMethod -Uri $discoveryUri -Discovery
+            $tenant = Invoke-JiraRequest -Uri $discoveryUri -Discovery
             $id = [Guid]::Empty
             if (-not $tenant.cloudId -or -not [Guid]::TryParse([String]$tenant.cloudId, [ref]$id) -or $id -eq [Guid]::Empty) {
                 throw 'Invalid cloudId response.'

@@ -68,7 +68,7 @@
                     Method = "DELETE"
                 }
                 Write-DebugMessage "Invoking JiraMethod with `$parameter"
-                if ($PSCmdlet.ShouldProcess($link.id, "Remove IssueLink")) { Invoke-JiraMethod -RequestContext $RequestContext @parameter }
+                if ($PSCmdlet.ShouldProcess($link.id, "Remove IssueLink")) { Invoke-JiraRequest -RequestContext $RequestContext @parameter }
             }
         }
         catch {

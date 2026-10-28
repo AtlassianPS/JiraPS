@@ -112,7 +112,7 @@
                 $typeTarget = if ($typedIssueLink.Type.Name) { $typedIssueLink.Type.Name }
                 else { $typedIssueLink.Type.Id }
                 $whatIfTarget = "$inwardTarget -[$typeTarget]-> $outwardTarget"
-                if ($PSCmdlet.ShouldProcess($whatIfTarget)) { Invoke-JiraMethod -RequestContext $RequestContext @parameter }
+                if ($PSCmdlet.ShouldProcess($whatIfTarget)) { Invoke-JiraRequest -RequestContext $RequestContext @parameter }
             }
         }
         catch {

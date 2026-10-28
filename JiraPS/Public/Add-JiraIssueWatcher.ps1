@@ -59,7 +59,7 @@
                     Body   = $watcherBody
                 }
                 Write-DebugMessage "Invoking JiraMethod with `$parameter"
-                if ($PSCmdlet.ShouldProcess($issueObj.Key, "Adding user '$_watcher' as watcher.")) { Invoke-JiraMethod -RequestContext $RequestContext @parameter }
+                if ($PSCmdlet.ShouldProcess($issueObj.Key, "Adding user '$_watcher' as watcher.")) { Invoke-JiraRequest -RequestContext $RequestContext @parameter }
             }
         }
         catch {

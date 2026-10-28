@@ -149,8 +149,8 @@ InModuleScope JiraPS {
                 Write-Output $jiraServer
             }
 
-            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $Uri -eq "/rest/api/2/field" } {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+            Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $Uri -eq "/rest/api/2/field" } {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
                 ConvertFrom-Json $restResult
             }
 
@@ -187,7 +187,7 @@ InModuleScope JiraPS {
                 $allResults | Should -Not -BeNullOrEmpty
                 @($allResults).Count | Should -Be @((ConvertFrom-Json -InputObject $restResult)).Count
 
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
+                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1
             }
 
             It "gets a specified field if a field ID is provided" {
@@ -268,18 +268,18 @@ InModuleScope JiraPS {
                 $script:JiraCache = @{}
             }
 
-            It "passes CacheKey to Invoke-JiraMethod" {
+            It "passes CacheKey to Invoke-JiraRequest" {
                 $null = Get-JiraField
 
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
+                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter {
                     $CacheKey -eq 'Fields'
                 }
             }
 
-            It "passes BypassCache to Invoke-JiraMethod when -Force is specified" {
+            It "passes BypassCache to Invoke-JiraRequest when -Force is specified" {
                 $null = Get-JiraField -Force
 
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
+                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter {
                     $BypassCache -eq $true
                 }
             }
@@ -287,7 +287,7 @@ InModuleScope JiraPS {
             It "passes -Force to nested Get-JiraField call when searching" {
                 $null = Get-JiraField -Field 'issuetype' -Force
 
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
+                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter {
                     $BypassCache -eq $true
                 }
             }

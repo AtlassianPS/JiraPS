@@ -1,9 +1,16 @@
 ﻿function New-JiraWebRequestSplat {
+    <#
+    .SYNOPSIS
+        Build an authenticated web request and encode structured JSON or raw payloads.
+    .DESCRIPTION
+        Strings use UTF-8 and byte arrays are sent unchanged.
+        File transfers retain the module's private multipart upload support.
+    #>
     [CmdletBinding()]
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute(
         'PSUseShouldProcessForStateChangingFunctions',
         '',
-        Justification = 'Private helper used internally by Invoke-JiraMethod; it does not perform an external side-effectful action itself.'
+        Justification = 'Private helper used internally by Invoke-JiraRequest; it does not perform an external side-effectful action itself.'
     )]
     param(
         [Parameter( Mandatory )]
@@ -22,11 +29,11 @@
         [AtlassianPS.Connection]
         $RequestContext,
 
-        [String]
+        [Object]
         $Body,
 
-        [Switch]
-        $RawBody,
+        [String]
+        $ContentType,
 
         [ValidateRange(0, [int]::MaxValue)]
         [Int]
@@ -55,19 +62,27 @@
 
     if ($TimeoutSec -gt 0) { $splatParameters["TimeoutSec"] = $TimeoutSec }
 
-    if ($Headers.ContainsKey("Content-Type")) {
-        $splatParameters["ContentType"] = $Headers["Content-Type"]
-        $splatParameters["Headers"].Remove("Content-Type")
-        $Headers.Remove("Content-Type")
+    $splatParameters['Headers'] = $Headers.Clone()
+    if ($ContentType -and $Headers.ContainsKey('Content-Type')) { throw 'Supply ContentType or the Content-Type header, not both.' }
+    if ($Headers.ContainsKey('Content-Type')) {
+        $ContentType = $Headers['Content-Type']
+        $splatParameters['Headers'].Remove('Content-Type')
     }
-    elseif ($Body) { $splatParameters["ContentType"] = $DefaultContentType }
+    $hasBody = $PSBoundParameters.ContainsKey('Body')
+    if (-not $ContentType -and $hasBody) { $ContentType = $DefaultContentType }
+    if ($ContentType) { $splatParameters['ContentType'] = $ContentType }
 
-    if ($Body) {
-        if ($RawBody) { $splatParameters["Body"] = $Body }
+    if ($hasBody) {
+        if ($Body -is [Byte[]]) { $splatParameters['Body'] = $Body }
         else {
-            # Encode Body to preserve special chars
-            # http://stackoverflow.com/questions/15290185/invoke-webrequest-issue-with-special-characters-in-json
-            $splatParameters["Body"] = [System.Text.Encoding]::UTF8.GetBytes($Body)
+            $text = if ($Body -is [String]) { $Body }
+            else {
+                if ($ContentType -notmatch '^application/(?:json|[\w.+-]+\+json)(?:\s*;|$)') {
+                    throw 'Structured Body values require a JSON ContentType. Supply a string or byte array for other formats.'
+                }
+                ConvertTo-Json -InputObject $Body -Depth 100 -Compress -ErrorAction Stop
+            }
+            $splatParameters['Body'] = [Text.Encoding]::UTF8.GetBytes($text)
         }
     }
 
@@ -76,7 +91,10 @@
     if ($authorization) { $splatParameters['Headers']['Authorization'] = $authorization }
 
     if ($InFile) { $splatParameters["InFile"] = $InFile }
-    if ($OutFile) { $splatParameters["OutFile"] = $OutFile }
+    if ($OutFile) {
+        $splatParameters['OutFile'] = $OutFile
+        $splatParameters['PassThru'] = $true
+    }
 
     $splatParameters
 }

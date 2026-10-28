@@ -55,7 +55,7 @@
         }
 
         Write-DebugMessage "Invoking JiraMethod with `$parameter"
-        Invoke-JiraMethod -RequestContext $RequestContext @parameter | ConvertTo-JiraCreateMetaField
+        Invoke-JiraRequest -RequestContext $RequestContext @parameter | ConvertTo-JiraCreateMetaField
     }
 
     end {

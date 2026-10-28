@@ -11,7 +11,7 @@
         $BypassCache,
 
         [String]
-        $CommandName = "Invoke-JiraMethod"
+        $CommandName = "Invoke-JiraRequest"
     )
 
     if (-not $CacheKey -or $Method -ne 'GET' -or $BypassCache) { return $null }

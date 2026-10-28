@@ -34,7 +34,7 @@
             Method = "GET"
         }
         Write-DebugMessage "Invoking JiraMethod with `$parameter"
-        $result = Invoke-JiraMethod -RequestContext $RequestContext @parameter
+        $result = Invoke-JiraRequest -RequestContext $RequestContext @parameter
 
         Write-DebugMessage ($result | Out-String)
 

@@ -52,7 +52,7 @@
                     Method = 'DELETE'
                 }
                 Write-DebugMessage "Invoking JiraMethod with `$parameter"
-                if ($PSCmdlet.ShouldProcess($filter.Name, "Deleting Filter")) { Invoke-JiraMethod -RequestContext $RequestContext @parameter }
+                if ($PSCmdlet.ShouldProcess($filter.Name, "Deleting Filter")) { Invoke-JiraRequest -RequestContext $RequestContext @parameter }
             }
         }
         catch {

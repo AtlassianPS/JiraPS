@@ -38,8 +38,8 @@ InModuleScope JiraPS {
 
             # If we don't override this in a context or test, we don't want it to
             # actually try to query a JIRA instance
-            Mock Invoke-JiraMethod -ModuleName JiraPS {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+            Mock Invoke-JiraRequest -ModuleName JiraPS {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
                 @{ Key = "TEST-01" }
             }
 
@@ -160,7 +160,7 @@ InModuleScope JiraPS {
                         -Priority $priority -Components $component, 'Frontend' -FixVersion $version, '1.2'
 
                     Should -Invoke Get-JiraPriorityOperation -ModuleName JiraPS -Exactly -Times 1 -Scope It
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
+                    Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
                         $payload = ConvertFrom-Json -InputObject $Body
                         $Method -eq 'POST' -and $URI -eq "/rest/api/$apiVersion/issue" -and
                         $payload.fields.priority.id -eq '2' -and
@@ -186,7 +186,7 @@ InModuleScope JiraPS {
 
                     New-JiraIssue -Project TEST -IssueType 1 -Summary 'Numeric version name' -FixVersion $version
 
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
+                    Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                         $payload = ConvertFrom-Json -InputObject $Body
                         $Method -eq 'POST' -and $URI -eq "/rest/api/$apiVersion/issue" -and
                         $payload.fields.fixVersions.Count -eq 1 -and
@@ -201,7 +201,7 @@ InModuleScope JiraPS {
                     New-JiraIssue @newParams
 
                     Should -Invoke Get-JiraPriorityOperation -ModuleName JiraPS -Exactly -Times 0 -Scope It
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
+                    Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
                         (ConvertFrom-Json -InputObject $Body).fields.priority.id -eq '1'
                     }
                 }
@@ -232,7 +232,7 @@ InModuleScope JiraPS {
                     $failure.Exception | Should -BeOfType [System.ArgumentException]
                     $failure.TargetObject.Name | Should -Be 'High'
                     $failure.Exception.Message | Should -BeLike '*Use Get-JiraPriority*'
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 0 -Scope It
+                    Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 0 -Scope It
                 }
 
                 It "stops when priority lookup fails before creating an issue" {
@@ -241,7 +241,7 @@ InModuleScope JiraPS {
                     { New-JiraIssue -Project TEST -IssueType 1 -Summary 'Lookup failure' -Priority High } |
                         Should -Throw -ExpectedMessage '*Priority lookup failed*'
 
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 0 -Scope It
+                    Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 0 -Scope It
                 }
             }
 
@@ -250,20 +250,20 @@ InModuleScope JiraPS {
                 # The String in the ParameterFilter is made from the keywords
                 # we should expect to see in the JSON that should be sent,
                 # including the summary provided in the test call above.
-                Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -ParameterFilter { $Method -eq 'Post' -and $URI -like "/rest/api/*/issue" }
+                Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Times 1 -ParameterFilter { $Method -eq 'Post' -and $URI -like "/rest/api/*/issue" }
             }
 
             It "defers required-field validation to Jira instead of client-side createmeta checks" {
                 { New-JiraIssue @newParams } | Should -Not -Throw
 
                 Should -Invoke -CommandName Get-JiraIssueCreateMetadataOperation -ModuleName JiraPS -Times 0
-                Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1
+                Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Times 1
             }
 
             It "populates components in the request body when -Components is supplied" {
                 { New-JiraIssue @newParams -Components '10001', '10002' } | Should -Not -Throw
 
-                Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -ParameterFilter {
+                Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Times 1 -ParameterFilter {
                     $Method -eq 'Post' -and
                     $Body -match '"components"' -and
                     $Body -match '10001' -and
@@ -274,7 +274,7 @@ InModuleScope JiraPS {
             It "populates components in the request body when the -Component short form is supplied" {
                 { New-JiraIssue @newParams -Component '10003', '10004' } | Should -Not -Throw
 
-                Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -ParameterFilter {
+                Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Times 1 -ParameterFilter {
                     $Method -eq 'Post' -and
                     $Body -match '"components"' -and
                     $Body -match '10003' -and
@@ -287,7 +287,7 @@ InModuleScope JiraPS {
                 # The String in the ParameterFilter is made from the keywords
                 # we should expect to see in the JSON that should be sent,
                 # including the summary provided in the test call above.
-                Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Times 1 -ParameterFilter { $Method -eq 'Post' -and $URI -like "/rest/api/*/issue" }
+                Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Times 1 -ParameterFilter { $Method -eq 'Post' -and $URI -like "/rest/api/*/issue" }
             }
 
             Context "New-JiraIssue handles duplicate fields" {
@@ -411,7 +411,7 @@ InModuleScope JiraPS {
             It "uses accountId for reporter on Cloud" {
                 { New-JiraIssue @newParams } | Should -Not -Throw
 
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly 1 -ParameterFilter {
+                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly 1 -ParameterFilter {
                     $Method -eq 'Post' -and
                     $Body -match 'accountId'
                 }
@@ -420,7 +420,7 @@ InModuleScope JiraPS {
             It "wraps -Description into an Atlassian Document Format document on Cloud" {
                 { New-JiraIssue @newParams } | Should -Not -Throw
 
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly 1 -ParameterFilter {
+                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly 1 -ParameterFilter {
                     $payload = $Body | ConvertFrom-Json
                     $payload.fields.description.type -eq 'doc' -and
                     $payload.fields.description.version -eq 1 -and
@@ -432,7 +432,7 @@ InModuleScope JiraPS {
             It "targets the v3 create-issue endpoint on Cloud" {
                 { New-JiraIssue @newParams } | Should -Not -Throw
 
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly 1 -ParameterFilter {
+                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly 1 -ParameterFilter {
                     $Method -eq 'Post' -and $URI -eq '/rest/api/3/issue'
                 }
             }
@@ -470,7 +470,7 @@ InModuleScope JiraPS {
                 { New-JiraIssue @paramsWithoutDescription -Fields @{ description = 'Hello via Fields' } } |
                     Should -Not -Throw
 
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly 1 -ParameterFilter {
+                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly 1 -ParameterFilter {
                     $payload = $Body | ConvertFrom-Json
                     $payload.fields.description.type -eq 'doc' -and
                     $payload.fields.description.content[0].content[0].text -eq 'Hello via Fields'
@@ -508,7 +508,7 @@ InModuleScope JiraPS {
                 { New-JiraIssue @newParams -Fields @{ CustomField = 'plain' } } |
                     Should -Not -Throw
 
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly 1 -ParameterFilter {
+                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly 1 -ParameterFilter {
                     $payload = $Body | ConvertFrom-Json
                     $payload.fields.CustomField -is [string] -and
                     $payload.fields.CustomField -eq 'plain'
@@ -524,7 +524,7 @@ InModuleScope JiraPS {
             It "sends -Description verbatim as a plain string" {
                 { New-JiraIssue @newParams } | Should -Not -Throw
 
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly 1 -ParameterFilter {
+                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly 1 -ParameterFilter {
                     $payload = $Body | ConvertFrom-Json
                     $payload.fields.description -is [string] -and
                     $payload.fields.description -eq 'Test description'
@@ -534,7 +534,7 @@ InModuleScope JiraPS {
             It "targets the v2 create-issue endpoint on Server / DC" {
                 { New-JiraIssue @newParams } | Should -Not -Throw
 
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly 1 -ParameterFilter {
+                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly 1 -ParameterFilter {
                     $Method -eq 'Post' -and $URI -eq '/rest/api/2/issue'
                 }
             }
@@ -565,7 +565,7 @@ InModuleScope JiraPS {
                 It "uses the 'name' field (not 'accountId') for the reporter on Server" {
                     { New-JiraIssue @newParams } | Should -Not -Throw
 
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly 1 -ParameterFilter {
+                    Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly 1 -ParameterFilter {
                         $Method -eq 'Post' -and
                         $Body -match '"name"\s*:\s*"testUsername"' -and
                         $Body -notmatch 'accountId'
@@ -642,7 +642,7 @@ InModuleScope JiraPS {
                 It "sends the assignee 'name' field on Server when -Assignee is used" {
                     { New-JiraIssue @newParams -Assignee 'alice' } | Should -Not -Throw
 
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly 1 -ParameterFilter {
+                    Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly 1 -ParameterFilter {
                         $Method -eq 'Post' -and
                         $Body -match '"assignee"\s*:\s*\{\s*"name"\s*:\s*"alice"\s*\}'
                     }
@@ -653,7 +653,7 @@ InModuleScope JiraPS {
                     # the helper takes care of the dispatch, this asserts the wire shape.
                     { New-JiraIssue @newParams -Unassign } | Should -Not -Throw
 
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly 1 -ParameterFilter {
+                    Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly 1 -ParameterFilter {
                         $Method -eq 'Post' -and
                         $Body -match '"assignee"\s*:\s*\{\s*"name"\s*:\s*null\s*\}'
                     }
@@ -679,7 +679,7 @@ InModuleScope JiraPS {
                 It "sends the 'accountId' field on Cloud when -Assignee is used" {
                     { New-JiraIssue @newParams -Assignee 'alice' } | Should -Not -Throw
 
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly 1 -ParameterFilter {
+                    Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly 1 -ParameterFilter {
                         # Anchor the assignee object to its braces so we can
                         # prove the payload is exactly {accountId: "..."}
                         # with no other properties (e.g. a stray "name").
@@ -692,7 +692,7 @@ InModuleScope JiraPS {
                 It "sends 'accountId: null' on Cloud when -Unassign is used" {
                     { New-JiraIssue @newParams -Unassign } | Should -Not -Throw
 
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly 1 -ParameterFilter {
+                    Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly 1 -ParameterFilter {
                         $Method -eq 'Post' -and
                         $Body -match '"assignee"\s*:\s*\{\s*"accountId"\s*:\s*null\s*\}' -and
                         $Body -notmatch '"assignee"\s*:\s*\{[^}]*"name"'
@@ -711,7 +711,7 @@ InModuleScope JiraPS {
                     # expose a -UseDefaultAssignee switch on New-JiraIssue.
                     { New-JiraIssue @newParams } | Should -Not -Throw
 
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly 1 -ParameterFilter {
+                    Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly 1 -ParameterFilter {
                         $Method -eq 'Post' -and
                         $Body -notmatch '"assignee"'
                     }
@@ -769,7 +769,7 @@ InModuleScope JiraPS {
 
                     { New-JiraIssue @newParams -Assignee $user } | Should -Not -Throw
 
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly 1 -ParameterFilter {
+                    Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly 1 -ParameterFilter {
                         $Body -match '"accountId"\s*:\s*"aaaa-bbbb-cccc"'
                     }
                 }
@@ -807,7 +807,7 @@ InModuleScope JiraPS {
                     Should -Not -Throw
 
                 Should -Invoke Get-JiraFieldOperation -ModuleName JiraPS -Exactly -Times 0
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -ParameterFilter {
+                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Times 1 -ParameterFilter {
                     $Body -match '"customfield_10001"'
                 }
             }
@@ -817,7 +817,7 @@ InModuleScope JiraPS {
                     Should -Not -Throw
 
                 Should -Invoke Get-JiraFieldOperation -ModuleName JiraPS -Exactly -Times 0
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -ParameterFilter {
+                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Times 1 -ParameterFilter {
                     $Body -match '"customfield_10001"'
                 }
             }

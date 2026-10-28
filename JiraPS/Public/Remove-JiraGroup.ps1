@@ -64,7 +64,7 @@
                     GetParameter = $getParameter
                 }
                 Write-DebugMessage "Invoking JiraMethod with `$parameter"
-                if ($PSCmdlet.ShouldProcess($target, "Remove group")) { Invoke-JiraMethod -RequestContext $RequestContext @parameter }
+                if ($PSCmdlet.ShouldProcess($target, "Remove group")) { Invoke-JiraRequest -RequestContext $RequestContext @parameter }
             }
         }
         catch {

@@ -104,7 +104,7 @@
                     Method = "GET"
                 }
                 Write-DebugMessage "Invoking JiraMethod with `$parameter"
-                $result = Invoke-JiraMethod -RequestContext $RequestContext @parameter
+                $result = Invoke-JiraRequest -RequestContext $RequestContext @parameter
 
                 if ($isCloud -and $result.accountId) {
                     Get-JiraUserOperation -AccountId $result.accountId -Exact -RequestContext $RequestContext
@@ -126,14 +126,14 @@
                         Method = "GET"
                     }
                     Write-DebugMessage "Invoking JiraMethod with `$parameter"
-                    if ($users = Invoke-JiraMethod -RequestContext $RequestContext @parameter) {
+                    if ($users = Invoke-JiraRequest -RequestContext $RequestContext @parameter) {
                         foreach ($item in $users) {
                             $parameter = @{
                                 URI    = "{0}&expand=groups" -f $item.self
                                 Method = "GET"
                             }
                             Write-DebugMessage "Invoking JiraMethod with `$parameter"
-                            $result = Invoke-JiraMethod -RequestContext $RequestContext @parameter
+                            $result = Invoke-JiraRequest -RequestContext $RequestContext @parameter
 
                             Write-Output (ConvertTo-JiraUser -InputObject $result)
                         }

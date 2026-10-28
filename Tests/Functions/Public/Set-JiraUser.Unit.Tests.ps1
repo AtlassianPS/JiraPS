@@ -47,14 +47,14 @@ InModuleScope JiraPS {
                 return $object
             }
 
-            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Put' -and $URI -eq "/rest/api/2/user?username=$testUsername" } {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+            Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter { $Method -eq 'Put' -and $URI -eq "/rest/api/2/user?username=$testUsername" } {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
                 ConvertFrom-Json $restResultGet
             }
 
-            Mock Invoke-JiraMethod -ModuleName JiraPS {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-                throw "Unidentified call to Invoke-JiraMethod"
+            Mock Invoke-JiraRequest -ModuleName JiraPS {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
+                throw "Unidentified call to Invoke-JiraRequest"
             }
             #endregion Mocks
         }
@@ -88,28 +88,28 @@ InModuleScope JiraPS {
             It "Accepts a username as a String to the -User parameter" {
                 { Set-JiraUser -User $testUsername -DisplayName $testDisplayNameChanged } | Should -Not -Throw
                 Should -Invoke Get-JiraUserOperation -ModuleName JiraPS -Exactly -Times 1
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
+                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1
             }
 
             It "Accepts a AtlassianPS.JiraPS.User object to the -User parameter" {
                 $user = Get-JiraUser -UserName $testUsername
                 { Set-JiraUser -User $user -DisplayName $testDisplayNameChanged } | Should -Not -Throw
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
+                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1
             }
 
             It "Accepts pipeline input from Get-JiraUser" {
                 { Get-JiraUser -UserName $testUsername | Set-JiraUser -DisplayName $testDisplayNameChanged } | Should -Not -Throw
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
+                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1
             }
 
             It "Modifies a user's DisplayName if the -DisplayName parameter is passed" {
                 { Set-JiraUser -User $testUsername -DisplayName $testDisplayNameChanged } | Should -Not -Throw
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
+                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1
             }
 
             It "Modifies a user's EmailAddress if the -EmailAddress parameter is passed" {
                 { Set-JiraUser -User $testUsername -EmailAddress $testEmailChanged } | Should -Not -Throw
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
+                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1
             }
 
             It "Provides no output if the -PassThru parameter is not passed" {
@@ -143,11 +143,11 @@ InModuleScope JiraPS {
                     return $object
                 }
 
-                Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
+                Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter {
                     $Method -eq 'Put' -and
                     $URI -like "/rest/api/2/user?accountId=*"
                 } {
-                    Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+                    Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
                     ConvertFrom-Json $restResultGet
                 }
             }
@@ -155,7 +155,7 @@ InModuleScope JiraPS {
             It "Uses accountId in the URI instead of username" {
                 { Set-JiraUser -User $testUsername -DisplayName $testDisplayNameChanged } | Should -Not -Throw
 
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
+                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                     $Method -eq 'Put' -and
                     $URI -like "*accountId=$testAccountId*"
                 }

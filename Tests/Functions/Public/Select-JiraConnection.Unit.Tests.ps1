@@ -16,7 +16,7 @@ InModuleScope JiraPS {
 
         BeforeEach {
             $script:previousDefault = Get-JiraConnection -Default
-            Mock Invoke-JiraMethod {
+            Mock Invoke-JiraRequest {
                 if ($Uri -eq '/rest/api/2/serverInfo') {
                     return [PSCustomObject]@{
                         version        = '11.0'

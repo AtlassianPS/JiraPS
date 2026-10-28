@@ -86,14 +86,14 @@ InModuleScope JiraPS {
                 }
             }
 
-            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Delete' -and $URI -like "$jiraServer/rest/api/*/filter/*" } {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+            Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter { $Method -eq 'Delete' -and $URI -like "$jiraServer/rest/api/*/filter/*" } {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
                 ConvertFrom-Json $responseFilter
             }
 
-            Mock Invoke-JiraMethod -ModuleName JiraPS {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-                throw "Unidentified call to Invoke-JiraMethod"
+            Mock Invoke-JiraRequest -ModuleName JiraPS {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
+                throw "Unidentified call to Invoke-JiraRequest"
             }
             #endregion Mocks
         }
@@ -143,7 +143,7 @@ InModuleScope JiraPS {
                     Remove-JiraFilter @arguments
 
                     Should -Invoke Get-JiraFilterOperation -Exactly -Times 1 -ParameterFilter { $InputObject.Id -eq 12844 }
-                    Should -Invoke Invoke-JiraMethod -Exactly -Times 1 -ParameterFilter {
+                    Should -Invoke Invoke-JiraRequest -Exactly -Times 1 -ParameterFilter {
                         $Method -eq 'DELETE' -and $URI -like '*/filter/12844'
                     }
                 }
@@ -155,7 +155,7 @@ InModuleScope JiraPS {
                     Should -Invoke Get-JiraFilterOperation -Exactly -Times 1 -ParameterFilter {
                         $RequestContext.Username -eq 'filter-owner' -and $ErrorAction -eq 'Stop'
                     }
-                    Should -Invoke Invoke-JiraMethod -Exactly -Times 1 -ParameterFilter { $RequestContext.Username -eq 'filter-owner' }
+                    Should -Invoke Invoke-JiraRequest -Exactly -Times 1 -ParameterFilter { $RequestContext.Username -eq 'filter-owner' }
                 }
 
                 It "does not delete any filters when a later array lookup fails through '<parameter>'" -TestCases @(
@@ -171,13 +171,13 @@ InModuleScope JiraPS {
                     { Remove-JiraFilter @arguments } | Should -Throw -ExpectedMessage '*Filter 67890 is not accessible*'
 
                     Should -Invoke Get-JiraFilterOperation -Exactly -Times 2
-                    Should -Invoke Invoke-JiraMethod -Exactly -Times 0 -ParameterFilter { $Method -eq 'DELETE' }
+                    Should -Invoke Invoke-JiraRequest -Exactly -Times 0 -ParameterFilter { $Method -eq 'DELETE' }
                 }
 
                 It "skips filter deletion under WhatIf" {
                     Remove-JiraFilter -Id 12844 -WhatIf
 
-                    Should -Invoke Invoke-JiraMethod -Exactly -Times 0
+                    Should -Invoke Invoke-JiraRequest -Exactly -Times 0
                 }
 
                 It "uses a complete typed filter without looking it up" {
@@ -189,20 +189,20 @@ InModuleScope JiraPS {
                     $filter | Remove-JiraFilter -Confirm:$false
 
                     Should -Invoke Get-JiraFilterOperation -Exactly -Times 0
-                    Should -Invoke Invoke-JiraMethod -Exactly -Times 1
+                    Should -Invoke Invoke-JiraRequest -Exactly -Times 1
                 }
 
                 It "deletes a filter based on one or more InputObjects" {
                     { Get-JiraFilter -Id 12844 | Remove-JiraFilter } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter { $Method -eq 'Delete' -and $URI -like '*/rest/api/*/filter/12844' }
+                    Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter { $Method -eq 'Delete' -and $URI -like '*/rest/api/*/filter/12844' }
                 }
 
                 It "deletes a filter based on one or more filter ids" {
                     { Remove-JiraFilter -Id 12844 } | Should -Not -Throw
 
                     Should -Invoke -CommandName Get-JiraFilterOperation -ModuleName JiraPS -Exactly -Times 1
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter { $Method -eq 'Delete' -and $URI -like '*/rest/api/*/filter/12844' }
+                    Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter { $Method -eq 'Delete' -and $URI -like '*/rest/api/*/filter/12844' }
                 }
             }
         }
@@ -212,43 +212,43 @@ InModuleScope JiraPS {
                 It "Accepts a filter object for the -InputObject parameter" {
                     { Remove-JiraFilter -InputObject (Get-JiraFilter "12345") } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
+                    Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1
                 }
 
                 It "Accepts a filter object without the -InputObject parameter" {
                     { Remove-JiraFilter (Get-JiraFilter "12345") } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
+                    Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1
                 }
 
                 It "Accepts multiple filter objects to the -Filter parameter" {
                     { Remove-JiraFilter -InputObject (Get-JiraFilter 12345, 12345) } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 2
+                    Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 2
                 }
 
                 It "Accepts a AtlassianPS.JiraPS.Filter object via pipeline" {
                     { Get-JiraFilter 12345, 12345 | Remove-JiraFilter } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 2
+                    Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 2
                 }
 
                 It "Accepts an ID of a filter" {
                     { Remove-JiraFilter -Id 12345 } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
+                    Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1
                 }
 
                 It "Accepts multiple IDs of filters" {
                     { Remove-JiraFilter -Id 12345, 12345 } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 2
+                    Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 2
                 }
 
                 It "Accepts multiple IDs of filters over the pipeline" {
                     { 12345, 12345 | Remove-JiraFilter } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 2
+                    Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 2
                 }
             }
 

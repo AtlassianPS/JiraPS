@@ -251,7 +251,7 @@ InModuleScope JiraPS {
             else { @{ PersonalAccessToken = 'sentinel-token' } }
             $candidate = AtlassianPS.Configuration\New-AtlassianConnectionContext -Name validation-probe -Product Jira -BaseUri https://jira.example.com @authentication
             try {
-                { Invoke-JiraMethod -Uri $Resource -Method $Method -RequestContext $candidate } | Should -Throw '*restricted*'
+                { Invoke-JiraRequest -Uri $Resource -Method $Method -RequestContext $candidate } | Should -Throw '*restricted*'
                 Should -Invoke Invoke-WebRequest -Exactly 0
             }
             finally { $candidate.Dispose() }

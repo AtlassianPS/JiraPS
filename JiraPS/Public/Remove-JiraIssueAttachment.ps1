@@ -68,7 +68,7 @@
                             Method = "DELETE"
                         }
                         Write-DebugMessage "Invoking JiraMethod with `$parameter"
-                        if ($PSCmdlet.ShouldProcess($thisUrl, "Removing an attachment")) { Invoke-JiraMethod -RequestContext $RequestContext @parameter }
+                        if ($PSCmdlet.ShouldProcess($thisUrl, "Removing an attachment")) { Invoke-JiraRequest -RequestContext $RequestContext @parameter }
                     }
                 }
                 "byIssue" {
@@ -97,7 +97,7 @@
                         }
                         Write-DebugMessage "Invoking JiraMethod with `$parameter"
                         if ($PSCmdlet.ShouldProcess($Issue.Key, "Removing attachment '$($attachment.FileName)'")) {
-                            Invoke-JiraMethod -RequestContext $RequestContext @parameter
+                            Invoke-JiraRequest -RequestContext $RequestContext @parameter
                         }
                     }
                 }

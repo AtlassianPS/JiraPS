@@ -190,6 +190,9 @@ New-JiraUser and Set-JiraUser use EmailAddress only for the user field.
 ## Low-level standalone requests
 
 Invoke-JiraMethod also supports an explicit endpoint and authentication for direct REST requests.
+Supply BaseUri and exactly one authentication method in the same call.
+Authentication inputs cannot be combined with Connection or ConnectionName.
+Standalone requests validate the authenticated myself endpoint and dispose their temporary connection without changing the default.
 
 ```powershell
 Invoke-JiraMethod -BaseUri 'https://jira.example.com/jira' -Uri '/rest/api/2/myself' -PersonalAccessToken $env:JIRA_PAT
@@ -212,7 +215,7 @@ Token inputs, ConnectionName and standalone endpoints belong on Connect-Jira or 
 | AtlassianPS.JiraPS.Session | Replaced by the shared AtlassianPS.Connection type |
 | Set-JiraConfigServer | Obsolete non-secret endpoint/profile adapter; persists through shared configuration rather than the installed module |
 | Credential-only request | Uses the live default, then a configured migration endpoint when no default exists |
-| Invoke-JiraMethod StoreSession | Obsolete; use Connect-Jira |
+| Invoke-JiraMethod StoreSession | Removed; use Connect-Jira |
 | Injected Authorization/Cookie headers or low-level authentication defaults | Rejected; configure authentication on Connect-Jira or use the existing Credential parameter |
 
 Repeated New-JiraSession calls do not replace an existing default unless Default is supplied.

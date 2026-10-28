@@ -3,7 +3,7 @@
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute(
         'PSUseShouldProcessForStateChangingFunctions',
         '',
-        Justification = 'Private helper used internally by Invoke-JiraMethod to update an in-memory cache; no interactive ShouldProcess flow is expected.'
+        Justification = 'Private helper used internally by Invoke-JiraRequest to update an in-memory cache; no interactive ShouldProcess flow is expected.'
     )]
     param(
         [String]
@@ -19,7 +19,7 @@
         $CacheExpiry = [TimeSpan]::FromHours(1),
 
         [String]
-        $CommandName = "Invoke-JiraMethod"
+        $CommandName = "Invoke-JiraRequest"
     )
 
     if (-not $CacheKey -or $Method -ne 'GET') { return }

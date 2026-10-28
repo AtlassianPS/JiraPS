@@ -217,13 +217,13 @@ InModuleScope JiraPS {
                 return $obj
             }
 
-            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $URI -like "/rest/api/*/issue/TEST-1?*" -and $Method -eq "Delete" } {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+            Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter { $URI -like "/rest/api/*/issue/TEST-1?*" -and $Method -eq "Delete" } {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
                 return $null
             }
 
-            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $URI -like "/rest/api/*/issue/TEST-2?deleteSubTasks=False" -and $Method -eq "Delete" } {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+            Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter { $URI -like "/rest/api/*/issue/TEST-2?deleteSubTasks=False" -and $Method -eq "Delete" } {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
                 $MockedResponse = @"
             {
                 "errorMessages": [
@@ -244,15 +244,15 @@ InModuleScope JiraPS {
                 $PSCmdlet.WriteError($errorItem)
             }
 
-            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $URI -like "/rest/api/*/issue/TEST-2?deleteSubTasks=True" -and $Method -eq "Delete" } {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+            Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter { $URI -like "/rest/api/*/issue/TEST-2?deleteSubTasks=True" -and $Method -eq "Delete" } {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
                 return $null
             }
 
             # Generic catch-all. This will throw an exception if we forgot to mock something.
-            Mock Invoke-JiraMethod -ModuleName JiraPS {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-                throw "Unidentified call to Invoke-JiraMethod"
+            Mock Invoke-JiraRequest -ModuleName JiraPS {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
+                throw "Unidentified call to Invoke-JiraRequest"
             }
             #endregion Mocks
         }
@@ -287,17 +287,17 @@ InModuleScope JiraPS {
                         $issue = Get-JiraIssue -Key TEST-1
                         Remove-JiraIssue -Issue $issue -Force
                     } | Should -Not -Throw
-                    Should -Invoke -CommandName Invoke-JiraMethod -Exactly -Times 1
+                    Should -Invoke -CommandName Invoke-JiraRequest -Exactly -Times 1
                 }
 
                 It "Accepts string-based input as a non-pipelined parameter" {
                     { Remove-JiraIssue -IssueId TEST-1 -Force } | Should -Not -Throw
-                    Should -Invoke -CommandName Invoke-JiraMethod -Exactly -Times 1
+                    Should -Invoke -CommandName Invoke-JiraRequest -Exactly -Times 1
                 }
 
                 It "Accepts a AtlassianPS.JiraPS.Issue object over the pipeline" {
                     { Get-JiraIssue -Key TEST-1 | Remove-JiraIssue -Force } | Should -Not -Throw
-                    Should -Invoke -CommandName Invoke-JiraMethod -Exactly -Times 1
+                    Should -Invoke -CommandName Invoke-JiraRequest -Exactly -Times 1
                 }
 
                 It "Writes an error on issues with subtasks" {
@@ -306,12 +306,12 @@ InModuleScope JiraPS {
                     $removeError | Should -Not -BeNullOrEmpty
                     $removeError[0].FullyQualifiedErrorId | Should -BeLike "ServerResponse*"
                     $removeError[0].ErrorDetails.Message | Should -BeLike "*has subtasks*"
-                    Should -Invoke -CommandName Invoke-JiraMethod -Exactly -Times 1
+                    Should -Invoke -CommandName Invoke-JiraRequest -Exactly -Times 1
                 }
 
                 It "Passes on issues with subtasks and -DeleteSubTasks" {
                     { Get-JiraIssue -Key TEST-2 | Remove-JiraIssue -IncludeSubTasks -Force } | Should -Not -Throw
-                    Should -Invoke -CommandName Invoke-JiraMethod -Exactly -Times 1
+                    Should -Invoke -CommandName Invoke-JiraRequest -Exactly -Times 1
                 }
             }
         }

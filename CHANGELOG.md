@@ -59,7 +59,10 @@ See the [authentication guide](docs/en-US/about_JiraPS_Authentication.md) for co
 - `New-JiraIssueLinkRequest` builds typed link requests from `-Type`, `-FromIssue`, and `-ToIssue`.
 - `ConvertTo-JiraTable` returns Jira wiki-markup table text.
   `Format-Jira` remains a deprecated exported alias.
-- `Invoke-JiraMethod` supports `-TimeoutSec` (default `100`; `0` disables the timeout), plus `-CacheKey`, `-CacheExpiry`, and `-BypassCache` for response caching. (#576)
+- `Invoke-JiraMethod` accepts structured JSON bodies, explicit `-ContentType`, query values through `-QueryParameter`, and `-RawResponse` for status, headers and content inspection.
+  `-OutFile` saves response bytes and returns `FileInfo`.
+  Explicit GET paging supports `-PageSize`, `-First`, `-Skip` and `-IncludeTotalCount`.
+  `-TimeoutSec` defaults to `100`; `0` disables the request timeout. (#576)
 - `Get-JiraField`, `Get-JiraIssueType`, `Get-JiraPriority`, and `Get-JiraServerInformation` cache responses and support `-Force` to refresh them.
   `Clear-JiraCache` clears cached responses by type. (#576)
 - `Set-JiraResponseHeaderLogConfiguration` enables debug logging for selected Jira response headers, and `Get-JiraResponseHeaderLogConfiguration` reports the active configuration. (#536)
@@ -71,6 +74,14 @@ See the [authentication guide](docs/en-US/about_JiraPS_Authentication.md) for co
 ### Changed
 
 - JiraPS uses AtlassianPS.Configuration for connection state, authentication and saved endpoint settings.
+- `Invoke-JiraMethod` uses only `-Uri` positionally and separates connection selection from standalone authentication with `-BaseUri`.
+  Existing connections retain their identity; per-call authentication overrides are rejected.
+  `-GetParameter` is now `-QueryParameter`, with array values represented as repeated query keys.
+  Ordinary requests no longer receive implicit pagination parameters.
+  Mutations and file output support `-WhatIf` and `-Confirm`; automatic retries apply only to GET, HEAD and OPTIONS.
+- Removed `Invoke-JiraMethod -StoreSession`, `-RawBody`, `-InFile`, `-OutputType`, public cache controls, and its `-Session` alias.
+  Use `Connect-Jira` for reusable authentication and `Add-JiraIssueAttachment` for multipart uploads.
+  Typed commands share one private transport; caching and typed conversion stay internal, and cached paging follows the same output path as fresh responses.
 - `New-JiraSession` preserves an existing default unless `-Default` is supplied.
   Session commands and connection commands manage the same connections.
 - `Set-JiraConfigServer` saves endpoint settings through shared configuration.
@@ -144,7 +155,6 @@ See the [authentication guide](docs/en-US/about_JiraPS_Authentication.md) for co
   Re-imports reuse loaded types and report incompatible partial type assemblies.
   Module packages must include the class source files, and hosts must permit `Add-Type` compilation.
 - Removed the custom JSON converter, legacy `Accept` header workaround, and BuildHelpers dependency.
-  Internal `Invoke-JiraMethod` parameters are hidden from tab completion.
 
 ## 2.16 - 2026-04-13
 

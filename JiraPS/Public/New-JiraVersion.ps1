@@ -106,7 +106,7 @@
             }
             Write-DebugMessage "Invoking JiraMethod with `$parameter"
             if ($PSCmdlet.ShouldProcess($Name, "Creating new Version on JIRA")) {
-                $result = Invoke-JiraMethod -RequestContext $RequestContext @parameter
+                $result = Invoke-JiraRequest -RequestContext $RequestContext @parameter
 
                 Write-Output (ConvertTo-JiraVersion -InputObject $result)
             }

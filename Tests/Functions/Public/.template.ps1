@@ -38,17 +38,17 @@ InModuleScope JiraPS {
             # TODO: Add a mock for every function used by the function under test
 
             # TODO: Adjust ParameterFilter to match the expected calls
-            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
+            Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter {
                 $Method -eq 'Post' -and $URI -like "$jiraServer/rest/api/*/filter/*/permission"
             } {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri', 'Body'
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri', 'Body'
                 ConvertFrom-Json $permissionJSON
             }
 
-            Mock Invoke-JiraMethod -ModuleName JiraPS {
+            Mock Invoke-JiraRequest -ModuleName JiraPS {
                 # Generic catch-all mock to identify unhandled calls
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-                throw "Unidentified call to Invoke-JiraMethod: $Method $URI"
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
+                throw "Unidentified call to Invoke-JiraRequest: $Method $URI"
             }
             #endregion Mocks
         }
@@ -111,10 +111,10 @@ InModuleScope JiraPS {
             }
 
             Context "invokes Jira API" {
-                It "calls Invoke-JiraMethod with correct parameters" {
+                It "calls Invoke-JiraRequest with correct parameters" {
                     { %FUNCTION-NAME% -Id 12844 -Type "Global" } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
+                    Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
                         $Method -eq 'Post' -and
                         $URI -like '*/rest/api/*/filter/12844/permission'
                     }
@@ -163,13 +163,13 @@ InModuleScope JiraPS {
 
                     { %FUNCTION-NAME% -%RESOURCE% $collection } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 5 -Scope It
+                    Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 5 -Scope It
                 }
 
                 It "can process a list" {
                     { %FUNCTION-NAME% -Id 1, 2, 3, 4, 5 } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 5 -Scope It
+                    Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 5 -Scope It
                 }
             }
         }

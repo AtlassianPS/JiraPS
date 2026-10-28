@@ -54,13 +54,13 @@ InModuleScope JiraPS {
                 $fullFilter
             }
 
-            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Delete' -and $URI -like "$jiraServer/rest/api/*/filter/*/permission*" } {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+            Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter { $Method -eq 'Delete' -and $URI -like "$jiraServer/rest/api/*/filter/*/permission*" } {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
             }
 
-            Mock Invoke-JiraMethod -ModuleName JiraPS {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-                throw "Unidentified call to Invoke-JiraMethod"
+            Mock Invoke-JiraRequest -ModuleName JiraPS {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
+                throw "Unidentified call to Invoke-JiraRequest"
             }
             #endregion Mocks
         }
@@ -95,13 +95,13 @@ InModuleScope JiraPS {
                     Should -Invoke Get-JiraFilterOperation -Exactly -Times 1 -ParameterFilter {
                         $RequestContext.Username -eq 'filter-owner' -and $ErrorAction -eq 'Stop'
                     }
-                    Should -Invoke Invoke-JiraMethod -Exactly -Times 1 -ParameterFilter { $RequestContext.Username -eq 'filter-owner' }
+                    Should -Invoke Invoke-JiraRequest -Exactly -Times 1 -ParameterFilter { $RequestContext.Username -eq 'filter-owner' }
                 }
 
                 It "does not delete permissions under WhatIf" {
                     Remove-JiraFilterPermission -Filter $fullFilter -WhatIf
 
-                    Should -Invoke Invoke-JiraMethod -Exactly -Times 0
+                    Should -Invoke Invoke-JiraRequest -Exactly -Times 0
                 }
 
                 It "uses a typed filter and permission without an extra filter lookup" {
@@ -114,7 +114,7 @@ InModuleScope JiraPS {
                     $filter | Remove-JiraFilterPermission -Permission $permission -Confirm:$false
 
                     Should -Invoke Get-JiraFilterOperation -Exactly -Times 0
-                    Should -Invoke Invoke-JiraMethod -Exactly -Times 1 -ParameterFilter { $URI -like '*/filter/12345/permission/1111' }
+                    Should -Invoke Invoke-JiraRequest -Exactly -Times 1 -ParameterFilter { $URI -like '*/filter/12345/permission/1111' }
                 }
 
                 It "preserves explicit permissions across pipeline filters with <parameterName>" -TestCases @(
@@ -131,11 +131,11 @@ InModuleScope JiraPS {
                     }
                     @($fullFilter, $basicFilter) | Remove-JiraFilterPermission @parameters
 
-                    Should -Invoke Invoke-JiraMethod -Exactly -Times 4
-                    Should -Invoke Invoke-JiraMethod -Exactly -Times 1 -ParameterFilter { $URI -like '*/filter/12345/permission/3333' }
-                    Should -Invoke Invoke-JiraMethod -Exactly -Times 1 -ParameterFilter { $URI -like '*/filter/12345/permission/4444' }
-                    Should -Invoke Invoke-JiraMethod -Exactly -Times 1 -ParameterFilter { $URI -like '*/filter/23456/permission/3333' }
-                    Should -Invoke Invoke-JiraMethod -Exactly -Times 1 -ParameterFilter { $URI -like '*/filter/23456/permission/4444' }
+                    Should -Invoke Invoke-JiraRequest -Exactly -Times 4
+                    Should -Invoke Invoke-JiraRequest -Exactly -Times 1 -ParameterFilter { $URI -like '*/filter/12345/permission/3333' }
+                    Should -Invoke Invoke-JiraRequest -Exactly -Times 1 -ParameterFilter { $URI -like '*/filter/12345/permission/4444' }
+                    Should -Invoke Invoke-JiraRequest -Exactly -Times 1 -ParameterFilter { $URI -like '*/filter/23456/permission/3333' }
+                    Should -Invoke Invoke-JiraRequest -Exactly -Times 1 -ParameterFilter { $URI -like '*/filter/23456/permission/4444' }
                 }
 
                 It "selects embedded permissions separately for each pipeline filter" {
@@ -146,14 +146,14 @@ InModuleScope JiraPS {
                     }
                     @($fullFilter, $otherFilter) | Remove-JiraFilterPermission -Confirm:$false
 
-                    Should -Invoke Invoke-JiraMethod -Exactly -Times 3
-                    Should -Invoke Invoke-JiraMethod -Exactly -Times 1 -ParameterFilter {
+                    Should -Invoke Invoke-JiraRequest -Exactly -Times 3
+                    Should -Invoke Invoke-JiraRequest -Exactly -Times 1 -ParameterFilter {
                         $URI -like '*/filter/12345/permission/1111'
                     }
-                    Should -Invoke Invoke-JiraMethod -Exactly -Times 1 -ParameterFilter {
+                    Should -Invoke Invoke-JiraRequest -Exactly -Times 1 -ParameterFilter {
                         $URI -like '*/filter/12345/permission/2222'
                     }
-                    Should -Invoke Invoke-JiraMethod -Exactly -Times 1 -ParameterFilter {
+                    Should -Invoke Invoke-JiraRequest -Exactly -Times 1 -ParameterFilter {
                         $URI -like '*/filter/23456/permission/5555'
                     }
                 }
@@ -161,13 +161,13 @@ InModuleScope JiraPS {
                 It "preserves zero permission IDs accepted by the former UInt32 parameter" {
                     Remove-JiraFilterPermission -Filter $basicFilter -PermissionId 0 -Confirm:$false
 
-                    Should -Invoke Invoke-JiraMethod -Exactly -Times 1 -ParameterFilter { $URI -like '*/filter/23456/permission/0' }
+                    Should -Invoke Invoke-JiraRequest -Exactly -Times 1 -ParameterFilter { $URI -like '*/filter/23456/permission/0' }
                 }
 
                 It "supports 64-bit permission IDs without truncating them" {
                     Remove-JiraFilterPermission -Filter $basicFilter -PermissionId '4294967296' -Confirm:$false
 
-                    Should -Invoke Invoke-JiraMethod -Exactly -Times 1 -ParameterFilter {
+                    Should -Invoke Invoke-JiraRequest -Exactly -Times 1 -ParameterFilter {
                         $URI -like '*/filter/23456/permission/4294967296'
                     }
                 }
@@ -180,7 +180,7 @@ InModuleScope JiraPS {
                     }
                     Remove-JiraFilterPermission -Filter $filter -Confirm:$false
 
-                    Should -Invoke Invoke-JiraMethod -Exactly -Times 1 -ParameterFilter { $URI -like '*/permission/0' }
+                    Should -Invoke Invoke-JiraRequest -Exactly -Times 1 -ParameterFilter { $URI -like '*/permission/0' }
                 }
 
                 It "Deletes Permission from Filter Object" {
@@ -188,11 +188,11 @@ InModuleScope JiraPS {
                         Get-JiraFilterPermission -Id 1 | Remove-JiraFilterPermission
                     } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
+                    Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                         $Method -eq 'Delete' -and
                         $URI -like '*/rest/api/*/filter/12345/permission/1111'
                     }
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
+                    Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                         $Method -eq 'Delete' -and
                         $URI -like '*/rest/api/*/filter/12345/permission/2222'
                     }
@@ -203,11 +203,11 @@ InModuleScope JiraPS {
                         Remove-JiraFilterPermission -FilterId 1 -PermissionId 3333, 4444
                     } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
+                    Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                         $Method -eq 'Delete' -and
                         $URI -like '*/rest/api/*/filter/23456/permission/3333'
                     }
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
+                    Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                         $Method -eq 'Delete' -and
                         $URI -like '*/rest/api/*/filter/23456/permission/4444'
                     }
@@ -234,12 +234,12 @@ InModuleScope JiraPS {
                 It "resolves positional parameters" {
                     { Remove-JiraFilterPermission 12345 1111 } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
+                    Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1
 
                     $filter = Get-JiraFilterPermission -Id 1
                     { Remove-JiraFilterPermission $filter } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 3
+                    Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 3
                 }
             }
 
@@ -252,7 +252,7 @@ InModuleScope JiraPS {
                     $permission = [AtlassianPS.JiraPS.FilterPermission]@{ Id = $permissionId }
                     { Remove-JiraFilterPermission -Filter $basicFilter -PermissionId $permission } | Should -Throw -ExpectedMessage '*non-negative numeric permission IDs*'
 
-                    Should -Invoke Invoke-JiraMethod -Exactly -Times 0
+                    Should -Invoke Invoke-JiraRequest -Exactly -Times 0
                 }
 
                 It "validates all explicit permissions before deleting any" -TestCases @(
@@ -268,7 +268,7 @@ InModuleScope JiraPS {
                     { Remove-JiraFilterPermission -Filter $basicFilter -Permission $permissions -Confirm:$false } |
                         Should -Throw -ExpectedMessage '*non-negative numeric permission IDs*' -ErrorId 'ParameterValue.InvalidFilterPermissionId*'
 
-                    Should -Invoke Invoke-JiraMethod -Exactly -Times 0
+                    Should -Invoke Invoke-JiraRequest -Exactly -Times 0
                 }
 
                 It "validates all embedded permissions before deleting any" -TestCases @(
@@ -286,7 +286,7 @@ InModuleScope JiraPS {
                     }
                     { Remove-JiraFilterPermission -Filter $filter } | Should -Throw -ExpectedMessage '*non-negative numeric permission IDs*' -ErrorId 'ParameterValue.InvalidFilterPermissionId*'
 
-                    Should -Invoke Invoke-JiraMethod -Exactly -Times 0
+                    Should -Invoke Invoke-JiraRequest -Exactly -Times 0
                 }
 
                 It "rejects null entries in embedded permission arrays before deleting any" {
@@ -297,7 +297,7 @@ InModuleScope JiraPS {
                     }
                     { Remove-JiraFilterPermission -Filter $filter } | Should -Throw -ExpectedMessage '*non-negative numeric permission IDs*'
 
-                    Should -Invoke Invoke-JiraMethod -Exactly -Times 0
+                    Should -Invoke Invoke-JiraRequest -Exactly -Times 0
                 }
 
                 It "uses a module argument error when the filter has no permissions" {
@@ -317,7 +317,7 @@ InModuleScope JiraPS {
                     { Remove-JiraFilterPermission -FilterId 1 -PermissionId -1111 } |
                         Should -Throw -ExpectedMessage '*non-negative numeric permission IDs*' -ErrorId 'ParameterValue.InvalidFilterPermissionId*'
 
-                    Should -Invoke Invoke-JiraMethod -Exactly -Times 0
+                    Should -Invoke Invoke-JiraRequest -Exactly -Times 0
                 }
 
                 It "can only process one FilterId" {

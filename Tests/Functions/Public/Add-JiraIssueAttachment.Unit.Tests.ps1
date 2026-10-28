@@ -69,15 +69,15 @@ InModuleScope JiraPS {
                 Get-JiraIssue -Key $InputObject.Key
             }
 
-            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Post' -and $URI -eq "$jiraServer/rest/api/2/issue/$issueKey/attachments" } {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+            Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter { $Method -eq 'Post' -and $URI -eq "$jiraServer/rest/api/2/issue/$issueKey/attachments" } {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
                 ConvertFrom-Json -InputObject $attachmentJson
             }
 
             # Generic catch-all. This will throw an exception if we forgot to mock something.
-            Mock Invoke-JiraMethod -ModuleName JiraPS {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-                throw "Unidentified call to Invoke-JiraMethod"
+            Mock Invoke-JiraRequest -ModuleName JiraPS {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
+                throw "Unidentified call to Invoke-JiraRequest"
             }
             #endregion Mocks
         }
@@ -123,14 +123,14 @@ InModuleScope JiraPS {
 
                 Should -Invoke 'Get-JiraIssueOperation' -ModuleName JiraPS -Exactly -Times 2
                 Should -Invoke 'Resolve-JiraIssueObject' -ModuleName JiraPS -Exactly -Times 1
-                Should -Invoke 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter { $Method -eq 'Post' } -Exactly -Times 1
-                Should -Invoke 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter { $Method -ne 'Post' } -Exactly -Times 0
+                Should -Invoke 'Invoke-JiraRequest' -ModuleName JiraPS -ParameterFilter { $Method -eq 'Post' } -Exactly -Times 1
+                Should -Invoke 'Invoke-JiraRequest' -ModuleName JiraPS -ParameterFilter { $Method -ne 'Post' } -Exactly -Times 0
             }
 
-            It 'uploads attachments via Invoke-JiraMethod -InFile' {
+            It 'uploads attachments via Invoke-JiraRequest -InFile' {
                 $null = Add-JiraIssueAttachment -Issue $issueKey -FilePath $filePath
 
-                Should -Invoke 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter {
+                Should -Invoke 'Invoke-JiraRequest' -ModuleName JiraPS -ParameterFilter {
                     $Method -eq 'Post' -and
                     $URI -eq "$jiraServer/rest/api/2/issue/$issueKey/attachments" -and
                     $InFile -eq $filePath -and

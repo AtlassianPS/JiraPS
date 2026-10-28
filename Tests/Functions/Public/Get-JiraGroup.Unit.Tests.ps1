@@ -77,19 +77,19 @@ InModuleScope JiraPS {
                 $object
             }
 
-            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
+            Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter {
                 $Method -eq 'Get' -and
                 $URI -eq '/rest/api/2/group/member' -and
                 $GetParameter['groupname'] -eq $testGroupName -and
                 $GetParameter['maxResults'] -eq 1
             } {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri', 'GetParameter'
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri', 'GetParameter'
                 ConvertFrom-Json -InputObject $restResult
             }
 
-            Mock Invoke-JiraMethod -ModuleName JiraPS {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-                throw "Unidentified call to Invoke-JiraMethod: $Method $URI"
+            Mock Invoke-JiraRequest -ModuleName JiraPS {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
+                throw "Unidentified call to Invoke-JiraRequest: $Method $URI"
             }
             #endregion Mocks
         }
@@ -125,7 +125,7 @@ InModuleScope JiraPS {
                     $getResult.Name | Should -Be $testGroupName
                     $getResult.Id | Should -Be $testGroupId
 
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
+                    Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                         $Method -eq 'Get' -and
                         $URI -eq '/rest/api/2/group/member' -and
                         $GetParameter['groupname'] -eq $testGroupName -and
@@ -145,20 +145,20 @@ InModuleScope JiraPS {
         Describe "Input Validation" {
             Context "Multiple Groups" {
                 It "can retrieve multiple groups" {
-                    Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
+                    Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter {
                         $Method -eq 'Get' -and
                         $URI -eq '/rest/api/2/group/member' -and
                         $GetParameter['groupname'] -and
                         $GetParameter['maxResults'] -eq 1
                     } {
-                        Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri', 'GetParameter'
+                        Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri', 'GetParameter'
                         ConvertFrom-Json -InputObject $restResult
                     }
 
                     $result = Get-JiraGroup -GroupName $testGroupName, 'Another Group'
                     $result | Should -HaveCount 2
 
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 2 -ParameterFilter {
+                    Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 2 -ParameterFilter {
                         $Method -eq 'Get' -and
                         $URI -eq '/rest/api/2/group/member' -and
                         $GetParameter['groupname'] -and
@@ -169,7 +169,7 @@ InModuleScope JiraPS {
 
             Context "Server Response Normalization" {
                 It "accepts a Data Center payload that only exposes groupName" {
-                    Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
+                    Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter {
                         $Method -eq 'Get' -and
                         $URI -eq '/rest/api/2/group/member' -and
                         $GetParameter['groupname'] -eq 'dc-group' -and
@@ -196,13 +196,13 @@ InModuleScope JiraPS {
                 BeforeAll {
                     Mock Test-JiraCloudServer -ModuleName JiraPS { $true }
 
-                    Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
+                    Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter {
                         $Method -eq 'Get' -and
                         $URI -eq '/rest/api/2/group/bulk' -and
                         $GetParameter['groupName'] -eq $testGroupName -and
                         $Paging
                     } {
-                        Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri', 'GetParameter'
+                        Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri', 'GetParameter'
                         (ConvertFrom-Json -InputObject $bulkRestResult).values[0]
                     }
                 }
@@ -214,7 +214,7 @@ InModuleScope JiraPS {
                     $getResult.Name | Should -Be $testGroupName
                     $getResult.Id | Should -Be $testGroupId
 
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
+                    Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                         $Method -eq 'Get' -and
                         $URI -eq '/rest/api/2/group/bulk' -and
                         $GetParameter['groupName'] -eq $testGroupName -and
@@ -223,13 +223,13 @@ InModuleScope JiraPS {
                 }
 
                 It "writes an error when the bulk endpoint returns no exact match" {
-                    Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
+                    Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter {
                         $Method -eq 'Get' -and
                         $URI -eq '/rest/api/2/group/bulk' -and
                         $GetParameter['groupName'] -eq 'missing-group' -and
                         $Paging
                     } {
-                        Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri', 'GetParameter'
+                        Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri', 'GetParameter'
                         @()
                     }
 
@@ -239,7 +239,7 @@ InModuleScope JiraPS {
 
             Context "Endpoint Fallback" {
                 It "writes an error when the Server group member endpoint returns no payload" {
-                    Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
+                    Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter {
                         $Method -eq 'Get' -and
                         $URI -eq '/rest/api/2/group/member' -and
                         $GetParameter['groupname'] -eq $testGroupName -and
@@ -250,7 +250,7 @@ InModuleScope JiraPS {
 
                     { Get-JiraGroup -GroupName $testGroupName -ErrorAction Stop } | Should -Throw -ExpectedMessage "*did not return a canonical group payload*"
 
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
+                    Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                         $Method -eq 'Get' -and
                         $URI -eq '/rest/api/2/group/member' -and
                         $GetParameter['groupname'] -eq $testGroupName -and
@@ -259,7 +259,7 @@ InModuleScope JiraPS {
                 }
 
                 It "returns other groups while writing a non-terminating error for a missing group" {
-                    Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
+                    Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter {
                         $Method -eq 'Get' -and
                         $URI -eq '/rest/api/2/group/member' -and
                         $GetParameter['groupname'] -eq 'missing-group' -and
@@ -280,7 +280,7 @@ InModuleScope JiraPS {
                 It "throws when the Cloud bulk endpoint returns 404" {
                     Mock Test-JiraCloudServer -ModuleName JiraPS { $true }
 
-                    Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
+                    Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter {
                         $Method -eq 'Get' -and
                         $URI -eq '/rest/api/2/group/bulk' -and
                         $GetParameter['groupName'] -eq $testGroupName -and
@@ -291,7 +291,7 @@ InModuleScope JiraPS {
 
                     { Get-JiraGroup -GroupName $testGroupName -ErrorAction Stop } | Should -Throw -ExpectedMessage '*Invalid Server Response*'
 
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
+                    Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                         $Method -eq 'Get' -and
                         $URI -eq '/rest/api/2/group/bulk' -and
                         $GetParameter['groupName'] -eq $testGroupName -and

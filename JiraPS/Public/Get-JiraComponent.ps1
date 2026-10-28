@@ -58,7 +58,7 @@
                             Method = "GET"
                         }
                         Write-DebugMessage "Invoking JiraMethod with `$parameter"
-                        $result = Invoke-JiraMethod -RequestContext $RequestContext @parameter
+                        $result = Invoke-JiraRequest -RequestContext $RequestContext @parameter
 
                         Write-Output (ConvertTo-JiraComponent -InputObject $result)
                     }
@@ -73,7 +73,7 @@
                             Method = "GET"
                         }
                         Write-DebugMessage "Invoking JiraMethod with `$parameter"
-                        $result = Invoke-JiraMethod -RequestContext $RequestContext @parameter
+                        $result = Invoke-JiraRequest -RequestContext $RequestContext @parameter
 
                         Write-Output (ConvertTo-JiraComponent -InputObject $result)
                     }

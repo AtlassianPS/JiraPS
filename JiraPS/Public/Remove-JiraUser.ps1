@@ -59,7 +59,7 @@
                 Method = "DELETE"
             }
             Write-DebugMessage "Invoking JiraMethod with `$parameter"
-            if ($PSCmdlet.ShouldProcess($userObj.DisplayName, 'Remove user')) { Invoke-JiraMethod -RequestContext $RequestContext @parameter }
+            if ($PSCmdlet.ShouldProcess($userObj.DisplayName, 'Remove user')) { Invoke-JiraRequest -RequestContext $RequestContext @parameter }
         }
         catch {
             if ($RequestContext -and $RequestContext.State -eq 'Standalone') { $RequestContext.Dispose() }

@@ -335,6 +335,39 @@ $issue.Status.Name.Substring(0, 3)
 
 ### Endpoint paths in `Invoke-JiraMethod`
 
+Only Uri supports positional binding.
+GetParameter was renamed to QueryParameter.
+Query values are supplied unencoded, and arrays become repeated query keys.
+Use explicit comma-separated strings where Jira expects comma-separated values.
+
+Structured Body values are serialized as JSON automatically.
+JSON strings are sent without additional serialization, strings use UTF-8, and byte arrays are sent unchanged.
+ContentType selects the request media type; RawBody was removed.
+
+```powershell
+# v2
+Invoke-JiraMethod -Uri '/rest/api/2/issue/TEST-1' -GetParameter @{ fields = 'summary,status' }
+
+# v3
+Invoke-JiraMethod '/rest/api/2/issue/TEST-1' -QueryParameter @{ fields = 'summary,status' }
+Invoke-JiraMethod '/rest/api/2/group' -Method Post -Body @{ name = 'release-reviewers' } -Connection $connection
+```
+
+Select a connection through Connection, ConnectionName or the default.
+Standalone authentication requires BaseUri with Credential, EmailAddress and ApiToken, PersonalAccessToken, or Anonymous.
+Authentication overrides on selected connections are no longer supported.
+
+Paging must be explicit, and First, Skip, IncludeTotalCount and PageSize require Paging.
+Automatic paging supports GET offset responses and enhanced-search GET tokens; manage body-based continuation explicitly.
+Skip is applied locally for token responses.
+RawResponse returns status, headers and content; OutFile saves bytes and returns FileInfo.
+Paging, RawResponse and OutFile are mutually exclusive response modes.
+
+StoreSession, InFile, OutputType and the public cache controls were removed.
+Use Connect-Jira for reusable connections and Add-JiraIssueAttachment for multipart uploads.
+Potential mutations and file output support WhatIf and Confirm.
+Automatic retries are limited to GET, HEAD and OPTIONS.
+
 In v3, JiraPS standardizes internal REST calls on relative endpoint paths that match Atlassian documentation (for example, `/rest/api/2/project`).
 `Invoke-JiraMethod` resolves those relative paths against the selected connection's API endpoint.
 Relative paths must start with `/`.

@@ -30,7 +30,7 @@
     try {
         $info = $null
         try {
-            $info = Invoke-JiraMethod -Uri '/rest/api/2/serverInfo' -RequestContext $candidate -ErrorAction Stop
+            $info = Invoke-JiraRequest -Uri '/rest/api/2/serverInfo' -RequestContext $candidate -ErrorAction Stop
         }
         catch {
             if ($_.FullyQualifiedErrorId -notmatch '^InvalidResponse\.Status(403|404|405)(,|$)') { throw }
@@ -72,7 +72,7 @@
         $username = $null
         $identityDeployment = $null
         if ($candidate.AuthenticationMode -ne 'Anonymous') {
-            $identity = Invoke-JiraMethod -Uri '/rest/api/2/myself' -RequestContext $candidate -ErrorAction Stop
+            $identity = Invoke-JiraRequest -Uri '/rest/api/2/myself' -RequestContext $candidate -ErrorAction Stop
             $hasAccountId = $identity.accountId -is [String] -and -not [String]::IsNullOrWhiteSpace($identity.accountId)
             $hasName = $identity.name -is [String] -and -not [String]::IsNullOrWhiteSpace($identity.name)
             if (-not $hasAccountId -and -not $hasName) { throw 'Jira did not validate the supplied identity.' }

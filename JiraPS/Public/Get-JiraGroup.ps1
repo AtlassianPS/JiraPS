@@ -53,7 +53,7 @@
                     }
 
                     Write-DebugMessage "Invoking JiraMethod with `$parameter"
-                    $result = Invoke-JiraMethod -RequestContext $RequestContext @parameter
+                    $result = Invoke-JiraRequest -RequestContext $RequestContext @parameter
 
                     $result = @($result | Where-Object { $_.name -eq $group })
 
@@ -76,7 +76,7 @@
                     }
 
                     Write-DebugMessage "Invoking JiraMethod with `$parameter"
-                    $result = Invoke-JiraMethod -RequestContext $RequestContext @parameter
+                    $result = Invoke-JiraRequest -RequestContext $RequestContext @parameter
 
                     if (-not $result) {
                         $message = "Jira did not return a canonical group payload for '$group'."

@@ -42,17 +42,17 @@ InModuleScope JiraPS {
                 Get-JiraIssue -Key $InputObject.Key
             }
 
-            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
+            Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter {
                 $Method -eq 'DELETE' -and
                 $URI -like "$jiraServer/rest/api/2/issue/$issueID/watchers?username=*"
             } {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Uri', 'Method'
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Uri', 'Method'
             }
 
             # Generic catch-all. This will throw an exception if we forgot to mock something.
-            Mock Invoke-JiraMethod -ModuleName JiraPS {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Uri', 'Method'
-                throw "Unidentified call to Invoke-JiraMethod"
+            Mock Invoke-JiraRequest -ModuleName JiraPS {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Uri', 'Method'
+                throw "Unidentified call to Invoke-JiraRequest"
             }
             #endregion Mocks
         }
@@ -88,8 +88,8 @@ InModuleScope JiraPS {
                     # Get-JiraIssue should be used to identify the issue parameter (called twice total)
                     Should -Invoke Get-JiraIssueOperation -ModuleName JiraPS -Exactly -Times 2
 
-                    # Invoke-JiraMethod should be used to remove the Watcher (called twice total)
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 2 -ParameterFilter {
+                    # Invoke-JiraRequest should be used to remove the Watcher (called twice total)
+                    Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 2 -ParameterFilter {
                         $Method -eq 'DELETE' -and
                         $URI -like "$jiraServer/rest/api/*/issue/$issueID/watchers*"
                     }
@@ -103,7 +103,7 @@ InModuleScope JiraPS {
 
                     # Get-JiraIssue called once in test, once inside Remove-JiraIssueWatcher
                     Should -Invoke Get-JiraIssueOperation -ModuleName JiraPS -Exactly -Times 2
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
+                    Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1
                 }
             }
         }
@@ -112,7 +112,7 @@ InModuleScope JiraPS {
             Context "Multiple Watchers" {
                 It "can remove multiple watchers" {
                     { Remove-JiraIssueWatcher -Watcher 'fred', 'george' -Issue $issueKey } | Should -Not -Throw
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 2
+                    Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 2
                 }
             }
         }
@@ -121,15 +121,15 @@ InModuleScope JiraPS {
             BeforeAll {
                 Mock Test-JiraCloudServer -ModuleName JiraPS { $true }
 
-                Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
+                Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter {
                     $Method -eq 'Delete' -and $URI -match 'accountId='
                 } {
-                    Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+                    Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
                 }
 
-                Mock Invoke-JiraMethod -ModuleName JiraPS {
-                    Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-                    throw "Unidentified call to Invoke-JiraMethod"
+                Mock Invoke-JiraRequest -ModuleName JiraPS {
+                    Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
+                    throw "Unidentified call to Invoke-JiraRequest"
                 }
             }
 
@@ -137,7 +137,7 @@ InModuleScope JiraPS {
                 $testAccountId = '5b10ac8d82e05b22cc7d4ef5'
                 { Remove-JiraIssueWatcher -Issue 'TEST-001' -Watcher $testAccountId } | Should -Not -Throw
 
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly 1 -ParameterFilter {
+                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly 1 -ParameterFilter {
                     $Method -eq 'Delete' -and $URI -match "accountId=$testAccountId"
                 }
             }

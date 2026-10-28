@@ -152,7 +152,7 @@
                         Method       = "GET"
                         GetParameter = @{ expand = "transitions.fields"; transitionId = "$transitionId" }
                     }
-                    $transitionMeta = (Invoke-JiraMethod -RequestContext $RequestContext @transitionMetaParam -Debug:$false).transitions |
+                    $transitionMeta = (Invoke-JiraRequest -RequestContext $RequestContext @transitionMetaParam -Debug:$false).transitions |
                         Where-Object { "$($_.id)" -eq "$transitionId" } |
                         Select-Object -First 1
                 }
@@ -210,7 +210,7 @@
                 Body   = ConvertTo-Json -InputObject $requestBody -Depth 20
             }
             Write-DebugMessage "Invoking JiraMethod with `$parameter"
-            Invoke-JiraMethod -RequestContext $RequestContext @parameter
+            Invoke-JiraRequest -RequestContext $RequestContext @parameter
 
             if ($Passthru) { Get-JiraIssueOperation -RequestContext $RequestContext $issueObj }
         }

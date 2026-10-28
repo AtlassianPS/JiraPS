@@ -95,7 +95,7 @@
                         Method = "GET"
                     }
                     Write-DebugMessage "Invoking JiraMethod with `$parameter"
-                    $result = Invoke-JiraMethod -RequestContext $RequestContext @parameter
+                    $result = Invoke-JiraRequest -RequestContext $RequestContext @parameter
 
                     Write-Output (ConvertTo-JiraVersion -InputObject $result)
                 }
@@ -123,7 +123,7 @@
                     }
 
                     Write-DebugMessage "Invoking JiraMethod with `$parameter"
-                    if ($result = Invoke-JiraMethod -RequestContext $RequestContext @parameter) {
+                    if ($result = Invoke-JiraRequest -RequestContext $RequestContext @parameter) {
                         $result | Where-Object {
                             $__ = $_.Name
                             Write-DebugMessage ($__ | Out-String)

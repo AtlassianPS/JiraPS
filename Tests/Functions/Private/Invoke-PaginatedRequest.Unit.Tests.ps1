@@ -23,7 +23,7 @@ InModuleScope JiraPS {
                     nextPageToken = 'page-2'
                     isLast        = $false
                 }
-                Mock Invoke-JiraMethod -ModuleName JiraPS {
+                Mock Invoke-JiraRequest -ModuleName JiraPS {
                     [PSCustomObject]@{
                         issues = @([PSCustomObject]@{ key = 'TEST-2' })
                         isLast = $true
@@ -35,7 +35,7 @@ InModuleScope JiraPS {
                 $result = @(Invoke-PaginatedRequest -URI "$jiraServer/rest/api/3/search/jql" -Response $tokenResponse)
 
                 ($result.key -join ',') | Should -Be 'TEST-1,TEST-2'
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
+                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
                     $GetParameter.nextPageToken -eq 'page-2' -and -not $GetParameter.ContainsKey('startAt')
                 }
             }
@@ -44,7 +44,7 @@ InModuleScope JiraPS {
                 $result = @(Invoke-PaginatedRequest -URI "$jiraServer/rest/api/3/search/jql" -Response $tokenResponse -First 1)
 
                 ($result.key -join ',') | Should -Be 'TEST-1'
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 0 -Scope It
+                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 0 -Scope It
             }
         }
 
@@ -61,7 +61,7 @@ InModuleScope JiraPS {
                     $container = @([PSCustomObject]@{ id = 'A' }, [PSCustomObject]@{ id = 'B' })
                 }
                 if ($hasTotal) { $shortPageResponse | Add-Member -NotePropertyName total -NotePropertyValue 3 }
-                Mock Invoke-JiraMethod -ModuleName JiraPS {
+                Mock Invoke-JiraRequest -ModuleName JiraPS {
                     if ($GetParameter.startAt -ne 2) { throw "Unexpected offset: $($GetParameter.startAt)" }
                     $page = [PSCustomObject]@{
                         startAt = 2; maxResults = 2
@@ -77,17 +77,17 @@ InModuleScope JiraPS {
 
                 ($result.id -join ',') | Should -Be 'A,B,C'
                 $result | Should -HaveCount 3
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
+                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
                     $GetParameter.startAt -eq 2 -and -not $GetParameter.ContainsKey('nextPageToken')
                 }
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1 -Scope It
             }
         }
 
         Describe "IncludeTotalCount with offset pagination" {
             BeforeAll {
                 $script:countItems = @('A', 'B', 'C', 'D', 'E') | ForEach-Object { [PSCustomObject]@{ id = $_ } }
-                Mock Invoke-JiraMethod -ModuleName JiraPS {
+                Mock Invoke-JiraRequest -ModuleName JiraPS {
                     $pageSize = if ($GetParameter.ContainsKey('maxResults')) { [Math]::Min(2, [int]$GetParameter.maxResults) }
                     else { 2 }
                     [PSCustomObject]@{
@@ -115,7 +115,7 @@ InModuleScope JiraPS {
                 $result[0].Accuracy | Should -Be 1.0
                 (@($result | Select-Object -Skip 1).id -join ',') | Should -Be $ids
                 @($result | Where-Object { $_ -is [uint64] }) | Should -HaveCount 1
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times $requests -Scope It
+                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times $requests -Scope It
             }
         }
 
@@ -125,7 +125,7 @@ InModuleScope JiraPS {
                     issues        = @([PSCustomObject]@{ key = 'A' }, [PSCustomObject]@{ key = 'B' })
                     nextPageToken = 'page-2'
                 }
-                Mock Invoke-JiraMethod -ModuleName JiraPS {
+                Mock Invoke-JiraRequest -ModuleName JiraPS {
                     $requestedTokens.Add([string]$GetParameter.nextPageToken)
                     switch ($GetParameter.nextPageToken) {
                         'page-2' {
@@ -149,9 +149,9 @@ InModuleScope JiraPS {
 
                 ($result.key -join ',') | Should -Be 'A,B,C,D,E'
                 $result | Should -HaveCount 5
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 2 -Scope It
+                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 2 -Scope It
                 ($requestedTokens -join ',') | Should -Be 'page-2,page-3'
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 2 -Scope It -ParameterFilter {
+                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 2 -Scope It -ParameterFilter {
                     -not $GetParameter.ContainsKey('startAt')
                 }
             }
@@ -161,10 +161,10 @@ InModuleScope JiraPS {
 
                 ($result.key -join ',') | Should -Be 'A,B,C'
                 $result | Should -HaveCount 3
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
+                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
                     $GetParameter.nextPageToken -eq 'page-2'
                 }
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1 -Scope It
             }
 
             It "reports an unknown total before limited token results when the API provides no total" {
@@ -174,12 +174,12 @@ InModuleScope JiraPS {
                 $result[0].Accuracy | Should -Be 0.0
                 (@($result | Select-Object -Skip 1).key -join ',') | Should -Be 'A,B,C'
                 @($result | Where-Object { $_ -is [uint64] }) | Should -HaveCount 1
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It
+                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1 -Scope It
             }
         }
 
         Describe "Null Response Handling" {
-            # When Invoke-JiraMethod returns null during pagination (auth failure,
+            # When Invoke-JiraRequest returns null during pagination (auth failure,
             # server error, etc.), the function should stop gracefully with a warning
             # instead of crashing with "Cannot bind argument to parameter 'InputObject'".
 
@@ -195,9 +195,9 @@ InModuleScope JiraPS {
                     total      = 10
                 }
 
-                # Mock Invoke-JiraMethod to return null on second call (simulating failure)
+                # Mock Invoke-JiraRequest to return null on second call (simulating failure)
                 $script:callCount = 0
-                Mock Invoke-JiraMethod -ModuleName JiraPS {
+                Mock Invoke-JiraRequest -ModuleName JiraPS {
                     $script:callCount++
                     if ($script:callCount -eq 1) {
                         return $null  # Simulates auth failure or server error
@@ -210,7 +210,7 @@ InModuleScope JiraPS {
                 $script:callCount = 0
             }
 
-            It "does not throw when Invoke-JiraMethod returns null" {
+            It "does not throw when Invoke-JiraRequest returns null" {
                 $params = @{
                     URI      = "$jiraServer/rest/api/2/search"
                     Method   = 'GET'
@@ -237,7 +237,7 @@ InModuleScope JiraPS {
             It "stops pagination and returns collected results" {
                 # First page has 2 issues, second call returns null
                 $script:pageCallCount = 0
-                Mock Invoke-JiraMethod -ModuleName JiraPS {
+                Mock Invoke-JiraRequest -ModuleName JiraPS {
                     $script:pageCallCount++
                     if ($script:pageCallCount -gt 1) { return $null }
                     return [PSCustomObject]@{

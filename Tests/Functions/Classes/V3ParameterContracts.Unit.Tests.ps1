@@ -27,8 +27,8 @@ InModuleScope JiraPS {
                     RestUrl = 'https://jira.example/rest/api/2/issue/1'
                 }
             }
-            Mock Invoke-JiraMethod -ModuleName JiraPS {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri', 'Body'
+            Mock Invoke-JiraRequest -ModuleName JiraPS {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri', 'Body'
             }
             Mock Get-JiraFilterOperation -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraFilter' 'InputObject', 'Credential'
@@ -67,7 +67,7 @@ InModuleScope JiraPS {
             }
             & $command @arguments
             $apiVersion = if ($cloud) { '3' } else { '2' }
-            Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Exactly -ParameterFilter {
+            Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Times 1 -Exactly -ParameterFilter {
                 $payload = $Body | ConvertFrom-Json
                 $Uri -eq "https://jira.example/rest/api/$apiVersion/issue/1/$suffix" -and
                 $payload.visibility.type -eq 'group' -and
@@ -97,19 +97,19 @@ InModuleScope JiraPS {
         ) {
             param($value)
             { Add-JiraIssueComment -Issue TEST-1 -Comment x -Visibility $value -ErrorAction Stop } | Should -Throw -ExpectedMessage '*Visibility*'
-            Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 0 -Exactly
+            Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Times 0 -Exactly
         }
 
         It 'binds a returned status by its ID rather than display name' {
             [AtlassianPS.JiraPS.Status]@{ Id = 7; Name = 'In progress' } | Get-JiraStatus
-            Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Exactly -ParameterFilter {
+            Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Times 1 -Exactly -ParameterFilter {
                 $Uri -eq 'https://jira.example.com/rest/api/latest/status/7'
             }
         }
 
         It 'binds project results by key rather than display name' {
             [AtlassianPS.JiraPS.Project]@{ Key = 'TEST'; Name = 'Project display name' } | Get-JiraProject
-            Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Exactly -ParameterFilter {
+            Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Times 1 -Exactly -ParameterFilter {
                 $Uri -like '/rest/api/2/project/TEST?*'
             }
         }
@@ -120,7 +120,7 @@ InModuleScope JiraPS {
                 [AtlassianPS.JiraPS.Project]@{ Id = '123'; Key = 'TEST' }
             }
             [AtlassianPS.JiraPS.Project]@{ Id = '123' } | Get-JiraVersion
-            Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Exactly -ParameterFilter {
+            Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Times 1 -Exactly -ParameterFilter {
                 $Uri -like '/rest/api/2/project/TEST/*'
             }
             Should -Invoke Get-JiraProjectOperation -ModuleName JiraPS -Times 1 -Exactly -ParameterFilter {
@@ -132,7 +132,7 @@ InModuleScope JiraPS {
             Remove-JiraRemoteLink -Issue TEST-1 -LinkId ([AtlassianPS.JiraPS.Link]@{
                     Id = 4294967296
                 }) -Confirm:$false
-            Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Exactly -ParameterFilter {
+            Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Times 1 -Exactly -ParameterFilter {
                 $Uri -eq '/rest/api/2/issue/TEST-1/remotelink/4294967296'
             }
         }
@@ -140,10 +140,10 @@ InModuleScope JiraPS {
         It 'accepts filter ID aliases and permission objects in positional calls' {
             Remove-JiraFilterPermission 10 ([AtlassianPS.JiraPS.FilterPermission]@{ Id = 20 }) -Confirm:$false
             Remove-JiraFilterPermission -FilterId 10 -PermissionId 21 -Confirm:$false
-            Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Exactly -ParameterFilter {
+            Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Times 1 -Exactly -ParameterFilter {
                 $Uri -eq 'https://jira.example/rest/api/2/filter/10/permission/20'
             }
-            Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Exactly -ParameterFilter {
+            Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Times 1 -Exactly -ParameterFilter {
                 $Uri -eq 'https://jira.example/rest/api/2/filter/10/permission/21'
             }
         }
@@ -158,7 +158,7 @@ InModuleScope JiraPS {
             }
             $legacy.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.Filter')
             $legacy | Remove-JiraFilterPermission -Confirm:$false
-            Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -Exactly -ParameterFilter {
+            Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Times 1 -Exactly -ParameterFilter {
                 $Uri -eq 'https://jira.example/rest/api/2/filter/10/permission/20'
             }
         }
@@ -169,7 +169,7 @@ InModuleScope JiraPS {
                 [AtlassianPS.JiraPS.Filter]@{ Id = '11'; RestUrl = 'https://jira.example/rest/api/2/filter/11' }
             ) | Remove-JiraFilter -Confirm:$false
             Remove-JiraFilter -Id 10, 11 -Confirm:$false
-            Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 4 -Exactly -ParameterFilter {
+            Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Times 4 -Exactly -ParameterFilter {
                 $Method -eq 'DELETE'
             }
         }

@@ -36,7 +36,7 @@
                     BypassCache = $Force
                 }
                 Write-DebugMessage "Invoking JiraMethod with `$parameter"
-                $result = Invoke-JiraMethod -RequestContext $RequestContext @parameter
+                $result = Invoke-JiraRequest -RequestContext $RequestContext @parameter
                 $allFields = ConvertTo-JiraField -InputObject $result
 
                 Write-Output $allFields

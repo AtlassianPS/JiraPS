@@ -16,7 +16,7 @@ InModuleScope JiraPS {
 
         BeforeEach {
             $script:previousDefault = Get-JiraConnection -Default
-            Mock Invoke-JiraMethod {
+            Mock Invoke-JiraRequest {
                 if ($Uri -eq '/rest/api/2/serverInfo') {
                     return [PSCustomObject]@{
                         version        = '11.0'
@@ -49,7 +49,7 @@ InModuleScope JiraPS {
 
         It 'rejects injected legacy headers before HTTP' {
             { New-JiraSession -Headers @{ Authorization = 'secret' } } | Should -Throw '*authentication*'
-            Should -Invoke Invoke-JiraMethod -Times 0 -Exactly
+            Should -Invoke Invoke-JiraRequest -Times 0 -Exactly
         }
     }
 }

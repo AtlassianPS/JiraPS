@@ -72,7 +72,7 @@
                 }
                 Write-DebugMessage "Invoking JiraMethod with `$parameter"
                 if ($PSCmdlet.ShouldProcess($InputObject.Name, "Update Filter")) {
-                    $result = Invoke-JiraMethod -RequestContext $RequestContext @parameter
+                    $result = Invoke-JiraRequest -RequestContext $RequestContext @parameter
 
                     Write-Output (ConvertTo-JiraFilter -InputObject $result)
                 }

@@ -1132,7 +1132,7 @@ InModuleScope JiraPS {
                     # from $InputObject.self, which broadcasts member-access
                     # across the array when -InputObject is bound directly
                     # with multiple issues (the path Get-JiraIssue uses for
-                    # ByJQL / ByFilter results from Invoke-JiraMethod).
+                    # ByJQL / ByFilter results from Invoke-JiraRequest).
                     # `(@($a.self, $b.self) -split 'rest')[0]` returns only
                     # the FIRST issue's prefix, so every issue in the batch
                     # silently inherited issue[0]'s server URL — issue B's

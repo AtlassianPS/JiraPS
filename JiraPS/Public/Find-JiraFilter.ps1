@@ -109,13 +109,13 @@
                     $parameter['GetParameter']['filterName'] = $_name
                     Write-DebugMessage "Invoking JiraMethod with `$parameter"
 
-                    Write-Output (Invoke-JiraMethod -RequestContext $RequestContext @parameter | ConvertTo-JiraFilter)
+                    Write-Output (Invoke-JiraRequest -RequestContext $RequestContext @parameter | ConvertTo-JiraFilter)
                 }
             }
             else {
                 Write-DebugMessage "Invoking JiraMethod with `$parameter"
 
-                Write-Output (Invoke-JiraMethod -RequestContext $RequestContext @parameter | ConvertTo-JiraFilter)
+                Write-Output (Invoke-JiraRequest -RequestContext $RequestContext @parameter | ConvertTo-JiraFilter)
             }
         }
         catch {

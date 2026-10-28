@@ -82,7 +82,7 @@
                     }
 
                     Write-DebugMessage "Invoking JiraMethod with `$parameter"
-                    $result = Invoke-JiraMethod -RequestContext $RequestContext @parameter
+                    $result = Invoke-JiraRequest -RequestContext $RequestContext @parameter
 
                     Write-Output (ConvertTo-JiraIssue -InputObject $result)
                 }
@@ -116,7 +116,7 @@
                 }
 
                 Write-DebugMessage "Invoking JiraMethod with `$parameter"
-                Invoke-JiraMethod -RequestContext $RequestContext @parameter
+                Invoke-JiraRequest -RequestContext $RequestContext @parameter
             }
             'ByFilter' {
                 $filterObj = (Get-JiraFilterOperation -Id $Filter.ID -RequestContext $RequestContext -ErrorAction Stop).SearchUrl
@@ -140,7 +140,7 @@
                 }
 
                 Write-DebugMessage "Invoking JiraMethod with `$parameter"
-                Invoke-JiraMethod -RequestContext $RequestContext @parameter
+                Invoke-JiraRequest -RequestContext $RequestContext @parameter
             }
         }
     }

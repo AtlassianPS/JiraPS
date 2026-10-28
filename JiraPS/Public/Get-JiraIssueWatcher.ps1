@@ -45,7 +45,7 @@
                     Method = "GET"
                 }
                 Write-DebugMessage "Invoking JiraMethod with `$parameter"
-                if ($result = Invoke-JiraMethod -RequestContext $RequestContext @parameter) { $result.watchers | ConvertTo-JiraUser }
+                if ($result = Invoke-JiraRequest -RequestContext $RequestContext @parameter) { $result.watchers | ConvertTo-JiraUser }
             }
         }
         catch {

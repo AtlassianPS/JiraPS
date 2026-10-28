@@ -243,7 +243,7 @@
             }
             Write-DebugMessage "Invoking JiraMethod with `$parameter"
             if ($PSCmdlet.ShouldProcess($Summary, "Creating new Issue on JIRA")) {
-                if ($result = Invoke-JiraMethod -RequestContext $RequestContext @parameter) {
+                if ($result = Invoke-JiraRequest -RequestContext $RequestContext @parameter) {
                     # REST result will look something like this:
                     # {"id":"12345","key":"IT-3676","self":"http://jiraserver.example.com/rest/api/2/issue/12345"}
                     # This will fetch the created issue to return it with all it'a properties

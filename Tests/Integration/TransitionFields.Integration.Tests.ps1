@@ -43,7 +43,7 @@ InModuleScope JiraPS {
             $script:issue = New-TemporaryTestIssue -Fixtures $fixtures -Summary (New-TestResourceName -Type 'TransitionFields')
             $createdIssues.Add($issue.Key)
 
-            $metadata = Invoke-JiraMethod -URI "$apiRoot/issue/$($issue.Key)/transitions" -GetParameter @{ expand = 'transitions.fields' } -ErrorAction Stop
+            $metadata = Invoke-JiraMethod -URI "$apiRoot/issue/$($issue.Key)/transitions" -QueryParameter @{ expand = 'transitions.fields' } -ErrorAction Stop
 
             # Data Center omits Cloud's hasScreen flag; expanded fields identify the screen.
             $compatible = @(foreach ($candidate in $metadata.transitions) {
@@ -131,7 +131,7 @@ InModuleScope JiraPS {
             $worklogs.Count | Should -Be 1
             $worklogs[0].TimeSpentSeconds | Should -Be 60
 
-            $raw = Invoke-JiraMethod -URI "$apiRoot/issue/$($issue.Key)" -GetParameter @{ fields = 'description' } -ErrorAction Stop
+            $raw = Invoke-JiraMethod -URI "$apiRoot/issue/$($issue.Key)" -QueryParameter @{ fields = 'description' } -ErrorAction Stop
             if ($fixtures.IsCloud) { $raw.fields.description.type | Should -Be 'doc' }
             else { $raw.fields.description | Should -Be $description }
         }

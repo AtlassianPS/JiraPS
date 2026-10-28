@@ -27,18 +27,18 @@ InModuleScope JiraPS {
                 Write-Output $jiraServer
             }
 
-            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
+            Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter {
                 $Method -eq 'POST' -and
                 $URI -eq "/rest/api/2/issueLink"
             } {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri', 'Body'
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri', 'Body'
                 return $true
             }
 
             # Generic catch-all. This will throw an exception if we forgot to mock something.
-            Mock Invoke-JiraMethod -ModuleName JiraPS {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri', 'Body'
-                throw "Unidentified call to Invoke-JiraMethod"
+            Mock Invoke-JiraRequest -ModuleName JiraPS {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri', 'Body'
+                throw "Unidentified call to Invoke-JiraRequest"
             }
             #endregion Mocks
         }
@@ -79,7 +79,7 @@ InModuleScope JiraPS {
             It 'Adds a new IssueLink' {
                 { Add-JiraIssueLink -IssueLink $issueLink } | Should -Not -Throw
 
-                Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
+                Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1
             }
 
             It "maps loose object payloads to key-based request JSON" {
@@ -91,7 +91,7 @@ InModuleScope JiraPS {
 
                 Add-JiraIssueLink -IssueLink $linkPayload
 
-                Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
+                Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                     $parsed = $Body | ConvertFrom-Json
                     $parsed.type.name -eq "Composition" -and
                     $parsed.inwardIssue.key -eq "TEST-01" -and
@@ -111,7 +111,7 @@ InModuleScope JiraPS {
 
                 Add-JiraIssueLink -IssueLink $linkPayload
 
-                Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
+                Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                     $parsed = $Body | ConvertFrom-Json
                     $parsed.type.id -eq "10000" -and
                     $parsed.inwardIssue.id -eq "10002" -and

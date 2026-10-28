@@ -56,7 +56,7 @@
                     Method = "DELETE"
                 }
                 Write-DebugMessage "Invoking JiraMethod with `$parameter"
-                if ($PSCmdlet.ShouldProcess($IssueObj.Key, "Removing watcher '$($watcherValue)'")) { Invoke-JiraMethod -RequestContext $RequestContext @parameter }
+                if ($PSCmdlet.ShouldProcess($IssueObj.Key, "Removing watcher '$($watcherValue)'")) { Invoke-JiraRequest -RequestContext $RequestContext @parameter }
             }
         }
         catch {

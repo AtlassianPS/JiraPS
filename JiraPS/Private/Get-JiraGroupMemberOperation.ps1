@@ -58,7 +58,7 @@
             }
 
             Write-DebugMessage "Invoking JiraMethod with `$parameter"
-            Invoke-JiraMethod -RequestContext $RequestContext @parameter
+            Invoke-JiraRequest -RequestContext $RequestContext @parameter
         }
     }
 

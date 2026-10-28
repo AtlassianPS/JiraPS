@@ -77,7 +77,7 @@
                 }
                 Write-DebugMessage "Invoking JiraMethod with `$parameter"
                 if ($PSCmdlet.ShouldProcess($IssueObj.Key, "Adding attachment '$($fileName)'.")) {
-                    $rawResult = Invoke-JiraMethod -RequestContext $RequestContext @parameter
+                    $rawResult = Invoke-JiraRequest -RequestContext $RequestContext @parameter
 
                     if ($PassThru) { Write-Output (ConvertTo-JiraAttachment -InputObject $rawResult) }
                 }

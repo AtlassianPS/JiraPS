@@ -40,14 +40,14 @@ InModuleScope JiraPS {
                 Get-JiraIssue -Key $InputObject.Key
             }
 
-            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'POST' -and $URI -eq "$jiraServer/rest/api/2/issue/$issueID/watchers" } {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+            Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter { $Method -eq 'POST' -and $URI -eq "$jiraServer/rest/api/2/issue/$issueID/watchers" } {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
             }
 
             # Generic catch-all. This will throw an exception if we forgot to mock something.
-            Mock Invoke-JiraMethod -ModuleName JiraPS {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-                throw "Unidentified call to Invoke-JiraMethod"
+            Mock Invoke-JiraRequest -ModuleName JiraPS {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
+                throw "Unidentified call to Invoke-JiraRequest"
             }
             #endregion Mocks
         }
@@ -93,8 +93,8 @@ InModuleScope JiraPS {
                 # Get-JiraIssue should be used to identify the issue parameter
                 Should -Invoke -CommandName Get-JiraIssueOperation -ModuleName JiraPS -Exactly -Times 1
 
-                # Invoke-JiraMethod should be used to add the Watcher
-                Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
+                # Invoke-JiraRequest should be used to add the Watcher
+                Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1
             }
         }
 
@@ -106,7 +106,7 @@ InModuleScope JiraPS {
 
                     # Get-JiraIssue should be called once here, and once inside Add-JiraIssueWatcher (to identify the InputObject parameter)
                     Should -Invoke -CommandName Get-JiraIssueOperation -ModuleName JiraPS -Exactly -Times 2
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
+                    Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1
                 }
             }
 
@@ -123,7 +123,7 @@ InModuleScope JiraPS {
                 $testAccountId = '5b10ac8d82e05b22cc7d4ef5'
                 { Add-JiraIssueWatcher -Issue 'TEST-001' -Watcher $testAccountId } | Should -Not -Throw
 
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly 1 -ParameterFilter {
+                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly 1 -ParameterFilter {
                     $Method -eq 'Post' -and $Body -eq (ConvertTo-Json -InputObject $testAccountId)
                 }
             }

@@ -98,7 +98,7 @@
         }
         Write-DebugMessage "Invoking JiraMethod with `$parameter"
         if ($PSCmdlet.ShouldProcess($IssueObj.Key, "Updating Issue labels")) {
-            Invoke-JiraMethod -RequestContext $RequestContext @parameter
+            Invoke-JiraRequest -RequestContext $RequestContext @parameter
 
             if ($PassThru) { Get-JiraIssueOperation -Key $issueObj.Key -RequestContext $RequestContext }
         }

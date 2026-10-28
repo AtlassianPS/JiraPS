@@ -43,7 +43,7 @@
                     Method = "GET"
                 }
                 Write-DebugMessage "Invoking JiraMethod with `$parameter"
-                $result = Invoke-JiraMethod -RequestContext $RequestContext @parameter
+                $result = Invoke-JiraRequest -RequestContext $RequestContext @parameter
 
                 Write-Output (ConvertTo-JiraIssueLinkType -InputObject $result)
             }
@@ -53,7 +53,7 @@
                     Method = "GET"
                 }
                 Write-DebugMessage "Invoking JiraMethod with `$parameter"
-                $result = Invoke-JiraMethod -RequestContext $RequestContext @parameter
+                $result = Invoke-JiraRequest -RequestContext $RequestContext @parameter
                 $allLinkTypes = ConvertTo-JiraIssueLinkType -InputObject $result.issueLinkTypes
 
                 if ($LinkType) { Write-Output ($allLinkTypes | Where-Object { $_.Name -like $LinkType.Name }) }

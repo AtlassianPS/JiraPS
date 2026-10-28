@@ -82,37 +82,37 @@ InModuleScope JiraPS {
             }
 
             # Return information of the current user
-            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $URI -like "*rest/api/*/myself" } {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+            Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $URI -like "*rest/api/*/myself" } {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
                 ConvertFrom-Json -InputObject $restResult
             }
 
             # Searching for a user.
-            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $URI -like "*rest/api/*/user/search?*username=$testUsername*" } {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+            Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $URI -like "*rest/api/*/user/search?*username=$testUsername*" } {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
                 ConvertFrom-Json -InputObject $restResult
             }
-            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $URI -like "*rest/api/*/user/search?*username=%*" } {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+            Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $URI -like "*rest/api/*/user/search?*username=%*" } {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
                 ConvertFrom-Json -InputObject $restResult
             }
 
             # Get exact user
-            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $URI -like "*rest/api/*/user?username=$testUsername" } {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+            Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $URI -like "*rest/api/*/user?username=$testUsername" } {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
                 ConvertFrom-Json -InputObject $restResult
             }
 
             # Viewing a specific user. The main difference here is that this includes groups, and the first does not.
-            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $URI -like "*rest/api/*/user?username=$testUsername&expand=groups" } {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+            Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $URI -like "*rest/api/*/user?username=$testUsername&expand=groups" } {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
                 ConvertFrom-Json -InputObject $restResult2
             }
 
             # Generic catch-all. This will throw an exception if we forgot to mock something.
-            Mock Invoke-JiraMethod -ModuleName JiraPS {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-                throw "Unidentified call to Invoke-JiraMethod"
+            Mock Invoke-JiraRequest -ModuleName JiraPS {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
+                throw "Unidentified call to Invoke-JiraRequest"
             }
             #endregion Mocks
         }
@@ -141,8 +141,8 @@ InModuleScope JiraPS {
 
                 $getResult | Should -Not -BeNullOrEmpty
 
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly 1 -ParameterFilter { $URI -like "*rest/api/*/myself" }
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly 1 -ParameterFilter { $URI -like "*rest/api/*/user?username=$testUsername&expand=groups" }
+                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly 1 -ParameterFilter { $URI -like "*rest/api/*/myself" }
+                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly 1 -ParameterFilter { $URI -like "*rest/api/*/user?username=$testUsername&expand=groups" }
             }
 
             It "Gets information about a provided Jira user" {
@@ -150,8 +150,8 @@ InModuleScope JiraPS {
 
                 $getResult | Should -Not -BeNullOrEmpty
 
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly 1 -ParameterFilter { $URI -like "*rest/api/*/user/search?*username=$testUsername*" }
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly 1 -ParameterFilter { $URI -like "*rest/api/*/user?username=$testUsername&expand=groups" }
+                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly 1 -ParameterFilter { $URI -like "*rest/api/*/user/search?*username=$testUsername*" }
+                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly 1 -ParameterFilter { $URI -like "*rest/api/*/user?username=$testUsername&expand=groups" }
             }
 
             It "Gets information about a provided Jira exact user" {
@@ -159,8 +159,8 @@ InModuleScope JiraPS {
 
                 $getResult | Should -Not -BeNullOrEmpty
 
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly 1 -ParameterFilter { $Method -eq 'Get' -and $URI -like "*rest/api/*/user?username=$testUsername" }
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly 1 -ParameterFilter { $URI -like "*rest/api/*/user?username=$testUsername&expand=groups" }
+                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly 1 -ParameterFilter { $Method -eq 'Get' -and $URI -like "*rest/api/*/user?username=$testUsername" }
+                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly 1 -ParameterFilter { $URI -like "*rest/api/*/user?username=$testUsername&expand=groups" }
             }
 
             It "Returns all available properties about the returned user object" {
@@ -173,7 +173,7 @@ InModuleScope JiraPS {
                 $getResult.DisplayName | Should -Be $restObj.displayName
                 $getResult.Active | Should -Be $restObj.active
 
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly 1 -ParameterFilter { $URI -like "*rest/api/*/user?username=$testUsername&expand=groups" }
+                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly 1 -ParameterFilter { $URI -like "*rest/api/*/user?username=$testUsername&expand=groups" }
             }
 
             It "Gets information for a provided Jira user if a AtlassianPS.JiraPS.User object is provided to the InputObject parameter" {
@@ -183,13 +183,13 @@ InModuleScope JiraPS {
                 $result2 | Should -Not -BeNullOrEmpty
                 $result2.Name | Should -Be $testUsername
 
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly 2 -ParameterFilter { $URI -like "*rest/api/*/user?username=$testUsername&expand=groups" }
+                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly 2 -ParameterFilter { $URI -like "*rest/api/*/user?username=$testUsername&expand=groups" }
             }
 
             It "Allow it search for multiple users" {
                 Get-JiraUser -UserName "%"
 
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly 1 -ParameterFilter {
+                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly 1 -ParameterFilter {
                     $URI -like "*rest/api/*/user/search?*username=%*"
                 }
             }
@@ -197,7 +197,7 @@ InModuleScope JiraPS {
             It "Allows to change the max number of users to be returned" {
                 Get-JiraUser -UserName "%" -MaxResults 100
 
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly 1 -ParameterFilter {
+                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly 1 -ParameterFilter {
                     $URI -like "*rest/api/*/user/search?*username=%*" -and
                     $URI -like "*rest/api/*/user/search?*maxResults=100*"
                 }
@@ -206,7 +206,7 @@ InModuleScope JiraPS {
             It "Can skip a certain amount of results" {
                 Get-JiraUser -UserName "%" -Skip 10
 
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly 1 -ParameterFilter {
+                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly 1 -ParameterFilter {
                     $URI -like "*rest/api/*/user/search?*username=%*" -and
                     $URI -like "*rest/api/*/user/search?*startAt=10*"
                 }
@@ -239,39 +239,39 @@ InModuleScope JiraPS {
 
                 $script:testAccountId = '5b10ac8d82e05b22cc7d4ef5'
 
-                Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
+                Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter {
                     $Method -eq 'Get' -and $URI -like "/rest/api/*/user/search?*query=*"
                 } {
-                    Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+                    Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
                     ConvertFrom-Json -InputObject $restResult
                 }
 
-                Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
+                Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter {
                     $Method -eq 'Get' -and $URI -like "/rest/api/*/user?accountId=*"
                 } {
-                    Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+                    Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
                     ConvertFrom-Json -InputObject $restResult2
                 }
 
-                Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
+                Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter {
                     $Method -eq 'Get' -and $URI -like "/rest/api/*/myself"
                 } {
-                    Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+                    Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
                     $obj = ConvertFrom-Json -InputObject $restResult
                     $obj | Add-Member -NotePropertyName 'accountId' -NotePropertyValue $testAccountId -Force
                     $obj
                 }
 
-                Mock Invoke-JiraMethod -ModuleName JiraPS {
-                    Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-                    throw "Unidentified call to Invoke-JiraMethod"
+                Mock Invoke-JiraRequest -ModuleName JiraPS {
+                    Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
+                    throw "Unidentified call to Invoke-JiraRequest"
                 }
             }
 
             It "uses query parameter instead of username for search on Cloud" {
                 Get-JiraUser -UserName $testUsername
 
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly 1 -ParameterFilter {
+                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly 1 -ParameterFilter {
                     $URI -like "*rest/api/*/user/search?*query=*"
                 }
             }
@@ -279,7 +279,7 @@ InModuleScope JiraPS {
             It "uses accountId for exact lookup on Cloud" {
                 Get-JiraUser -AccountId $testAccountId -Exact
 
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly 1 -ParameterFilter {
+                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly 1 -ParameterFilter {
                     $URI -like "*rest/api/*/user?accountId=$testAccountId*"
                 }
             }
@@ -287,10 +287,10 @@ InModuleScope JiraPS {
             It "re-fetches by accountId when using -Self on Cloud" {
                 Get-JiraUser
 
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly 1 -ParameterFilter {
+                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly 1 -ParameterFilter {
                     $URI -like "*rest/api/*/myself"
                 }
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly 1 -ParameterFilter {
+                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly 1 -ParameterFilter {
                     $URI -like "*rest/api/*/user?accountId=$testAccountId*"
                 }
             }

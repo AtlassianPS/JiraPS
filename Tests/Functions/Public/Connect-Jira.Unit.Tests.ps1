@@ -16,7 +16,7 @@ InModuleScope JiraPS {
 
         BeforeEach {
             $script:previousDefault = Get-JiraConnection -Default
-            Mock Invoke-JiraMethod {
+            Mock Invoke-JiraRequest {
                 if ($Uri -eq '/rest/api/2/serverInfo') {
                     return [PSCustomObject]@{
                         version        = '11.0'
@@ -70,7 +70,7 @@ InModuleScope JiraPS {
         }
 
         It 'does not register or change defaults after anonymous metadata with failed identity validation' {
-            Mock Invoke-JiraMethod {
+            Mock Invoke-JiraRequest {
                 [PSCustomObject]@{
                     version        = '11.0'
                     deploymentType = 'Server'
@@ -84,7 +84,7 @@ InModuleScope JiraPS {
         }
 
         It 'preserves metadata transport failures without registering a connection' {
-            Mock Invoke-JiraMethod { Write-Error 'Metadata transport failed.' }
+            Mock Invoke-JiraRequest { Write-Error 'Metadata transport failed.' }
             $before = (Get-JiraConnection -Default).InstanceId
 
             { Connect-Jira -Name contract-transport -Uri https://jira.example.com -Anonymous } | Should -Throw '*Metadata transport failed*'
@@ -97,11 +97,11 @@ InModuleScope JiraPS {
             { Connect-Jira -Name contract-invalid -Uri https://jira.example.com -PersonalAccessToken '' } | Should -Throw
             { Connect-Jira -Name contract-invalid -Uri https://jira.example.com -ApiToken token } | Should -Throw
             { Connect-Jira -Name contract-invalid -Uri https://jira.example.com -Anonymous -PersonalAccessToken token } | Should -Throw
-            Should -Invoke Invoke-JiraMethod -Times 0 -Exactly
+            Should -Invoke Invoke-JiraRequest -Times 0 -Exactly
         }
 
         It 'rejects wrong-product metadata before registration' {
-            Mock Invoke-JiraMethod { [PSCustomObject]@{ product = 'Confluence' } }
+            Mock Invoke-JiraRequest { [PSCustomObject]@{ product = 'Confluence' } }
 
             { Connect-Jira -Name contract-invalid -Uri https://jira.example.com -Anonymous } | Should -Throw '*Jira server information*'
         }

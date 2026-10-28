@@ -85,7 +85,7 @@
             }
             Write-DebugMessage "Invoking JiraMethod with `$parameter"
             if ($PSCmdlet.ShouldProcess($issueObj.Key)) {
-                $rawResult = Invoke-JiraMethod -RequestContext $RequestContext @parameter
+                $rawResult = Invoke-JiraRequest -RequestContext $RequestContext @parameter
 
                 Write-Output (ConvertTo-JiraComment -InputObject $rawResult)
             }

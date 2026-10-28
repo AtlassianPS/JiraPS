@@ -43,7 +43,7 @@ InModuleScope JiraPS {
         }
 
         It 'selects returned objects by ID when display names are duplicated' {
-            Mock Invoke-JiraMethod {
+            Mock Invoke-JiraRequest {
                 if ($Uri -like '*/field') {
                     ConvertFrom-Json '[{"id":"customfield_1","name":"Duplicate"},{"id":"customfield_2","name":"Duplicate"}]'
                 }

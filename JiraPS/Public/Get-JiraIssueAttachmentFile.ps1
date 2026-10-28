@@ -88,7 +88,7 @@
                     OutFile = $filename
                 }
 
-                $null = Invoke-JiraMethod -RequestContext $RequestContext @iwParameters
+                $null = Invoke-JiraRequest -RequestContext $RequestContext @iwParameters
                 Test-Path -LiteralPath $filename
             }
         }

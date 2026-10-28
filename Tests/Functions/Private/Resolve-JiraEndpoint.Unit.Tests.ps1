@@ -16,12 +16,12 @@ InModuleScope JiraPS {
 
     Describe 'Resolve-JiraEndpoint' -Tag Unit {
         It 'discovers the normal Cloud site without passing authentication' {
-            Mock Invoke-JiraMethod { [PSCustomObject]@{ cloudId = '11111111-1111-1111-1111-111111111111' } }
+            Mock Invoke-JiraRequest { [PSCustomObject]@{ cloudId = '11111111-1111-1111-1111-111111111111' } }
             $result = Resolve-JiraEndpoint -Uri https://site.atlassian.net -ApiToken
 
             $result.BaseUri.AbsoluteUri | Should -Be 'https://api.atlassian.com/ex/jira/11111111-1111-1111-1111-111111111111'
             $result.SiteUri.AbsoluteUri | Should -Be 'https://site.atlassian.net/'
-            Should -Invoke Invoke-JiraMethod -Exactly 1 -ParameterFilter {
+            Should -Invoke Invoke-JiraRequest -Exactly 1 -ParameterFilter {
                 $Discovery -and "$Uri" -eq 'https://site.atlassian.net/_edge/tenant_info' -and
                 -not $PSBoundParameters.ContainsKey('Headers') -and -not $PSBoundParameters.ContainsKey('Credential') -and
                 -not $PSBoundParameters.ContainsKey('ApiToken') -and -not $PSBoundParameters.ContainsKey('RequestContext')
@@ -34,23 +34,23 @@ InModuleScope JiraPS {
             @{ CloudId = '00000000-0000-0000-0000-000000000000' }
             @{ CloudId = 'https://foreign.example.com' }
         ) {
-            Mock Invoke-JiraMethod { [PSCustomObject]@{ cloudId = $CloudId } }
+            Mock Invoke-JiraRequest { [PSCustomObject]@{ cloudId = $CloudId } }
 
             { Resolve-JiraEndpoint -Uri https://site.atlassian.net -ApiToken } | Should -Throw -ExpectedMessage '*discovery failed*'
         }
 
         It 'fails closed when discovery fails' {
-            Mock Invoke-JiraMethod { throw 'Non-JSON or redirected response.' }
+            Mock Invoke-JiraRequest { throw 'Non-JSON or redirected response.' }
 
             { Resolve-JiraEndpoint -Uri https://site.atlassian.net -ApiToken } | Should -Throw -ExpectedMessage '*discovery failed*'
         }
 
         It 'accepts an explicit gateway without discovery' {
-            Mock Invoke-JiraMethod { throw 'Discovery must not run.' }
+            Mock Invoke-JiraRequest { throw 'Discovery must not run.' }
             $result = Resolve-JiraEndpoint -Uri https://api.atlassian.com/ex/jira/11111111-1111-1111-1111-111111111111 -ApiToken
 
             $result.CloudId | Should -Be '11111111-1111-1111-1111-111111111111'
-            Should -Invoke Invoke-JiraMethod -Times 0
+            Should -Invoke Invoke-JiraRequest -Times 0
         }
 
         It 'requires HTTPS for Cloud and permits explicit local Data Center HTTP' {

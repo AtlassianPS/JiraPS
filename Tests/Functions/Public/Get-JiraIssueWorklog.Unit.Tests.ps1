@@ -62,14 +62,14 @@ InModuleScope JiraPS {
                 Get-JiraIssue -Key $InputObject.Key
             }
 
-            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $URI -eq "$jiraServer/rest/api/2/issue/$issueID/worklog" } {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+            Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $URI -eq "$jiraServer/rest/api/2/issue/$issueID/worklog" } {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
                 (ConvertFrom-Json -InputObject $restResult).worklogs
             }
 
-            Mock Invoke-JiraMethod -ModuleName JiraPS {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-                throw "Unidentified call to Invoke-JiraMethod"
+            Mock Invoke-JiraRequest -ModuleName JiraPS {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
+                throw "Unidentified call to Invoke-JiraRequest"
             }
             #endregion Mocks
         }
@@ -101,7 +101,7 @@ InModuleScope JiraPS {
 
                     # Normally, this would be called once in Get-JiraIssue and a second time in Get-JiraIssueComment, but
                     # since we've mocked Get-JiraIssue out, it will only be called once.
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
+                    Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1
                 }
 
                 It "Obtains all Jira worklogs from a Jira issue if the Jira object is provided" {
@@ -111,7 +111,7 @@ InModuleScope JiraPS {
                     $worklogs | Should -Not -BeNullOrEmpty
                     $worklogs.ID | Should -Be 90730
 
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
+                    Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1
                 }
 
                 It "Handles pipeline input from Get-JiraIssue" {
@@ -120,7 +120,7 @@ InModuleScope JiraPS {
                     $worklogs | Should -Not -BeNullOrEmpty
                     $worklogs.ID | Should -Be 90730
 
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
+                    Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1
                 }
             }
         }

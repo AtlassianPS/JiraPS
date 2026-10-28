@@ -67,15 +67,15 @@ InModuleScope JiraPS {
                 return $object
             }
 
-            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'DELETE' } {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+            Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter { $Method -eq 'DELETE' } {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
                 # This REST method should produce no output
             }
 
             # Generic catch-all. This will throw an exception if we forgot to mock something.
-            Mock Invoke-JiraMethod -ModuleName JiraPS {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-                throw "Unidentified call to Invoke-JiraMethod"
+            Mock Invoke-JiraRequest -ModuleName JiraPS {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
+                throw "Unidentified call to Invoke-JiraRequest"
             }
             #endregion Mocks
         }
@@ -106,30 +106,30 @@ InModuleScope JiraPS {
             Context "Remote Link Deletion" {
                 It "Accepts a issue key to the -Issue parameter" {
                     { Remove-JiraRemoteLink -Issue $testIssueKey -LinkId 10000 -Force } | Should -Not -Throw
-                    Should -Invoke -CommandName Invoke-JiraMethod -Exactly -Times 1
+                    Should -Invoke -CommandName Invoke-JiraRequest -Exactly -Times 1
                 }
 
                 It "Accepts a AtlassianPS.JiraPS.Issue object to the -Issue parameter" {
                     $Issue = Get-JiraIssue $testIssueKey
                     { Remove-JiraRemoteLink -Issue $Issue -LinkId 10000 -Force } | Should -Not -Throw
-                    Should -Invoke -CommandName Invoke-JiraMethod -Exactly -Times 1
+                    Should -Invoke -CommandName Invoke-JiraRequest -Exactly -Times 1
                 }
 
                 It "Accepts pipeline input from Get-JiraIssue" {
                     { Get-JiraIssue $testIssueKey | Remove-JiraRemoteLink -LinkId 10000 -Force } | Should -Not -Throw
-                    Should -Invoke -CommandName Invoke-JiraMethod -Exactly -Times 1
+                    Should -Invoke -CommandName Invoke-JiraRequest -Exactly -Times 1
                 }
 
                 It "Accepts the output of Get-JiraRemoteLink" {
                     $issue = [AtlassianPS.JiraPS.Issue]@{ Key = $testIssueKey }
                     $remoteLink = Get-JiraRemoteLink $issue
                     { Remove-JiraRemoteLink -Issue $issue -LinkId $remoteLink.id -Force } | Should -Not -Throw
-                    Should -Invoke -CommandName Invoke-JiraMethod -Exactly -Times 1
+                    Should -Invoke -CommandName Invoke-JiraRequest -Exactly -Times 1
                 }
 
                 It "Removes a group from JIRA" {
                     { Remove-JiraRemoteLink -Issue $testIssueKey -LinkId 10000 -Force } | Should -Not -Throw
-                    Should -Invoke -CommandName Invoke-JiraMethod -Exactly -Times 1
+                    Should -Invoke -CommandName Invoke-JiraRequest -Exactly -Times 1
                 }
 
                 It "Provides no output" {
