@@ -659,7 +659,7 @@ namespace AtlassianPS.JiraPS
         protected override bool ShouldMapLegacyObject(System.Management.Automation.PSObject pso)
         {
             return base.ShouldMapLegacyObject(pso) ||
-                (AllowCollection && pso.Properties["Key"] != null);
+                (AllowCollection && (pso.Properties["Key"] != null || pso.Properties["Id"] != null));
         }
 
         protected override object MapLegacyObject(System.Management.Automation.PSObject pso)
@@ -667,7 +667,8 @@ namespace AtlassianPS.JiraPS
             var issue = new Issue();
             if (AllowCollection && !base.ShouldMapLegacyObject(pso))
             {
-                return FromString(pso.Properties["Key"].Value as string);
+                var identifier = pso.Properties["Key"] ?? pso.Properties["Id"];
+                return FromString(System.Management.Automation.LanguagePrimitives.ConvertTo<string>(identifier.Value));
             }
             foreach (var prop in pso.Properties)
             {

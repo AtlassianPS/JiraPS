@@ -304,6 +304,21 @@ InModuleScope JiraPS {
                     }
                 }
 
+                It 'retrieves an issue from a piped Id property: <Identifier>' -ForEach @(
+                    @{ Identifier = '41701' }
+                    @{ Identifier = 41701 }
+                ) {
+                    Mock Invoke-JiraRequest -ParameterFilter { $Method -eq 'Get' -and $Uri.OriginalString -eq '/rest/api/2/issue/41701' } {
+                        ConvertFrom-Json $response
+                    }
+
+                    [PSCustomObject]@{ Id = $Identifier } | Get-JiraIssue -ErrorAction Stop | Should -Not -BeNullOrEmpty
+
+                    Should -Invoke Invoke-JiraRequest -Exactly 1 -ParameterFilter {
+                        $Method -eq 'Get' -and $Uri.OriginalString -eq '/rest/api/2/issue/41701'
+                    }
+                }
+
                 It "Processes multiple issues via pipeline" {
                     $issues = @(
                         [PSCustomObject]@{ Key = 'TEST-001' }
