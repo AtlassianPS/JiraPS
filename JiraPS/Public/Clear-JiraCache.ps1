@@ -3,7 +3,7 @@
     [CmdletBinding()]
     param(
         [Parameter()]
-        [ValidateSet('All', 'Fields', 'IssueTypes', 'Priorities', 'Statuses', 'ServerInfo')]
+        [ValidateSet('All', 'Fields', 'IssueTypes', 'IssueLinkTypes', 'Priorities', 'Statuses', 'ServerInfo')]
         [string]$Type = 'All'
     )
 

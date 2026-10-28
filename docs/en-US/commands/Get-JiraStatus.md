@@ -17,13 +17,13 @@ Returns issue status information from Jira.
 ### _All (Default)
 
 ```powershell
-Get-JiraStatus [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
+Get-JiraStatus [-Refresh] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 
 ### _Search
 
 ```powershell
-Get-JiraStatus [-Status] <AtlassianPS.JiraPS.Status[]> [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
+Get-JiraStatus [-Status] <AtlassianPS.JiraPS.Status[]> [-Refresh] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -31,6 +31,9 @@ Get-JiraStatus [-Status] <AtlassianPS.JiraPS.Status[]> [-Connection <AtlassianPS
 This function returns Jira status objects.
 Use it to retrieve all available statuses or to query one or more statuses by ID or name.
 `-IdOrName` is provided as an alias for `-Status`.
+
+Responses are cached for one hour per connection and resource.
+Use `-Refresh` to fetch fresh data and replace the cached response.
 
 ## EXAMPLES
 
@@ -57,6 +60,14 @@ Get-JiraStatus -Status Open
 ```
 
 Returns the status named Open.
+
+### Example 4: Refresh metadata after a Jira configuration change
+
+```powershell
+Get-JiraStatus -Status Open -Refresh
+```
+
+Fetches the current metadata and replaces the cached response for this lookup.
 
 ## PARAMETERS
 
@@ -100,6 +111,27 @@ ParameterSets:
   Position: 0
   IsRequired: true
   ValueFromPipeline: true
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -Refresh
+
+Fetch fresh data and replace the selected connection's cached response for the requested resource.
+
+```yaml
+Type: SwitchParameter
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
   ValueFromPipelineByPropertyName: false
   ValueFromRemainingArguments: false
 DontShow: false

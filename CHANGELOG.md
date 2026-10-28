@@ -74,8 +74,9 @@ See the [authentication guide](docs/en-US/about_JiraPS_Authentication.md) for co
   `-OutFile` saves response bytes and returns `FileInfo`.
   Explicit GET paging supports `-PageSize`, `-First`, `-Skip` and `-IncludeTotalCount`.
   `-TimeoutSec` defaults to `100`; `0` disables the request timeout. (#576)
-- `Get-JiraField`, `Get-JiraIssueType`, `Get-JiraPriority`, and `Get-JiraServerInformation` cache responses and support `-Refresh` to refresh them.
-  `Clear-JiraCache` clears cached responses by type. (#576)
+- `Get-JiraField`, `Get-JiraIssueType`, `Get-JiraIssueLinkType`, `Get-JiraPriority`, `Get-JiraStatus`, and `Get-JiraServerInformation` cache responses and support `-Refresh`.
+  Metadata responses expire after one hour; server information expires after five minutes.
+  `Clear-JiraCache` clears cached responses by type, including `IssueLinkTypes`. (#576)
 - `Set-JiraResponseHeaderLogConfiguration` enables debug logging for selected Jira response headers, and `Get-JiraResponseHeaderLogConfiguration` reports the active configuration. (#536)
 - Identifier-based constructors and hashtable initialization are supported for `Issue`, `User`, `Project`, `Group`, `Filter`, and `Version` objects.
   These types support equality, hashing, and sorting by their canonical identifiers; objects without identifiers remain distinct.
@@ -127,6 +128,9 @@ See the [authentication guide](docs/en-US/about_JiraPS_Authentication.md) for co
 
 - `Disconnect-Jira` removes that connection's cached responses while switching between active connections preserves their caches.
   Expired cache entries are removed when read.
+- Exact priority, status and issue link type lookups cache their responses and honor `-Refresh`.
+  Field and issue type selectors share one catalogue per invocation, so refreshing several selectors makes one request.
+  Unmatched field and issue type selectors return no objects.
 - Explicit Cloud gateway connections can learn the site origin from authenticated `myself.self` when `serverInfo` is unavailable.
   Returned site resource links use the same validated gateway, and foreign endpoints remain rejected.
 - `Remove-JiraIssue` preserves the resolved issue URL so a typed issue from another endpoint cannot delete an issue on the selected site.

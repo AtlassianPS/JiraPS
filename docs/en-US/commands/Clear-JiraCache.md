@@ -23,7 +23,14 @@ Clear-JiraCache [[-Type] <string>] [<CommonParameters>]
 JiraPS caches certain API responses to improve performance and reduce API calls.
 This function clears the cached data, either entirely or for a specific type of data.
 
-Cached data includes: - Fields (from `Get-JiraField`) - Issue Types (from `Get-JiraIssueType`) - Priorities (from `Get-JiraPriority`) - Statuses - Server Information (from `Get-JiraServerInformation`)
+Cached data includes:
+
+- Fields (`Get-JiraField`)
+- Issue types (`Get-JiraIssueType`)
+- Issue link types (`Get-JiraIssueLinkType`)
+- Priorities (`Get-JiraPriority`)
+- Statuses (`Get-JiraStatus`)
+- Server information (`Get-JiraServerInformation`)
 
 Use this function when you need fresh data from the server, for example after making configuration changes in Jira.
 
@@ -55,6 +62,15 @@ Get-JiraServerInformation
 
 Clears cached server information and fetches fresh data.
 
+### Example 4: Clear link type metadata for all connections
+
+```powershell
+Clear-JiraCache -Type IssueLinkTypes
+```
+
+Clears catalogue and individual link type responses for every connection.
+The next lookup fetches fresh data.
+
 ## PARAMETERS
 
 ### -Type
@@ -66,6 +82,7 @@ Valid values are:
 - `All` (default): Clears all cached data
 - `Fields`: Clears cached field metadata
 - `IssueTypes`: Clears cached issue types
+- `IssueLinkTypes`: Clears cached issue link types
 - `Priorities`: Clears cached priorities
 - `Statuses`: Clears cached statuses
 - `ServerInfo`: Clears cached server information
@@ -87,6 +104,7 @@ AcceptedValues:
 - All
 - Fields
 - IssueTypes
+- IssueLinkTypes
 - Priorities
 - Statuses
 - ServerInfo
@@ -110,10 +128,16 @@ None.
 
 ## NOTES
 
-The cache is stored in module-level variables and is specific to each PowerShell session.
+Responses are cached separately for each active connection and resource URI.
+Switching the selected connection preserves its cache; disconnecting removes its entries.
+This command clears matching entries across all connections in the current PowerShell session.
 Restarting PowerShell will also clear the cache.
 
-Functions like `Get-JiraField` support `-Refresh` to fetch and replace the selected connection's cached response.
+Fields, issue types, issue link types, priorities and statuses expire after one hour.
+Server information expires after five minutes.
+
+Use a getter's `-Refresh` switch to replace the selected connection's response for the requested resource.
+Catalogue and individual lookup responses are separate entries; clear a type to invalidate all its responses.
 
 ## RELATED LINKS
 

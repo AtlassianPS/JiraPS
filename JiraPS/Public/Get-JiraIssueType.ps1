@@ -23,38 +23,35 @@
         $requestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
 
         $resourceURi = "/rest/api/2/issuetype"
+        $allIssueTypes = $null
     }
 
     process {
         Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
         Write-DebugMessage -BoundParameters $PSBoundParameters
 
-        switch ($PSCmdlet.ParameterSetName) {
-            '_All' {
-                $parameter = @{
-                    URI         = $resourceURi
-                    Method      = "GET"
-
-                    CacheKey    = 'IssueTypes'
-                    CacheExpiry = [TimeSpan]::FromHours(1)
-                    BypassCache = $Refresh
-                }
-                Write-DebugMessage "Invoking JiraMethod with `$parameter"
-                $result = Invoke-JiraRequest -RequestContext $RequestContext @parameter
-
-                Write-Output (ConvertTo-JiraIssueType -InputObject $result)
+        if ($null -eq $allIssueTypes) {
+            $parameter = @{
+                URI         = $resourceURi
+                Method      = "GET"
+                CacheKey    = 'IssueTypes'
+                CacheExpiry = [TimeSpan]::FromHours(1)
+                BypassCache = $Refresh
             }
-            '_Search' {
-                foreach ($_issueType in $IssueType) {
-                    Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_issueType]"
-                    Write-DebugMessage "Processing `$_issueType [$_issueType]"
+            Write-DebugMessage "Invoking JiraMethod with `$parameter"
+            $result = Invoke-JiraRequest -RequestContext $RequestContext @parameter
+            $allIssueTypes = @(ConvertTo-JiraIssueType -InputObject $result)
+        }
 
-                    $allIssueTypes = Get-JiraIssueType -Refresh:$Refresh -Connection $RequestContext
+        if ($PSCmdlet.ParameterSetName -eq '_All') { Write-Output $allIssueTypes }
+        else {
+            foreach ($_issueType in $IssueType) {
+                Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_issueType]"
+                Write-DebugMessage "Processing `$_issueType [$_issueType]"
 
-                    Write-Output ($allIssueTypes | Where-Object -FilterScript {
-                            if ($null -ne $_issueType.Id) { $_.Id -eq $_issueType.Id }
-                            else { $_.Name -like $_issueType.Name }
-                        })
+                $allIssueTypes | Where-Object -FilterScript {
+                    if ($null -ne $_issueType.Id) { $_.Id -eq $_issueType.Id }
+                    else { $_.Name -like $_issueType.Name }
                 }
             }
         }

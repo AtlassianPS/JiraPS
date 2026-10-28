@@ -116,6 +116,18 @@ InModuleScope JiraPS {
         }
 
         Describe "Behavior" {
+            It 'refreshes one catalogue for <InputMode> selectors' -ForEach @(
+                @{ InputMode = 'array' }
+                @{ InputMode = 'pipeline' }
+            ) {
+                $result = if ($InputMode -eq 'array') { @(Get-JiraIssueType -IssueType 2, 1 -Refresh) }
+                else { @(2, 1 | Get-JiraIssueType -Refresh) }
+
+                $result.Id | Should -Be @(2, 1)
+                Should -Invoke Invoke-JiraRequest -Exactly -Times 1 -ParameterFilter { $BypassCache }
+            }
+
+
             It "Gets all issue types in Jira if called with no parameters" {
                 $allResults = Get-JiraIssueType
                 $allResults | Should -Not -BeNullOrEmpty

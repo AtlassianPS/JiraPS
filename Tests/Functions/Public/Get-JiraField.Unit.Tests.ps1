@@ -223,43 +223,21 @@ InModuleScope JiraPS {
         }
 
         Describe "Caching Behavior" {
-            BeforeAll {
-                Mock Invoke-WebRequest -ModuleName JiraPS {
-                    [PSCustomObject]@{
-                        StatusCode       = 200
-                        Content          = $restResult
-                        RawContentStream = [System.IO.MemoryStream]::new([System.Text.Encoding]::UTF8.GetBytes($restResult))
-                    }
-                }
-            }
-
             BeforeEach {
                 $script:JiraCache = @{}
             }
 
-            It "passes CacheKey to Invoke-JiraRequest" {
-                $null = Get-JiraField
+            It 'refreshes one catalogue for <InputMode> selectors' -ForEach @(
+                @{ InputMode = 'array' }
+                @{ InputMode = 'pipeline' }
+            ) {
+                $result = if ($InputMode -eq 'array') { @(Get-JiraField -Field 'issuetype', 'summary' -Refresh) }
+                else { @('issuetype', 'summary' | Get-JiraField -Refresh) }
 
-                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter {
-                    $CacheKey -eq 'Fields'
-                }
+                $result.Id | Should -Be @('issuetype', 'summary')
+                Should -Invoke Invoke-JiraRequest -Exactly -Times 1 -ParameterFilter { $BypassCache }
             }
 
-            It "passes BypassCache to Invoke-JiraRequest when -Refresh is specified" {
-                $null = Get-JiraField -Refresh
-
-                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter {
-                    $BypassCache -eq $true
-                }
-            }
-
-            It "passes -Refresh to nested Get-JiraField call when searching" {
-                $null = Get-JiraField -Field 'issuetype' -Refresh
-
-                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter {
-                    $BypassCache -eq $true
-                }
-            }
         }
     }
 }

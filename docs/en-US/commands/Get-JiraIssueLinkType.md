@@ -17,13 +17,13 @@ Gets available issue link types.
 ### _All (Default)
 
 ```powershell
-Get-JiraIssueLinkType [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
+Get-JiraIssueLinkType [-Refresh] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 
 ### _Search
 
 ```powershell
-Get-JiraIssueLinkType [-LinkType] <AtlassianPS.JiraPS.IssueLinkType> [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
+Get-JiraIssueLinkType [-LinkType] <AtlassianPS.JiraPS.IssueLinkType> [-Refresh] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -32,6 +32,9 @@ This function gets available issueLink types from a Jira server.
 It can also return specific information about a single issueLink type.
 
 This is a useful function for discovering data about issueLink types in order to create and modify issueLinks on issues.
+
+Responses are cached for one hour per connection and resource.
+Use `-Refresh` to fetch fresh data and replace the cached response.
 
 ## EXAMPLES
 
@@ -50,6 +53,14 @@ Get-JiraIssueLinkType -LinkType 1
 ```
 
 This example returns information about the link type with ID 1.
+
+### Example 3: Refresh metadata after a Jira configuration change
+
+```powershell
+Get-JiraIssueLinkType -LinkType 1 -Refresh
+```
+
+Fetches the current metadata and replaces the cached response for this lookup.
 
 ## PARAMETERS
 
@@ -89,6 +100,27 @@ ParameterSets:
 - Name: _Search
   Position: 0
   IsRequired: true
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -Refresh
+
+Fetch fresh data and replace the selected connection's cached response for the requested resource.
+
+```yaml
+Type: SwitchParameter
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
   ValueFromPipeline: false
   ValueFromPipelineByPropertyName: false
   ValueFromRemainingArguments: false

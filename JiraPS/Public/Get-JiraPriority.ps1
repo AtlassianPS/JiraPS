@@ -21,7 +21,14 @@
 
         $requestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
 
-        $resourceURi = "/rest/api/2/priority{0}"
+        $resourceUri = "/rest/api/2/priority"
+        $parameter = @{
+            URI         = $resourceUri
+            Method      = "GET"
+            CacheKey    = 'Priorities'
+            CacheExpiry = [TimeSpan]::FromHours(1)
+            BypassCache = $Refresh
+        }
     }
 
     process {
@@ -30,14 +37,6 @@
 
         switch ($PSCmdlet.ParameterSetName) {
             '_All' {
-                $parameter = @{
-                    URI         = $resourceURi -f ""
-                    Method      = "GET"
-
-                    CacheKey    = 'Priorities'
-                    CacheExpiry = [TimeSpan]::FromHours(1)
-                    BypassCache = $Refresh
-                }
                 Write-DebugMessage "Invoking JiraMethod with `$parameter"
                 $result = Invoke-JiraRequest -RequestContext $RequestContext @parameter
 
@@ -48,10 +47,7 @@
                     Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_id]"
                     Write-DebugMessage "Processing `$_id [$_id]"
 
-                    $parameter = @{
-                        URI    = $resourceURi -f "/$_id"
-                        Method = "GET"
-                    }
+                    $parameter.URI = "$resourceUri/$_id"
                     Write-DebugMessage "Invoking JiraMethod with `$parameter"
                     $result = Invoke-JiraRequest -RequestContext $RequestContext @parameter
 

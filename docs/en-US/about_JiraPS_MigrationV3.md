@@ -112,7 +112,14 @@ Use `User` for group membership, `Watcher` for watchers, `IssueLink` for issue l
 ### Refreshing cached metadata
 
 Replace `-Force` with `-Refresh` in `Get-JiraField`, `Get-JiraIssueType`, `Get-JiraPriority` and `Get-JiraServerInformation`.
-`-Refresh` fetches fresh data and replaces the selected connection's cached response.
+`-Refresh` fetches fresh data and replaces the selected connection's cached response for the requested resource.
+`Get-JiraIssueLinkType` and `Get-JiraStatus` now also cache responses and support `-Refresh`.
+Priority ID lookups honor `-Refresh` as well as catalogue lookups.
+
+Fields, issue types, issue link types, priorities and statuses expire after one hour; server information expires after five minutes.
+Field and issue type selectors share one catalogue per invocation, including when several values arrive through the pipeline.
+Catalogue and individual lookup responses use separate cache entries.
+Use `Clear-JiraCache -Type IssueLinkTypes`, or another metadata type, to invalidate all matching responses across connections.
 
 ```powershell
 # v2

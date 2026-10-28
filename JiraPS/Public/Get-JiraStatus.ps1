@@ -9,6 +9,10 @@
         $Status,
 
         [Parameter()]
+        [Switch]
+        $Refresh,
+
+        [Parameter()]
         [AtlassianPS.Connection]
         $Connection
     )
@@ -18,9 +22,14 @@
 
         $RequestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
 
-        $server = $RequestContext.BaseUri.AbsoluteUri.TrimEnd('/')
-
-        $resourceURi = "$server/rest/api/latest/status{0}"
+        $resourceUri = "/rest/api/latest/status"
+        $parameter = @{
+            URI         = $resourceUri
+            Method      = "GET"
+            CacheKey    = 'Statuses'
+            CacheExpiry = [TimeSpan]::FromHours(1)
+            BypassCache = $Refresh
+        }
     }
 
     process {
@@ -29,10 +38,6 @@
 
         switch ($PSCmdlet.ParameterSetName) {
             '_All' {
-                $parameter = @{
-                    URI    = $resourceURi -f ""
-                    Method = "GET"
-                }
                 Write-DebugMessage "Invoking JiraMethod with `$parameter"
                 $result = Invoke-JiraRequest -RequestContext $RequestContext @parameter
 
@@ -47,10 +52,7 @@
                     else { $_status.Name }
                     $encodedIdentifier = ConvertTo-URLEncoded -InputString $statusIdentifier
 
-                    $parameter = @{
-                        URI    = $resourceURi -f "/$encodedIdentifier"
-                        Method = "GET"
-                    }
+                    $parameter.URI = "$resourceUri/$encodedIdentifier"
                     Write-DebugMessage "Invoking JiraMethod with `$parameter"
                     $result = Invoke-JiraRequest -RequestContext $RequestContext @parameter
 

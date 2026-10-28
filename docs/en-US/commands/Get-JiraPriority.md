@@ -28,12 +28,10 @@ Get-JiraPriority [-Id] <int[]> [-Refresh] [-Connection <AtlassianPS.Connection>]
 
 ## DESCRIPTION
 
-This function retrieves all the available Priorities on the JIRA server an returns them as `JiraPS.Priority`.
+Retrieves available priorities, or specific priorities by ID, as `AtlassianPS.JiraPS.Priority` objects.
 
-This function can restrict the output to a subset of the available IssueTypes if told so.
-
-Results are cached for 60 minutes to improve performance.
-Use `-Refresh` to fetch and replace the cached response and fetch fresh data.
+Catalogue and ID responses are cached for one hour per connection and resource.
+Use `-Refresh` to fetch fresh data and replace the cached response for the requested resource.
 
 ## EXAMPLES
 
@@ -43,7 +41,7 @@ Use `-Refresh` to fetch and replace the cached response and fetch fresh data.
 Get-JiraPriority
 ```
 
-This example returns all the IssueTypes on the JIRA server.
+This example returns all priorities on the Jira server.
 
 ### EXAMPLE 2
 
@@ -133,7 +131,7 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## OUTPUTS
 
-### JiraPS.Priority
+### AtlassianPS.JiraPS.Priority
 
 ## NOTES
 

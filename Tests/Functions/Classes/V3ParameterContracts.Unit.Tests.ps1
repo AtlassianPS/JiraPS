@@ -99,7 +99,7 @@ InModuleScope JiraPS {
         It 'binds a returned status by its ID rather than display name' {
             [AtlassianPS.JiraPS.Status]@{ Id = 7; Name = 'In progress' } | Get-JiraStatus
             Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Times 1 -Exactly -ParameterFilter {
-                $Uri -eq 'https://jira.example.com/rest/api/latest/status/7'
+                $Uri -eq '/rest/api/latest/status/7'
             }
         }
 

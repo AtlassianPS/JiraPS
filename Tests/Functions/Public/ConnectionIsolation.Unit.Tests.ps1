@@ -154,5 +154,70 @@ InModuleScope JiraPS {
             { Invoke-JiraMethod -Uri '/rest/api/2/field' -Connection $first -Headers @{ Cookie = 'wrong' } } | Should -Throw
             $requests.Count | Should -Be 0
         }
+
+        It 'caches and refreshes <CommandName> <Lookup> independently per connection' -ForEach @(
+            @{ CommandName = 'Get-JiraField'; Lookup = 'catalogue'; Selector = @{} }
+            @{ CommandName = 'Get-JiraIssueType'; Lookup = 'catalogue'; Selector = @{} }
+            @{ CommandName = 'Get-JiraIssueLinkType'; Lookup = 'catalogue'; Selector = @{} }
+            @{ CommandName = 'Get-JiraIssueLinkType'; Lookup = 'ID'; Selector = @{ LinkType = 1 } }
+            @{ CommandName = 'Get-JiraStatus'; Lookup = 'catalogue'; Selector = @{} }
+            @{ CommandName = 'Get-JiraStatus'; Lookup = 'ID'; Selector = @{ Status = 1 } }
+            @{ CommandName = 'Get-JiraStatus'; Lookup = 'name'; Selector = @{ Status = 'Open' } }
+            @{ CommandName = 'Get-JiraPriority'; Lookup = 'catalogue'; Selector = @{} }
+            @{ CommandName = 'Get-JiraPriority'; Lookup = 'ID'; Selector = @{ Id = 1 } }
+        ) {
+            $script:JiraCache = @{}
+            $script:catalogueName = 'original'
+            Mock Invoke-WebRequest {
+                $script:requests.Add($Uri)
+                $record = @{ id = '1'; name = $script:catalogueName; inward = 'is blocked by'; outward = 'blocks' }
+                $payload = if ($Uri.AbsolutePath -eq '/rest/api/2/issueLinkType') { @{ issueLinkTypes = @($record) } }
+                elseif ($Uri.AbsolutePath -match '/(field|issuetype|status|priority)$') { , @($record) }
+                else { $record }
+                $content = ConvertTo-Json -InputObject $payload -Depth 5
+                [PSCustomObject]@{
+                    StatusCode       = 200
+                    Content          = $content
+                    RawContentStream = [IO.MemoryStream]::new([Text.Encoding]::UTF8.GetBytes($content))
+                    Headers          = @{ 'Content-Type' = 'application/json' }
+                }
+            }
+
+            (& $CommandName @Selector -Connection $first).Name | Should -Be 'original'
+            $script:catalogueName = 'fresh'
+            (& $CommandName @Selector -Connection $first).Name | Should -Be 'original'
+            $requests.Count | Should -Be 1
+
+            (& $CommandName @Selector -Connection $second).Name | Should -Be 'fresh'
+            (& $CommandName @Selector -Connection $first).Name | Should -Be 'original'
+            $requests.Count | Should -Be 2
+
+            (& $CommandName @Selector -Refresh -Connection $first).Name | Should -Be 'fresh'
+            (& $CommandName @Selector -Connection $first).Name | Should -Be 'fresh'
+            $requests.Count | Should -Be 3
+
+            foreach ($entry in $script:JiraCache.Values) {
+                ($entry.Expiry - (Get-Date)).TotalMinutes | Should -BeGreaterThan 59
+                ($entry.Expiry - (Get-Date)).TotalMinutes | Should -BeLessOrEqual 60
+            }
+        }
+
+        It 'reuses an empty <CommandName> catalogue for subsequent pipeline selectors' -ForEach @(
+            @{ CommandName = 'Get-JiraField' }
+            @{ CommandName = 'Get-JiraIssueType' }
+        ) {
+            Mock Invoke-WebRequest {
+                $script:requests.Add($Uri)
+                [PSCustomObject]@{
+                    StatusCode       = 200
+                    Content          = '[]'
+                    RawContentStream = [IO.MemoryStream]::new([Text.Encoding]::UTF8.GetBytes('[]'))
+                    Headers          = @{ 'Content-Type' = 'application/json' }
+                }
+            }
+
+            @('1', '2' | & $CommandName -Refresh -Connection $first).Count | Should -Be 0
+            $requests.Count | Should -Be 1
+        }
     }
 }

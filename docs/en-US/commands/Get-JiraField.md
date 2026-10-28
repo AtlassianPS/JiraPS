@@ -37,6 +37,9 @@ See `Get-JiraIssueCreateMetadata` for more details.
 Results are cached for 60 minutes to reduce API calls.
 Use `-Refresh` to fetch and replace the cached response.
 
+Multiple selectors and pipeline inputs share one catalogue per invocation, including with `-Refresh`.
+Unmatched selectors return no objects.
+
 ## EXAMPLES
 
 ### Example 1

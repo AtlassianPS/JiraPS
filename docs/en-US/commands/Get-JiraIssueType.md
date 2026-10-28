@@ -35,6 +35,9 @@ This function can restrict the output to a subset of the available IssueTypes if
 Results are cached for 60 minutes to improve performance.
 Use `-Refresh` to fetch and replace the cached response and fetch fresh data.
 
+Multiple selectors and pipeline inputs share one catalogue per invocation, including with `-Refresh`.
+Unmatched selectors return no objects.
+
 ## EXAMPLES
 
 ### Example 1
