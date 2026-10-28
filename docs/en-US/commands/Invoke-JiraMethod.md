@@ -5,8 +5,6 @@ online version: https://atlassianps.org/docs/JiraPS/commands/Invoke-JiraMethod/
 locale: en-US
 layout: documentation
 permalink: /docs/JiraPS/commands/Invoke-JiraMethod/
-document type: cmdlet
-PlatyPS schema version: 2024-05-01
 ---
 # Invoke-JiraMethod
 

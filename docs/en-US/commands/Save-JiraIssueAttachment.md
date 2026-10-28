@@ -1,11 +1,9 @@
 ---
-document type: cmdlet
 external help file: JiraPS-help.xml
-HelpUri: https://atlassianps.org/docs/JiraPS/commands/Save-JiraIssueAttachment/
-layout: documentation
-locale: en-US
 Module Name: JiraPS
-ms.date: 10.28.2026
+online version: https://atlassianps.org/docs/JiraPS/commands/Save-JiraIssueAttachment/
+locale: en-US
+layout: documentation
 permalink: /docs/JiraPS/commands/Save-JiraIssueAttachment/
 ---
 
