@@ -30,6 +30,7 @@ Describe 'AtlassianPS.Standards version consistency' -Tag Unit {
             Select-Object -First 1
         $standardsVersion = [string] $standardsRequirement.RequiredVersion
         $expectedStandardsSha = 'fa0c5f72ddb2b96712ffb8f8f0623fa7220d9dd8'
+        $expectedReleaseStandardsSha = '160631f20740a10152d4560d698b5e16806d0edb'
 
         $workflowPaths = Get-ChildItem -Path (Join-Path -Path $projectRoot -ChildPath '.github/workflows') -File -Filter '*.yml' |
             Select-Object -ExpandProperty FullName
@@ -48,9 +49,19 @@ Describe 'AtlassianPS.Standards version consistency' -Tag Unit {
             }
         }
 
+        $releaseMatches = @(
+            $workflowActionMatches |
+                Where-Object { [IO.Path]::GetFileName($_.WorkflowPath) -eq 'continuous_release.yml' }
+        )
+        $buildMatches = @(
+            $workflowActionMatches |
+                Where-Object { [IO.Path]::GetFileName($_.WorkflowPath) -ne 'continuous_release.yml' }
+        )
+
         @($workflowActionMatches).Count | Should -BeGreaterThan 0
         ($workflowActionMatches | Select-Object -ExpandProperty Version -Unique) | Should -Be @($standardsVersion)
-        ($workflowActionMatches | Select-Object -ExpandProperty Ref -Unique) | Should -Be @($expectedStandardsSha)
+        ($buildMatches | Select-Object -ExpandProperty Ref -Unique) | Should -Be @($expectedStandardsSha)
+        ($releaseMatches | Select-Object -ExpandProperty Ref -Unique) | Should -Be @($expectedReleaseStandardsSha)
     }
 
     It 'uses safe shared release workflows' {
@@ -87,8 +98,12 @@ Describe 'AtlassianPS.Standards version consistency' -Tag Unit {
         $releaseIntentContent | Should -Not -Match '\bedited\b'
 
         $continuousReleaseContent | Should -Match 'workflows/module_release\.yml@[0-9a-f]{40}'
+        $continuousReleaseContent | Should -Match 'prerelease_branch:'
+        $continuousReleaseContent | Should -Match 'prerelease-branch: \$\{\{ inputs.prerelease_branch \}\}'
         $continuousReleaseContent | Should -Match '(?ms)workflow_run:.*?branches:\s*\[master\]'
         $continuousReleaseContent | Should -Match 'module-name:\s+JiraPS'
+        $continuousReleaseContent | Should -Match 'options: \[stable, alpha, beta\]'
+        $continuousReleaseContent | Should -Match 'major-authorization: \$\{\{ inputs\.major_authorization \}\}'
         $continuousReleaseContent | Should -Match "vars\.JIRAPS_CD_ENABLED == 'true'"
         $continuousReleaseContent | Should -Match '(?ms)options:\s+- major'
         $continuousReleaseContent | Should -Not -Match '(?m)^\s+tags:'
