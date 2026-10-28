@@ -14,6 +14,17 @@ on:
         options:
           - major
 
+      release_channel:
+        description: Stable release or an immutable alpha/beta candidate
+        required: true
+        default: stable
+        type: choice
+        options: [stable, alpha, beta]
+      major_authorization:
+        description: Fresh major authorization as owner/repository vMAJOR
+        required: false
+        type: string
+
 permissions:
   actions: read
   contents: read
@@ -23,8 +34,13 @@ permissions:
 jobs:
   release:
     if: github.event_name == 'workflow_dispatch' || vars.JIRAPS_CD_ENABLED == 'true'
-    uses: AtlassianPS/AtlassianPS.Standards/.github/workflows/module_release.yml@fa0c5f72ddb2b96712ffb8f8f0623fa7220d9dd8 # v0.4.1
+    uses: AtlassianPS/AtlassianPS.Standards/.github/workflows/module_release.yml@1a5a3ef64525d55c4c2e01492867d832a87627a6 # v0.4.1 + #73
     with:
       module-name: JiraPS
       release-impact: ${{ inputs.release_impact }}
+      release-channel: ${{ inputs.release_channel || 'stable' }}
+      major-authorization: ${{ inputs.major_authorization }}
+      build-profile: jiraps
+      smoke-profile: jira
+      exclude-documentation-tests: true
     secrets: inherit
