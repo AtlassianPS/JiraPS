@@ -90,7 +90,7 @@ if (-not (Get-Command Save-Module).Parameters.ContainsKey('AllowPrerelease')) {
 $candidateVersion = (Import-PowerShellDataFile (Join-Path $PSScriptRoot 'configuration-candidate.psd1')).Version
 if (-not (Get-Module AtlassianPS.Configuration)) {
     if (-not $ConfigurationCandidateRoot) {
-        $ConfigurationCandidateRoot = Join-Path $projectRoot ('.tmp/candidate-modules/' + [Guid]::NewGuid().ToString())
+        $ConfigurationCandidateRoot = Join-Path ([IO.Path]::GetTempPath()) ('jiraps-candidate-modules-' + [Guid]::NewGuid().ToString())
     }
     if ($ConfigurationCandidatePackage) {
         $null = & (Join-Path $PSScriptRoot 'Import-ConfigurationCandidate.ps1') -PackagePath $ConfigurationCandidatePackage -Version $candidateVersion -ModuleRoot $ConfigurationCandidateRoot -ExpectedSha256 $ConfigurationCandidateSha256

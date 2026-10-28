@@ -35,4 +35,29 @@ Describe 'Configuration candidate provisioning' -Tag Unit {
             Should -Throw '*fresh process*'
         Should -Invoke Save-Module -Times 0
     }
+
+    It 'provisions dependencies outside the source tree unless a root is supplied: <ExplicitRoot>' -ForEach @(
+        @{ ExplicitRoot = $false }
+        @{ ExplicitRoot = $true }
+    ) {
+        Mock Install-Module {}
+        Mock Import-Module {} -ParameterFilter { $Name -eq 'AtlassianPS.Standards' }
+        Mock Get-Module { $null } -ParameterFilter { $Name -eq 'AtlassianPS.Configuration' }
+        Mock Get-PSRepository { [PSCustomObject]@{ Name = 'PSGallery'; InstallationPolicy = 'Trusted' } }
+        Mock New-Item {} -ParameterFilter { $ItemType -eq 'Directory' }
+        Mock Save-Module { throw 'Provisioning destination captured' }
+
+        $parameters = @{ RuntimePSEdition = 'Core' }
+        if ($ExplicitRoot) { $parameters.ConfigurationCandidateRoot = Join-Path $TestDrive 'selected-modules' }
+
+        {
+            & (Join-Path $script:tools 'setup.ps1') @parameters
+        } | Should -Throw 'Provisioning destination captured'
+
+        Should -Invoke Save-Module -Exactly -Times 1 -ParameterFilter {
+            $Name -eq 'AtlassianPS.Configuration' -and
+            $(if ($ExplicitRoot) { $Path -eq $parameters.ConfigurationCandidateRoot }
+                else { (Split-Path $Path -Parent).TrimEnd('/\\') -eq ([IO.Path]::GetTempPath()).TrimEnd('/\\') })
+        }
+    }
 }
