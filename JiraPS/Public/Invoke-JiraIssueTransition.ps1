@@ -175,9 +175,11 @@
                         -ScopedContext 'transition metadata' `
                         -CallerName $MyInvocation.MyCommand.Name `
                         -FallbackFieldFetcher { Get-JiraFieldOperation -RequestContext $RequestContext -ErrorAction Stop -Debug:$false }) {
-                    $requestBody.update.$($assignment.Id) = @( @{
+                    $requestBody.update.$($assignment.Id) = @(
+                        @{
                             'set' = $assignment.Value
-                        })
+                        }
+                    )
                 }
             }
 

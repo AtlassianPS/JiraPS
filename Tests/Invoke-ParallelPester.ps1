@@ -314,10 +314,12 @@ if ($canParallel) {
                 Duration         = [TimeSpan]::FromSeconds($perFileTimeoutSeconds)
                 Success          = $false
                 Error            = "Per-file orchestrator timeout (${perFileTimeoutSeconds}s) — runspace stopped, see Wait-Job timeout warning above."
-                FailedTests      = @([PSCustomObject]@{
+                FailedTests      = @(
+                    [PSCustomObject]@{
                         Name         = 'Orchestrator timeout'
                         ErrorMessage = "Test file [$($file.Name)] did not produce a Pester result object within ${perFileTimeoutSeconds}s. The runspace was force-stopped to keep the rest of the suite running."
-                    })
+                    }
+                )
                 SkippedTests     = @()
                 XmlPath          = $null
             }

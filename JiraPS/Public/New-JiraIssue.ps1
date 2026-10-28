@@ -119,8 +119,10 @@
             if ($Priority) {
                 $priorityId = $Priority.Id
                 if ($null -eq $priorityId) {
-                    $matchingPriorities = @(Get-JiraPriorityOperation -RequestContext $RequestContext -ErrorAction Stop |
-                            Where-Object -FilterScript { $_.Name -eq $Priority.Name })
+                    $matchingPriorities = @(
+                        Get-JiraPriorityOperation -RequestContext $RequestContext -ErrorAction Stop |
+                            Where-Object -FilterScript { $_.Name -eq $Priority.Name }
+                    )
 
                     if ($matchingPriorities.Count -ne 1) {
                         ThrowError -ExceptionType 'System.ArgumentException' `

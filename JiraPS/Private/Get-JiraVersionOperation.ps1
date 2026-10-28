@@ -57,9 +57,11 @@
         $ParameterSetName = ''
         switch ($PsCmdlet.ParameterSetName) {
             'byInputProject' {
-                $Project = @($InputProject | ForEach-Object {
+                $Project = @(
+                    $InputProject | ForEach-Object {
                         if ($_.Key) { $_.Key } else { $_.Id }
-                    })
+                    }
+                )
                 $ParameterSetName = 'byProject'
             }
             'byInputVersion' {

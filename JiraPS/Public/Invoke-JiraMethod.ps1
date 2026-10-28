@@ -143,7 +143,8 @@
                         'ApiToken',
                         'PersonalAccessToken',
                         'Anonymous' |
-                            Where-Object { $PSBoundParameters.ContainsKey($_) }).Count
+                            Where-Object { $PSBoundParameters.ContainsKey($_) }
+                    ).Count
                 ) {
                     throw 'An internal context cannot be combined with another selector or authentication input.'
                 }

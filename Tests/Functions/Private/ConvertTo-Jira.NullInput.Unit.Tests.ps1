@@ -28,8 +28,10 @@ InModuleScope JiraPS {
         }
 
         It 'accounts for every ConvertTo-Jira function' {
-            $converters = @(Get-Command -Name 'ConvertTo-Jira*' -CommandType Function |
-                    Where-Object -FilterScript { $_.ModuleName -eq 'JiraPS' })
+            $converters = @(
+                Get-Command -Name 'ConvertTo-Jira*' -CommandType Function |
+                    Where-Object -FilterScript { $_.ModuleName -eq 'JiraPS' }
+            )
             $converters.Count | Should -BeGreaterThan 0
             $specialConverters = @(
                 'ConvertTo-JiraEnum'
@@ -37,9 +39,11 @@ InModuleScope JiraPS {
                 'ConvertTo-JiraRestApiV3Url'
                 'ConvertTo-JiraTable'
             )
-            $uncovered = @($converters | Where-Object -FilterScript {
+            $uncovered = @(
+                $converters | Where-Object -FilterScript {
                     -not $_.Parameters.ContainsKey('InputObject') -and $_.Name -notin $specialConverters
-                })
+                }
+            )
             $uncovered.Count | Should -Be 0 -Because "every converter needs a null contract: $($uncovered.Name -join ', ')"
         }
 

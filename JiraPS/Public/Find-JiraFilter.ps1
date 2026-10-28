@@ -29,7 +29,8 @@
 
         [Validateset('description', 'favourite', 'favouritedCount', 'jql', 'owner', 'searchUrl', 'sharePermissions', 'subscriptions', 'viewUrl')]
         [String[]]
-        $Fields = @('description',
+        $Fields = @(
+            'description',
             'favourite',
             'favouritedCount',
             'jql',
@@ -37,7 +38,8 @@
             'searchUrl',
             'sharePermissions',
             'subscriptions',
-            'viewUrl'),
+            'viewUrl'
+        ),
 
         [Validateset('description', 'favourite_count', 'is_favourite', 'id', 'name', 'owner')]
         [string]

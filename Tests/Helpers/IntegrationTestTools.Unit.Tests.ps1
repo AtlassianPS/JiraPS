@@ -123,13 +123,15 @@ Describe 'Remove-StaleTestResource' -Tag Unit {
 Describe 'Cloud integration token names' -Tag Unit {
     BeforeEach {
         $savedEnvironment = @{}
-        foreach ($name in @('CI_JIRA_TYPE',
+        foreach ($name in @(
+                'CI_JIRA_TYPE',
                 'JIRA_CLOUD_URL',
                 'JIRA_CLOUD_USERNAME',
                 'JIRA_CLOUD_PASSWORD',
                 'JIRA_CLOUD_API_TOKEN',
                 'JIRA_TEST_PROJECT',
-                'JIRA_TEST_ISSUE')) {
+                'JIRA_TEST_ISSUE'
+            )) {
             $savedEnvironment[$name] = [Environment]::GetEnvironmentVariable($name)
             [Environment]::SetEnvironmentVariable($name, $null)
         }
