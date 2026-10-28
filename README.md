@@ -123,7 +123,3 @@ See [LICENSING.md](LICENSING.md) for the project's licensing history and the ong
   [MIT license]: https://github.com/AtlassianPS/JiraPS/blob/master/LICENSE
   [Contributing]: https://atlassianps.org/docs/Contributing/
 
-## Connections
-
-Use named connections to work with multiple Jira sites or identities.
-See the [authentication guide](docs/en-US/about_JiraPS_Authentication.md) for connection examples.
