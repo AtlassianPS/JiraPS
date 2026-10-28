@@ -66,31 +66,6 @@ InModuleScope JiraPS {
         }
 
         Describe "Signature" {
-            BeforeAll {
-                $script:command = Get-Command -Name "Add-JiraGroupMember"
-            }
-
-            Context "Parameter Types" {
-                It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = "Group"; type = "AtlassianPS.JiraPS.Group[]" }
-                    @{ parameter = "User"; type = "AtlassianPS.JiraPS.User[]" }
-                    @{ parameter = "Passthru"; type = "Switch" }
-                ) {
-                    $command | Should -HaveParameter $parameter -Type $type
-                }
-            }
-
-            Context "Default Values" {
-            }
-
-            Context "Mandatory Parameters" {
-                It "parameter '<parameter>' is mandatory" -TestCases @(
-                    @{ parameter = "Group" }
-                    @{ parameter = "User" }
-                ) {
-                    $command | Should -HaveParameter $parameter -Mandatory
-                }
-            }
 
             It "Accepts a group name as a String to the -Group parameter" {
                 { Add-JiraGroupMember -Group $testGroupName -User $testUsername2 } | Should -Not -Throw
@@ -169,12 +144,6 @@ InModuleScope JiraPS {
                     $GetParameter['groupname'] -eq $testGroupName
                 } -Exactly -Times 1
             }
-        }
-
-        Describe "Input Validation" {
-            Context "Type Validation - Positive Cases" {}
-
-            Context "Type Validation - Negative Cases" {}
         }
 
         Describe "Cloud Deployment" {

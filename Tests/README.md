@@ -80,24 +80,6 @@ InModuleScope JiraPS {
             #endregion
         }
 
-        Describe "Signature" {
-            BeforeAll {
-                $script:command = Get-Command -Name $ThisTest
-            }
-
-            Context "Parameter Types" {
-                It "has a parameter '<parameter>' of type '<type>'" -TestCases @(...) {
-                    $command | Should -HaveParameter $parameter
-                }
-            }
-
-            Context "Mandatory Parameters" {
-                It "parameter '<parameter>' is mandatory" -TestCases @(...) {
-                    $command | Should -HaveParameter $parameter -Mandatory
-                }
-            }
-        }
-
         Describe "Behavior" {
             Context "Feature Description" {
                 It "performs expected action" {
@@ -126,7 +108,7 @@ InModuleScope JiraPS {
 **Key Features**:
 
 - Mock API calls with `Write-MockDebugInfo` for debugging
-- Separate Describe blocks for Signature, Behavior, and Input Validation
+- Group tests by behavior or input contract; keep only the groups the command needs
 - Positive/Negative test separation
 - Error message validation with `-ExpectedMessage`
 
@@ -184,60 +166,23 @@ InModuleScope JiraPS {
         }
 
         Describe "Behavior" {
-            Context "Object Conversion" {
-                BeforeAll {
-                    $script:result = ConvertTo-YourType -InputObject $sampleObject
-                }
+            It "maps the response values to a typed model" {
+                $result = ConvertTo-YourType -InputObject $sampleObject
 
-                It "creates a PSObject out of JSON input" {
-                    $result | Should -Not -BeNullOrEmpty
-                }
-
-                It "adds the custom type name 'JiraPS.YourType'" {
-                    $result.PSObject.TypeNames[0] | Should -Be 'JiraPS.YourType'
-                }
+                $result.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.YourType'
+                $result.Id | Should -Be '123'
+                $result.Name | Should -Be 'Example'
+                $result.Created | Should -BeOfType [DateTimeOffset]
+                $result.Created | Should -Be ([DateTimeOffset]'2025-01-01T00:00:00Z')
             }
 
-            Context "Property Mapping" {
-                BeforeAll {
-                    $script:result = ConvertTo-YourType -InputObject $sampleObject
-                }
+            It "preserves distinct items and their order through the pipeline" {
+                $other = $sampleObject.PSObject.Copy()
+                $other.id = '456'
+                $result = @($sampleObject, $other | ConvertTo-YourType)
 
-                It "defines the 'Id' property with correct value" {
-                    $result.Id | Should -Be "123"
-                }
-
-                It "defines required properties" {
-                    $result.Name | Should -Not -BeNullOrEmpty
-                }
-            }
-
-            Context "Type Conversion" {
-                BeforeAll {
-                    $script:result = ConvertTo-YourType -InputObject $sampleObject
-                }
-
-                It "converts 'created' field to DateTime object" {
-                    $result.created | Should -Not -BeNullOrEmpty
-                    $result.created | Should -BeOfType [System.DateTime]
-                }
-
-                It "converts nested objects to proper types" {
-                    $result.author.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.User'
-                }
-            }
-
-            Context "Pipeline Support" {
-                It "accepts input from pipeline" {
-                    $result = $sampleObject | ConvertTo-YourType
-                    $result | Should -Not -BeNullOrEmpty
-                }
-
-                It "handles array input" {
-                    $multipleObjects = @($sampleObject, $sampleObject)
-                    $result = $multipleObjects | ConvertTo-YourType
-                    @($result).Count | Should -Be 2
-                }
+                $result | Should -HaveCount 2
+                $result.Id | Should -Be @('123', '456')
             }
         }
     }
@@ -254,7 +199,7 @@ InModuleScope JiraPS {
   - **Property Mapping**: Field presence and values
   - **Type Conversion**: DateTime, nested objects, type checking
   - **Pipeline Support**: Pipeline behavior and array handling
-- Use `BeforeAll` in contexts to avoid redundant conversions
+- Keep related value and type assertions in one test instead of repeating the same conversion for each property
 
 ### Template Comparison
 
@@ -348,6 +293,24 @@ Invoke-Pester -Path ./Tests -Tag Unit
 ```
 
 ## Writing Tests
+
+### Choosing tests
+
+Keep a test when it catches a plausible bug in behavior that callers depend on.
+State that behavior in the test name and assert the result, request payload, state change, or specific failure.
+For example, an update test should fail if the command ignores the supplied value or sends it to the wrong resource.
+A request count alone cannot establish that the update is correct.
+
+Use the narrowest useful test boundary.
+Several functions can share a contract test; each function does not need a separate test file.
+Keep separate cases for Cloud/Data Center differences, authentication isolation, URI validation, pagination boundaries, and PowerShell 5.1 conversions when they expose distinct failures.
+Documentation checks are also useful.
+
+Remove duplicate scenarios and metadata checks already exercised by behavior tests.
+Group related assertions for one scenario in one test.
+Do not add cases just to cover lines, enumerate attributes, or increase the test count.
+Use `Should -Not -Throw` alone only when successful completion is the contract, such as a live API mutation with no response body.
+Use `-ErrorAction Stop` in those live API tests so a non-terminating error cannot pass unnoticed.
 
 ### Test Naming Convention
 
@@ -495,7 +458,7 @@ Then run in VS Code or with `pwsh -Debug`.
 
 1. **Group by purpose**: Use Context blocks to separate positive/negative tests
 2. **Clear naming**: Describe what's being tested, not how
-3. **One assertion per test**: Makes failures easy to identify
+3. **One behavior per test**: Keep related assertions together so a failure explains what callers would lose
 4. **Test data in regions**: Use `#region Definitions` and `#region Mocks`
 
 ### Code Quality

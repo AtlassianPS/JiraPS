@@ -54,13 +54,6 @@ InModuleScope JiraPS {
             }
 
             Context "Parameter Types" {
-                It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = 'GroupName'; type = 'String[]' }
-                ) {
-                    param($parameter, $type)
-                    $command | Should -HaveParameter $parameter
-                    $command.Parameters[$parameter].ParameterType.Name | Should -Be $type
-                }
 
                 It "has an alias '<alias>' for parameter '<parameter>'" -TestCases @(
                     @{ parameter = 'GroupName'; alias = 'Name' }
@@ -70,9 +63,6 @@ InModuleScope JiraPS {
                 }
             }
 
-            Context "Mandatory Parameters" {}
-
-            Context "Default Values" {}
         }
 
         Describe "Behavior" {
@@ -90,10 +80,5 @@ InModuleScope JiraPS {
             # }
         }
 
-        Describe "Input Validation" {
-            Context "Type Validation - Positive Cases" {}
-
-            Context "Type Validation - Negative Cases" {}
-        }
     }
 }

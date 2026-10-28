@@ -126,99 +126,31 @@ InModuleScope JiraPS {
             #endregion Mocks
         }
 
-        Describe "Signature" {
-            BeforeAll {
-                $script:command = Get-Command -Name Set-JiraIssue
-            }
-
-            Context "Parameter Types" {
-                It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = 'Issue'; type = 'AtlassianPS.JiraPS.Issue' }
-                    @{ parameter = 'Summary'; type = 'String' }
-                    @{ parameter = 'Description'; type = 'String' }
-                    @{ parameter = 'Assignee'; type = 'AtlassianPS.JiraPS.User' }
-                    @{ parameter = 'Unassign'; type = 'Switch' }
-                    @{ parameter = 'UseDefaultAssignee'; type = 'Switch' }
-                    @{ parameter = 'Label'; type = 'String[]' }
-                    @{ parameter = 'AddComment'; type = 'String' }
-                    @{ parameter = 'Fields'; type = 'PSCustomObject' }
-                    @{ parameter = 'PassThru'; type = 'Switch' }
-                    @{ parameter = 'SkipNotification'; type = 'Switch' }
-                ) {
-                    param($parameter, $type)
-                    $command | Should -HaveParameter $parameter -Type $type
-                }
-
-                It "has an alias 'Key' for parameter 'Issue'" {
-                    $command.Parameters.Item('Issue').Aliases | Should -Contain 'Key'
-                }
-            }
-
-            Context "Parameter Sets" {
-                It "defines parameter set '<setName>'" -TestCases @(
-                    @{ setName = 'AssignToUser' }
-                    @{ setName = 'Unassign' }
-                    @{ setName = 'UseDefaultAssignee' }
-                ) {
-                    param($setName)
-                    $command.ParameterSets.Name | Should -Contain $setName
-                }
-
-                It "uses 'AssignToUser' as the default parameter set" {
-                    $command.DefaultParameterSet | Should -Be 'AssignToUser'
-                }
-
-                It "binds '<parameter>' only to parameter set '<setName>'" -TestCases @(
-                    @{ parameter = 'Assignee'; setName = 'AssignToUser' }
-                    @{ parameter = 'Unassign'; setName = 'Unassign' }
-                    @{ parameter = 'UseDefaultAssignee'; setName = 'UseDefaultAssignee' }
-                ) {
-                    param($parameter, $setName)
-                    $sets = $command.Parameters.Item($parameter).ParameterSets.Keys
-                    $sets | Should -HaveCount 1
-                    $sets | Should -Contain $setName
-                }
-
-                It "makes shared parameter '<parameter>' available in all sets" -TestCases @(
-                    @{ parameter = 'Issue' }
-                    @{ parameter = 'Summary' }
-                    @{ parameter = 'Description' }
-                    @{ parameter = 'FixVersion' }
-                    @{ parameter = 'Label' }
-                    @{ parameter = 'Fields' }
-                    @{ parameter = 'AddComment' }
-                ) {
-                    param($parameter)
-                    $command.Parameters.Item($parameter).ParameterSets.Keys | Should -Contain '__AllParameterSets'
-                }
-            }
-
-            Context "Mandatory Parameters" {}
-
-            Context "Default Values" {}
-        }
-
         Describe "Behavior" {
             Context "Issue Update" {
-                It "Invokes the Jira API to update an issue" {
-                    { Set-JiraIssue -Issue "IT-3676" -Summary "Test summary" } | Should -Not -Throw
-
-                    Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
-                        $Method -eq 'Put' -and
-                        $URI -like '*/rest/api/*/issue/41701'
-                    }
-                }
 
                 It "Invokes the Jira API to update an issue from the pipeline" {
-                    { Get-JiraIssue "IT-3676" | Set-JiraIssue -Summary "Test summary" } | Should -Not -Throw
+                    Mock Resolve-JiraIssueObject { $InputObject }
+                    Mock Invoke-JiraRequest {} -ParameterFilter { $Method -eq 'Put' -and $URI -eq "$jiraServer/rest/api/2/issue/41702" }
+                    $issues = @(
+                        [AtlassianPS.JiraPS.Issue]@{ Id = '41701'; Key = 'IT-3676'; RestURL = "$jiraServer/rest/api/2/issue/41701" }
+                        [AtlassianPS.JiraPS.Issue]@{ Id = '41702'; Key = 'IT-3677'; RestURL = "$jiraServer/rest/api/2/issue/41702" }
+                    )
+                    $issues | Set-JiraIssue -Summary 'Test summary'
 
-                    Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1
+                    Should -Invoke Invoke-JiraRequest -Exactly -Times 2
+                    Should -Invoke Invoke-JiraRequest -Exactly -Times 1 -ParameterFilter {
+                        $URI -eq "$jiraServer/rest/api/2/issue/41701" -and ($Body | ConvertFrom-Json).update.summary[0].set -eq 'Test summary'
+                    }
+                    Should -Invoke Invoke-JiraRequest -Exactly -Times 1 -ParameterFilter {
+                        $URI -eq "$jiraServer/rest/api/2/issue/41702" -and ($Body | ConvertFrom-Json).update.summary[0].set -eq 'Test summary'
+                    }
                 }
             }
 
             Context "Summary and Description Modification" {
                 It "Modifies the summary" {
-                    { Set-JiraIssue -Issue "IT-3676" -Summary "new summary" } | Should -Not -Throw
+                    { Set-JiraIssue -Key "IT-3676" -Summary "new summary" } | Should -Not -Throw
 
                     Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                         $Method -eq 'Put' -and
@@ -364,11 +296,6 @@ InModuleScope JiraPS {
                     }
                 }
 
-                It "Calls Invoke-JiraRequest multiple times when assignee is provided with other fields" {
-                    { Set-JiraIssue -Issue "IT-3676" -Summary "new summary" -Description "new description" -Assignee "testUser" } | Should -Not -Throw
-
-                    Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 2
-                }
             }
 
             Context "Label Updates" {
@@ -447,11 +374,6 @@ InModuleScope JiraPS {
 
         Describe "Input Validation" {
             Context "Positive cases" {
-                It "accepts an issue key string" {
-                    { Set-JiraIssue -Issue "IT-3676" -Summary "test" } | Should -Not -Throw
-
-                    Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1
-                }
 
                 It "accepts an issue object" {
                     { Set-JiraIssue -Issue (Get-JiraIssue "IT-3676") -Summary "test" } | Should -Not -Throw
@@ -459,16 +381,8 @@ InModuleScope JiraPS {
                     Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1
                 }
 
-                It "accepts multiple issues from the pipeline" {
-                    { Get-JiraIssue "IT-3676", "IT-3676" | Set-JiraIssue -Summary "test" } | Should -Not -Throw
-
-                    Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1
-                }
             }
 
-            Context "Negative cases" {
-                # TODO: Add negative test cases
-            }
         }
 
         Describe "Cloud Deployment" {

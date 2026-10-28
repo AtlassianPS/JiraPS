@@ -181,7 +181,7 @@ If a "not found" branch is part of normal lookup behavior, set the result or wri
 
 ## Testing Requirements
 
-- Every function needs a corresponding `.Unit.Tests.ps1` file
+- Follow [test selection guidance](../../Tests/README.md#choosing-tests): protect observable contracts and plausible regressions, and remove redundant checks.
 - Use Pester 6 syntax
 - Public functions: `Tests/Functions/Public/<FunctionName>.Unit.Tests.ps1`
 - Private functions: `Tests/Functions/Private/<FunctionName>.Unit.Tests.ps1`

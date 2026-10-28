@@ -66,27 +66,6 @@ InModuleScope JiraPS {
             #endregion Mocks
         }
 
-        Describe "Signature" {
-            BeforeAll {
-                $script:command = Get-Command -Name Remove-JiraGroupMember
-            }
-
-            Context "Parameter Types" {
-                It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = 'Group'; type = 'AtlassianPS.JiraPS.Group[]' }
-                    @{ parameter = 'User'; type = 'AtlassianPS.JiraPS.User[]' }
-                    @{ parameter = 'PassThru'; type = 'Switch' }
-                ) {
-                    param($parameter, $type)
-                    $command | Should -HaveParameter $parameter -Type $type
-                }
-            }
-
-            Context "Mandatory Parameters" {}
-
-            Context "Default Values" {}
-        }
-
         Describe "Behavior" {
             Context "Member Removal" {
                 It "Tests to see if a provided user is currently a member of the provided JIRA group before attempting to remove them" {
@@ -186,9 +165,6 @@ InModuleScope JiraPS {
                 }
             }
 
-            Context "Negative cases" {
-                # TODO: Add negative input validation tests
-            }
         }
 
         Describe "Cloud Deployment" {

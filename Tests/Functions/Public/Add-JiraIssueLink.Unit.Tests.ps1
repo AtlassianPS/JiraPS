@@ -37,38 +37,7 @@ InModuleScope JiraPS {
             #endregion Mocks
         }
 
-        Describe "Signature" {
-            BeforeAll {
-                $script:command = Get-Command -Name "Add-JiraIssueLink"
-            }
-
-            Context "Parameter Types" {
-                It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = "IssueLink"; type = "AtlassianPS.JiraPS.IssueLinkCreateRequest[]" }
-                    @{ parameter = "Comment"; type = "String" }
-                ) {
-                    $command | Should -HaveParameter $parameter -Type $type
-                }
-            }
-
-            Context "Default Values" {
-            }
-
-            Context "Mandatory Parameters" {
-                It "parameter '<parameter>' is mandatory" -TestCases @(
-                    @{ parameter = "IssueLink" }
-                ) {
-                    $command | Should -HaveParameter $parameter -Mandatory
-                }
-            }
-        }
-
         Describe "Behavior" {
-            It 'Adds a new IssueLink' {
-                { Add-JiraIssueLink -IssueLink $issueLink } | Should -Not -Throw
-
-                Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1
-            }
 
             It "maps loose object payloads to key-based request JSON" {
                 $linkPayload = [PSCustomObject]@{
@@ -112,7 +81,6 @@ InModuleScope JiraPS {
         }
 
         Describe "Input Validation" {
-            Context "Type Validation - Positive Cases" { }
 
             Context "Type Validation - Negative Cases" {
                 It "requires a specific object type for -IssueLink" {

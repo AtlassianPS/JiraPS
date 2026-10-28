@@ -37,33 +37,8 @@ InModuleScope JiraPS {
                         Set-ItResult -Skipped -Because "JIRA_TEST_ISSUE not configured"
                         return
                     }
-                    # `Get-JiraIssueComment` returns `$null` when the issue has no comments
-                    # (e.g. a freshly-provisioned baseline issue on Data Center). Assert that
-                    # the call succeeds and *only* type-check the payload when there is data
-                    # to inspect; the dedicated "returns comment objects with correct type"
-                    # test below still covers the populated-shape case.
-                    { Get-JiraIssueComment -Issue $fixtures.TestIssue } | Should -Not -Throw
-
-                    $comments = Get-JiraIssueComment -Issue $fixtures.TestIssue
-                    if ($comments) { @($comments)[0] | Should -BeOfType [PSCustomObject] }
-                }
-
-                It "returns comment objects with correct type" {
-                    if ([string]::IsNullOrEmpty($fixtures.TestIssue)) {
-                        Set-ItResult -Skipped -Because "JIRA_TEST_ISSUE not configured"
-                        return
-                    }
-                    $comments = Get-JiraIssueComment -Issue $fixtures.TestIssue
-
-                    if ($comments) { $comments[0].PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.Comment' }
-                }
-
-                It "accepts issue key as string" {
-                    if ([string]::IsNullOrEmpty($fixtures.TestIssue)) {
-                        Set-ItResult -Skipped -Because "JIRA_TEST_ISSUE not configured"
-                        return
-                    }
-                    { Get-JiraIssueComment -Issue $fixtures.TestIssue } | Should -Not -Throw
+                    $comments = @(Get-JiraIssueComment -Issue $fixtures.TestIssue -ErrorAction Stop)
+                    foreach ($comment in $comments) { $comment | Should -BeOfType ([AtlassianPS.JiraPS.Comment]) }
                 }
 
                 It "accepts issue object via pipeline" {
@@ -73,7 +48,7 @@ InModuleScope JiraPS {
                     }
                     $issue = Get-JiraIssue -Key $fixtures.TestIssue
 
-                    { $issue | Get-JiraIssueComment } | Should -Not -Throw
+                    { $issue | Get-JiraIssueComment -ErrorAction Stop } | Should -Not -Throw
                 }
             }
 
@@ -83,27 +58,13 @@ InModuleScope JiraPS {
                     else { $script:comments = Get-JiraIssueComment -Issue $fixtures.TestIssue }
                 }
 
-                It "includes comment body as string" {
+                It 'returns comment bodies, authors and timestamps' {
                     if (-not $comments) {
                         Set-ItResult -Skipped -Because "No comments exist on test issue"
                         return
                     }
                     $comments[0].Body | Should -BeOfType [string]
-                }
-
-                It "includes author information" {
-                    if (-not $comments) {
-                        Set-ItResult -Skipped -Because "No comments exist on test issue"
-                        return
-                    }
                     $comments[0].Author | Should -Not -BeNullOrEmpty
-                }
-
-                It "includes creation date" {
-                    if (-not $comments) {
-                        Set-ItResult -Skipped -Because "No comments exist on test issue"
-                        return
-                    }
                     $comments[0].Created | Should -Not -BeNullOrEmpty
                 }
             }

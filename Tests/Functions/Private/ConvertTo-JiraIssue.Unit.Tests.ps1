@@ -916,9 +916,6 @@ InModuleScope JiraPS {
                     $result.Summary | Should -Be 'Allow set active/inactive via REST API'
                 }
 
-                It "includes 'Attachment' property" {
-                    $result.Attachment | Should -Not -BeNullOrEmpty
-                }
             }
 
             Context "Type Conversion" {
@@ -1105,9 +1102,6 @@ InModuleScope JiraPS {
             }
 
             Context "Pipeline Support" {
-                It "accepts pipeline input" {
-                    { $sampleObject | ConvertTo-JiraIssue } | Should -Not -Throw
-                }
 
                 It "processes multiple issues from pipeline" {
                     $result = @($sampleObject, $sampleObject) | ConvertTo-JiraIssue

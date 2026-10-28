@@ -52,22 +52,6 @@ InModuleScope JiraPS {
             #endregion Mocks
         }
 
-        Describe "Signature" {
-            Context "Parameter Types" {
-                It "keeps ID as an alias and has only the required parameter sets" {
-                    $command = Get-Command Get-JiraFilterPermission
-                    $command.Parameters.Filter.Aliases | Should -Contain 'Id'
-                    $command.ParameterSets.Count | Should -Be 1
-                }
-
-                # TODO: Add parameter type validation tests
-            }
-
-            Context "Mandatory Parameters" {}
-
-            Context "Default Values" {}
-        }
-
         Describe "Behavior" {
             Context "Typed references and aliases" {
                 It "accepts arrays through '<parameter>'" -TestCases @(
@@ -155,10 +139,5 @@ InModuleScope JiraPS {
             }
         }
 
-        Describe "Input Validation" {
-            Context "Type Validation - Positive Cases" {}
-
-            Context "Type Validation - Negative Cases" {}
-        }
     }
 }

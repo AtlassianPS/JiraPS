@@ -75,26 +75,6 @@ InModuleScope JiraPS {
             #endregion Mocks
         }
 
-        Describe "Signature" {
-            BeforeAll {
-                $script:command = Get-Command -Name Remove-JiraRemoteLink
-            }
-
-            Context "Parameter Types" {
-                It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = 'Issue'; type = 'AtlassianPS.JiraPS.Issue' }
-                    @{ parameter = 'Link'; type = 'AtlassianPS.JiraPS.Link[]' }
-                ) {
-                    param($parameter, $type)
-                    $command | Should -HaveParameter $parameter -Type $type
-                }
-            }
-
-            Context "Mandatory Parameters" {}
-
-            Context "Default Values" {}
-        }
-
         Describe "Behavior" {
             Context "Remote Link Deletion" {
                 It "Accepts a issue key to the -Issue parameter" {
@@ -120,21 +100,11 @@ InModuleScope JiraPS {
                     Should -Invoke -CommandName Invoke-JiraRequest -Exactly -Times 1
                 }
 
-                It "Removes a group from JIRA" {
-                    { Remove-JiraRemoteLink -Issue $testIssueKey -Link 10000 -Confirm:$false } | Should -Not -Throw
-                    Should -Invoke -CommandName Invoke-JiraRequest -Exactly -Times 1
-                }
-
                 It "Provides no output" {
                     Remove-JiraRemoteLink -Issue $testIssueKey -Link 10000 -Confirm:$false | Should -BeNullOrEmpty
                 }
             }
         }
 
-        Describe "Input Validation" {
-            Context "Type Validation - Positive Cases" {}
-
-            Context "Type Validation - Negative Cases" {}
-        }
     }
 }

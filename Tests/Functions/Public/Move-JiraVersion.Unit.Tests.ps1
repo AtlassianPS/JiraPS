@@ -75,27 +75,6 @@ InModuleScope JiraPS {
             #endregion
         }
 
-        Describe "Signature" {
-            BeforeAll {
-                $script:command = Get-Command -Name Move-JiraVersion
-            }
-
-            Context "Parameter Types" {
-                It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = 'Version'; type = 'AtlassianPS.JiraPS.Version' }
-                    @{ parameter = 'Position'; type = 'String' }
-                    @{ parameter = 'After'; type = 'AtlassianPS.JiraPS.Version' }
-                ) {
-                    param($parameter, $type)
-                    $command | Should -HaveParameter $parameter -Type $type
-                }
-            }
-
-            Context "Mandatory Parameters" {}
-
-            Context "Default Values" {}
-        }
-
         Describe "Behavior" {
             It 'does not move a version or emit a response under WhatIf' {
                 @(Move-JiraVersion -Version $versionID1 -Position Last -WhatIf) | Should -HaveCount 0
@@ -252,10 +231,5 @@ InModuleScope JiraPS {
             }
         }
 
-        Describe "Input Validation" {
-            Context "Type Validation - Positive Cases" {}
-
-            Context "Type Validation - Negative Cases" {}
-        }
     }
 }

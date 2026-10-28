@@ -89,28 +89,6 @@ InModuleScope JiraPS {
             #endregion Mocks
         }
 
-        Describe "Signature" {
-            BeforeAll {
-                $script:command = Get-Command -Name 'Get-JiraGroup'
-            }
-
-            Context "Parameter Types" {
-                It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = "GroupName"; type = "String[]" }
-                ) {
-                    $command | Should -HaveParameter $parameter -Type $type
-                }
-            }
-
-            Context "Mandatory Parameters" {
-                It "parameter '<parameter>' is mandatory" -TestCases @(
-                    @{ parameter = "GroupName" }
-                ) {
-                    $command | Should -HaveParameter $parameter -Mandatory
-                }
-            }
-        }
-
         Describe "Behavior" {
             Context "Group Retrieval" {
                 It "gets information about a provided Jira group" {

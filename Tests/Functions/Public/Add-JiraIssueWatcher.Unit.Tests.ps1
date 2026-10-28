@@ -48,33 +48,6 @@ InModuleScope JiraPS {
             #endregion Mocks
         }
 
-        Describe "Signature" {
-            BeforeAll {
-                $script:command = Get-Command -Name "Add-JiraIssueWatcher"
-            }
-
-            Context "Parameter Types" {
-                It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = "Watcher"; type = "AtlassianPS.JiraPS.User[]" }
-                    @{ parameter = "Issue"; type = "AtlassianPS.JiraPS.Issue" }
-                ) {
-                    $command | Should -HaveParameter $parameter -Type $type
-                }
-            }
-
-            Context "Default Values" {
-            }
-
-            Context "Mandatory Parameters" {
-                It "parameter '<parameter>' is mandatory" -TestCases @(
-                    @{ parameter = "Watcher" }
-                    @{ parameter = "Issue" }
-                ) {
-                    $command | Should -HaveParameter $parameter -Mandatory
-                }
-            }
-        }
-
         Describe "Behavior" {
             It "Adds a Watcher to an issue in JIRA" {
                 $WatcherResult = Add-JiraIssueWatcher -Watcher 'fred' -Issue $issueKey
@@ -100,7 +73,6 @@ InModuleScope JiraPS {
                 }
             }
 
-            Context "Type Validation - Negative Cases" {}
         }
 
         Describe "Cloud Deployment" {

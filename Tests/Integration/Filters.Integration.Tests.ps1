@@ -282,7 +282,7 @@ InModuleScope JiraPS {
                     $filterName = New-TestResourceName -Type "FilterDelete"
                     $filter = New-JiraFilter -Name $filterName -JQL "project = $($fixtures.TestProject)"
 
-                    { Remove-JiraFilter -Filter $filter -Confirm:$false } | Should -Not -Throw
+                    { Remove-JiraFilter -Filter $filter -Confirm:$false -ErrorAction Stop } | Should -Not -Throw
 
                     { Get-JiraFilter -Id $filter.Id -ErrorAction Stop } | Should -Throw
                 }

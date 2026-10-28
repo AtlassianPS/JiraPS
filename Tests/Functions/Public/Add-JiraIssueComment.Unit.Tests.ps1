@@ -71,39 +71,6 @@ InModuleScope JiraPS {
             #endregion Mocks
         }
 
-        Describe "Signature" {
-            BeforeAll {
-                $script:command = Get-Command -Name "Add-JiraIssueComment"
-            }
-
-            Context "Parameter Types" {
-                It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = 'Comment'; type = 'String' }
-                    @{ parameter = 'Issue'; type = 'AtlassianPS.JiraPS.Issue' }
-                    @{ parameter = 'Visibility'; type = 'AtlassianPS.JiraPS.Visibility' }
-                ) {
-                    $command | Should -HaveParameter $parameter -Type $type
-                }
-            }
-
-            Context "Default Values" {
-                It "parameter '<parameter>' has a default value of '<defaultValue>'" -TestCases @(
-                    @{ parameter = "Visibility"; defaultValue = $null }
-                ) {
-                    $command | Should -HaveParameter $parameter -DefaultValue $defaultValue
-                }
-            }
-
-            Context "Mandatory Parameters" {
-                It "parameter '<parameter>' is mandatory" -TestCases @(
-                    @{ parameter = "Comment" }
-                    @{ parameter = "Issue" }
-                ) {
-                    $command | Should -HaveParameter $parameter -Mandatory
-                }
-            }
-        }
-
         Describe "Behavior" {
             It "Adds a comment to an issue in JIRA" {
                 $commentResult = Add-JiraIssueComment -Comment 'This is a test comment from Pester.' -Issue $issueKey
@@ -337,7 +304,6 @@ InModuleScope JiraPS {
                 }
             }
 
-            Context "Type Validation - Negative Cases" {}
         }
     }
 }

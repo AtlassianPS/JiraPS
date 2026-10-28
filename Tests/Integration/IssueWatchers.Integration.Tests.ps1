@@ -69,7 +69,7 @@ InModuleScope JiraPS {
                         return
                     }
 
-                    { Get-JiraIssueWatcher -Issue $fixtures.TestIssue } | Should -Not -Throw
+                    { Get-JiraIssueWatcher -Issue $fixtures.TestIssue -ErrorAction Stop } | Should -Not -Throw
                 }
 
                 It "accepts issue object via pipeline" {
@@ -79,7 +79,7 @@ InModuleScope JiraPS {
                     }
 
                     $issue = Get-JiraIssue -Key $fixtures.TestIssue
-                    { $issue | Get-JiraIssueWatcher } | Should -Not -Throw
+                    { $issue | Get-JiraIssueWatcher -ErrorAction Stop } | Should -Not -Throw
                 }
             }
 

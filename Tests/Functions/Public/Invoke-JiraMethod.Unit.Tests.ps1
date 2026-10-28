@@ -172,9 +172,18 @@ InModuleScope JiraPS {
 
         It 'selects a named connection without changing the default' {
             $default = Get-JiraConnection -Default
-            $null = Invoke-JiraMethod '/rest/api/2/field' -ConnectionName $default.Name
-            (Get-JiraConnection -Default).InstanceId | Should -Be $default.InstanceId
-            [Object]::ReferenceEquals($requests[0].Session, $default.GetWebSession()) | Should -BeTrue
+            $named = AtlassianPS.Configuration\New-AtlassianConnectionContext -Name named-selection -Product Jira -BaseUri https://other.example.com -PersonalAccessToken named-secret
+            $named.SetValidationResult('Server', 'named-user')
+            $null = AtlassianPS.Configuration\Register-AtlassianConnection -Connection $named
+            try {
+                $null = Invoke-JiraMethod '/rest/api/2/field' -ConnectionName $named.Name
+
+                (Get-JiraConnection -Default).InstanceId | Should -Be $default.InstanceId
+                $requests[0].Uri.Host | Should -Be 'other.example.com'
+                $requests[0].Headers.Authorization | Should -Be 'Bearer named-secret'
+                [Object]::ReferenceEquals($requests[0].Session, $named.GetWebSession()) | Should -BeTrue
+            }
+            finally { $named | Disconnect-Jira }
         }
 
         It 'rejects authentication overrides and conflicting connection selectors' {

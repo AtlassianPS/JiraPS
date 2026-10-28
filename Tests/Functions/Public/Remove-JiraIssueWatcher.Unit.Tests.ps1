@@ -53,26 +53,6 @@ InModuleScope JiraPS {
             #endregion Mocks
         }
 
-        Describe "Signature" {
-            BeforeAll {
-                $script:command = Get-Command -Name Remove-JiraIssueWatcher
-            }
-
-            Context "Parameter Types" {
-                It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = 'Watcher'; type = 'AtlassianPS.JiraPS.User[]' }
-                    @{ parameter = 'Issue'; type = 'AtlassianPS.JiraPS.Issue' }
-                ) {
-                    param($parameter, $type)
-                    $command | Should -HaveParameter $parameter -Type $type
-                }
-            }
-
-            Context "Mandatory Parameters" {}
-
-            Context "Default Values" {}
-        }
-
         Describe "Behavior" {
             Context "Watcher Removal" {
                 It "removes a watcher from an existing issue" {

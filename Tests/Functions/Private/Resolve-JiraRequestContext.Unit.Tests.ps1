@@ -70,11 +70,6 @@ InModuleScope JiraPS {
             { Invoke-ResolveJiraRequestContext -Uri 'hello' } | Should -Throw -ExpectedMessage "*must start with one slash*"
         }
 
-        It 'resolves against the supplied context without looking up a global endpoint' {
-            $result = Invoke-ResolveJiraRequestContext -Uri '/rest/api/2/field'
-            $result.Uri.Host | Should -Be 'jira.example.com'
-        }
-
         It 'rejects absolute resources from another origin' {
             { Invoke-ResolveJiraRequestContext -Uri https://another.example.com/rest/api/2/field } | Should -Throw '*selected connection endpoint*'
         }

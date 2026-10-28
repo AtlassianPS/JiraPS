@@ -84,38 +84,6 @@ InModuleScope JiraPS {
             #endregion Mocks
         }
 
-        Describe "Signature" {
-            BeforeAll {
-                $script:command = Get-Command -Name Remove-JiraFilter
-            }
-
-            Context "Parameter Types" {
-                It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = 'Filter'; type = 'AtlassianPS.JiraPS.Filter[]' }
-                ) {
-                    param($parameter, $type)
-                    $command | Should -HaveParameter $parameter -Type $type
-                }
-            }
-
-            Context "Aliases" {
-                It "preserves the ID parameter spellings" {
-                    $command.Parameters.Filter.Aliases | Should -Contain 'Id'
-                    $command.Parameters.Filter.Aliases | Should -Contain 'FilterId'
-                }
-            }
-
-            Context "Parameter Sets" {
-                It "uses one parameter set for filter objects and IDs" {
-                    $command.ParameterSets.Count | Should -Be 1
-                }
-            }
-
-            Context "Mandatory Parameters" {}
-
-            Context "Default Values" {}
-        }
-
         Describe "Behavior" {
             Context "Filter Deletion" {
                 It "supports the '<parameter>' spelling with numeric strings" -TestCases @(
@@ -132,7 +100,6 @@ InModuleScope JiraPS {
                         $Method -eq 'DELETE' -and $URI -like '*/filter/12844'
                     }
                 }
-
 
                 It "does not delete any filters when a later array lookup fails through '<parameter>'" -TestCases @(
                     @{ parameter = 'Filter' }
@@ -174,22 +141,11 @@ InModuleScope JiraPS {
                     Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter { $Method -eq 'Delete' -and $URI -like '*/rest/api/*/filter/12844' }
                 }
 
-                It "deletes a filter based on one or more filter ids" {
-                    { Remove-JiraFilter -Id 12844 } | Should -Not -Throw
-
-                    Should -Invoke -CommandName Get-JiraFilterOperation -ModuleName JiraPS -Exactly -Times 1
-                    Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter { $Method -eq 'Delete' -and $URI -like '*/rest/api/*/filter/12844' }
-                }
             }
         }
 
         Describe "Input Validation" {
             Context "Positive cases" {
-                It "Accepts a filter object for the -Filter parameter" {
-                    { Remove-JiraFilter -Filter (Get-JiraFilter "12345") } | Should -Not -Throw
-
-                    Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1
-                }
 
                 It "Accepts a filter object without the -Filter parameter" {
                     { Remove-JiraFilter (Get-JiraFilter "12345") } | Should -Not -Throw
@@ -205,18 +161,6 @@ InModuleScope JiraPS {
 
                 It "Accepts a AtlassianPS.JiraPS.Filter object via pipeline" {
                     { Get-JiraFilter 12345, 12345 | Remove-JiraFilter } | Should -Not -Throw
-
-                    Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 2
-                }
-
-                It "Accepts an ID of a filter" {
-                    { Remove-JiraFilter -Id 12345 } | Should -Not -Throw
-
-                    Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1
-                }
-
-                It "Accepts multiple IDs of filters" {
-                    { Remove-JiraFilter -Id 12345, 12345 } | Should -Not -Throw
 
                     Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 2
                 }

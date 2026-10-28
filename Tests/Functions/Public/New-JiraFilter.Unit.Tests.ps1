@@ -58,16 +58,6 @@ InModuleScope JiraPS {
             }
 
             Context "Parameter Types" {
-                It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = 'Name'; type = 'String' }
-                    @{ parameter = 'Description'; type = 'String' }
-                    @{ parameter = 'JQL'; type = 'String' }
-                    @{ parameter = 'Favorite'; type = 'SwitchParameter' }
-                ) {
-                    param($parameter, $type)
-                    $command | Should -HaveParameter $parameter
-                    $command.Parameters[$parameter].ParameterType.Name | Should -Be $type
-                }
 
                 It "has an alias '<alias>' for parameter '<parameter>'" -TestCases @(
                     @{ parameter = 'Favorite'; alias = 'Favourite' }
@@ -77,9 +67,6 @@ InModuleScope JiraPS {
                 }
             }
 
-            Context "Mandatory Parameters" {}
-
-            Context "Default Values" {}
         }
 
         Describe "Behavior" {
@@ -116,42 +103,22 @@ InModuleScope JiraPS {
                         New-JiraFilter @parameter
                     } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1
-                }
-
-                It "-Name and -Description and -JQL" {
-                    {
-                        $parameter = @{
-                            Name        = "newName"
-                            Description = "newDescription"
-                            JQL         = "newJQL"
-                        }
-                        New-JiraFilter @parameter
-                    } | Should -Not -Throw
-
-                    Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1
-                }
-
-                It "-Name and -Description and -JQL and -Favorite" {
-                    {
-                        $parameter = @{
-                            Name        = "newName"
-                            Description = "newDescription"
-                            JQL         = "newJQL"
-                            Favorite    = $true
-                        }
-                        New-JiraFilter @parameter
-                    } | Should -Not -Throw
-
-                    Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1
+                    Should -Invoke Invoke-JiraRequest -Exactly -Times 1 -ParameterFilter {
+                        $payload = $Body | ConvertFrom-Json
+                        $payload.name -eq 'newName' -and $payload.jql -eq 'newJQL' -and
+                        $payload.favourite -eq $false -and -not $payload.PSObject.Properties['description']
+                    }
                 }
 
                 It "maps the properties of an object to the parameters" {
-                    { Get-JiraFilter "12345" | New-JiraFilter } | Should -Not -Throw
+                    $filter = Get-JiraFilter '12345'
+                    $filter | New-JiraFilter
+
+                    Should -Invoke Invoke-JiraRequest -Exactly -Times 1 -ParameterFilter {
+                        $payload = $Body | ConvertFrom-Json
+                        $payload.name -eq $filter.Name -and $payload.jql -eq $filter.JQL
+                    }
                 }
-            }
-            Context "Negative cases" {
-                # TODO: Add negative input validation tests
             }
         }
     }

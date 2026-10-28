@@ -42,7 +42,7 @@ InModuleScope JiraPS {
                     # on Data Center). Assert the call succeeds and only type-check when
                     # there is data; the "returns attachment objects with correct type"
                     # test below already covers the populated case via Add+Get.
-                    { Get-JiraIssueAttachment -Issue $fixtures.TestIssue } | Should -Not -Throw
+                    { Get-JiraIssueAttachment -Issue $fixtures.TestIssue -ErrorAction Stop } | Should -Not -Throw
 
                     $attachments = Get-JiraIssueAttachment -Issue $fixtures.TestIssue
                     if ($attachments) { @($attachments)[0] | Should -BeOfType [AtlassianPS.JiraPS.Attachment] }
@@ -65,7 +65,7 @@ InModuleScope JiraPS {
                     }
                     $issue = Get-JiraIssue -Key $fixtures.TestIssue
 
-                    { $issue | Get-JiraIssueAttachment } | Should -Not -Throw
+                    { $issue | Get-JiraIssueAttachment -ErrorAction Stop } | Should -Not -Throw
                 }
             }
         }
@@ -211,7 +211,7 @@ InModuleScope JiraPS {
                         return
                     }
 
-                    { Remove-JiraIssueAttachment -AttachmentId $attachment.Id -Confirm:$false } | Should -Not -Throw
+                    { Remove-JiraIssueAttachment -AttachmentId $attachment.Id -Confirm:$false -ErrorAction Stop } | Should -Not -Throw
 
                     $remaining = Get-JiraIssueAttachment -Issue $deleteTestIssue.Key
                     $matchingAttachment = $remaining | Where-Object { $_.Id -eq $attachment.Id }

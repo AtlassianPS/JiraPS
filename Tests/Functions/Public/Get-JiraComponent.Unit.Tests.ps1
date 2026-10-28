@@ -67,16 +67,6 @@ InModuleScope JiraPS {
             #endregion Mocks
         }
 
-        Describe "Signature" {
-            Context "Parameter Types" {
-                # TODO: Add parameter type validation tests
-            }
-
-            Context "Mandatory Parameters" {}
-
-            Context "Default Values" {}
-        }
-
         Describe "Behavior" {
             It "Returns details about specific components if the component ID is supplied" {
                 $oneResult = Get-JiraComponent -Id $componentId
@@ -85,16 +75,7 @@ InModuleScope JiraPS {
                 $oneResult.Id | Should -Be $componentId
             }
 
-            It "Provides the Id of the component" {
-                $oneResult = Get-JiraComponent -Id $componentId
-                $oneResult.Id | Should -Be $componentId
-            }
         }
 
-        Describe "Input Validation" {
-            Context "Type Validation - Positive Cases" {}
-
-            Context "Type Validation - Negative Cases" {}
-        }
     }
 }

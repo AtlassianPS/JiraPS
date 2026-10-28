@@ -16,7 +16,6 @@ InModuleScope JiraPS {
             $script:jiraServer = 'http://jiraserver.example.com'
             #endregion Definitions
 
-
             #region Mocks
             $filterAll = { $Method -eq 'Get' -and $Uri -ceq "/rest/api/2/issueLinkType" }
             $filterOne = { $Method -eq 'Get' -and $Uri -ceq "/rest/api/2/issueLinkType/10000" }
@@ -55,21 +54,6 @@ InModuleScope JiraPS {
                 }
             }
             #endregion Mocks
-        }
-
-        Describe "Signature" {
-            Context "Parameter Types" {
-                It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = 'LinkType'; type = 'AtlassianPS.JiraPS.IssueLinkType' }
-                ) {
-                    param($parameter, $type)
-                    (Get-Command -Name Get-JiraIssueLinkType) | Should -HaveParameter $parameter -Type $type
-                }
-            }
-
-            Context "Mandatory Parameters" {}
-
-            Context "Default Values" {}
         }
 
         Describe "Behavior" {
@@ -121,7 +105,6 @@ InModuleScope JiraPS {
         }
 
         Describe "Input Validation" {
-            Context "Type Validation - Positive Cases" {}
 
             Context "Type Validation - Negative Cases" {
                 It "uses transformer errors for invalid link type input" {

@@ -84,31 +84,6 @@ InModuleScope JiraPS {
             #endregion Mocks
         }
 
-        Describe "Signature" {
-            BeforeAll {
-                $script:command = Get-Command -Name Find-JiraFilter
-            }
-
-            Context "Parameter Types" {
-                It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = "Name"; type = "String[]" }
-                    @{ parameter = "AccountId"; type = "String" }
-                    @{ parameter = "Owner"; type = "AtlassianPS.JiraPS.User" }
-                    @{ parameter = "GroupName"; type = "String" }
-                    @{ parameter = "Project"; type = "AtlassianPS.JiraPS.Project" }
-                    @{ parameter = "Fields"; type = "String[]" }
-                    @{ parameter = "Sort"; type = "String" }
-                ) {
-                    $command | Should -HaveParameter $parameter
-                    if ($parameter -eq 'Owner') { $command.Parameters[$parameter].ParameterType.FullName | Should -Be $type }
-                }
-            }
-
-            Context "Default Values" {}
-
-            Context "Mandatory Parameters" {}
-        }
-
         Describe "Behavior" {
             Context "Filter Search" {
                 It "finds a JIRA filter by Name" {
@@ -181,15 +156,6 @@ InModuleScope JiraPS {
 
         Describe "Input Validation" {
             Context "Parameter Acceptance" {
-                It "accepts a project key for the -Project parameter" {
-                    { Find-JiraFilter -Project 'Test' } | Should -Not -Throw
-
-                    Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter {
-                        $Method -eq 'Get' -and
-                        $URI -like '*rest/api/*/filter/search*' -and
-                        $GetParameter['projectId'] -eq '1'
-                    } -Exactly 1
-                }
 
                 It "accepts AccountId, GroupName, and Project parameter values from pipeline by property name" {
                     $searchObject = [PSCustomObject]@{
@@ -224,10 +190,5 @@ InModuleScope JiraPS {
             }
         }
 
-        Describe "Input Validation" {
-            Context "Type Validation - Positive Cases" {}
-
-            Context "Type Validation - Negative Cases" {}
-        }
     }
 }

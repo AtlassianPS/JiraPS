@@ -29,27 +29,11 @@ InModuleScope JiraPS {
 
         Describe "Get-JiraUser" {
             Context "User Retrieval" -Skip:$SkipUserTests {
-                It "retrieves a user by account ID" {
-                    $user = Get-JiraUser -User $fixtures.TestUser
+                It 'retrieves the requested typed Cloud user with a display name' {
+                    $user = Get-JiraUser -User $fixtures.TestUser -ErrorAction Stop
 
-                    $user | Should -Not -BeNullOrEmpty
-                }
-
-                It "returns user object with correct type" {
-                    $user = Get-JiraUser -User $fixtures.TestUser
-
-                    $user.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.User'
-                }
-
-                It "includes display name" {
-                    $user = Get-JiraUser -User $fixtures.TestUser
-
+                    $user | Should -BeOfType ([AtlassianPS.JiraPS.User])
                     $user.DisplayName | Should -Not -BeNullOrEmpty
-                }
-
-                It "includes account ID" {
-                    $user = Get-JiraUser -User $fixtures.TestUser
-
                     $user.AccountId | Should -Be $fixtures.TestUser
                 }
             }

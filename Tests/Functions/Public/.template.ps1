@@ -2,169 +2,42 @@
 
 BeforeDiscovery {
     . "$PSScriptRoot/../../Helpers/TestTools.ps1"
-
     $script:moduleToTest = Initialize-TestEnvironment
 }
 
 InModuleScope JiraPS {
-    # TODO: replace %RESOURCE% and %RESOURCEJSON% with the actual resource name and JSON used in the tests
-    Describe "%NAME OF THE FUNCTION TO TEST%" -Tag 'Unit' {
+    # Replace the command, endpoint, model and fixture with the behavior under test.
+    Describe 'Your-Command' -Tag Unit {
         BeforeAll {
             . "$PSScriptRoot/../../Helpers/TestTools.ps1"
-            # $VerbosePreference = 'Continue'  # Uncomment for mock debugging
-
-            #region Definitions
-            $script:jiraServer = "https://jira.example.com"
-
-            $%RESOURCEJSON% = @"
-%ADD A REAL JSON RESPONSE HERE BUT REMOVE PERSONAL DATA%
-"@
-            #endregion Definitions
-
-            #region Mocks
-            # TODO: Adjust the mock to return a valid %RESOURCE% object
-            Mock ConvertTo-Jira%RESOURCE% -ModuleName JiraPS {
-                Write-MockDebugInfo 'ConvertTo-Jira%RESOURCE'
-                $i = New-Object -TypeName PSCustomObject
-                $i.PSObject.TypeNames.Insert(0, 'JiraPS.%RESOURCE')
-                $i
-            }
-
-            # TODO: Add a mock for every function used by the function under test
-
-            # TODO: Adjust ParameterFilter to match the expected calls
-            Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter {
-                $Method -eq 'Post' -and $URI -like "$jiraServer/rest/api/*/filter/*/permission"
-            } {
-                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri', 'Body'
-                ConvertFrom-Json $permissionJSON
-            }
-
-            Mock Invoke-JiraRequest -ModuleName JiraPS {
-                # Generic catch-all mock to identify unhandled calls
-                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
-                throw "Unidentified call to Invoke-JiraRequest: $Method $URI"
-            }
-            #endregion Mocks
+            Mock Invoke-JiraRequest { throw "Unexpected request: $Method $Uri" }
+            Mock Invoke-JiraRequest {
+                [PSCustomObject]@{ id = '12345'; name = 'Created item' }
+            } -ParameterFilter { $Method -eq 'Post' -and $Uri -eq '/rest/api/2/resource' }
         }
 
-        Describe "Signature" {
-            <#
-            Signature tests the function parameters, their types, default values and mandatory status.
-            By testing this, we ensure that the function interface remains consistent and any changes are intentional.
-            #>
-            BeforeAll {
-                $script:command = Get-Command -Name '%FUNCTION-NAME%'
-            }
+        It 'creates the requested resource and returns its typed result' {
+            $result = Your-Command -Name 'Created item' -Confirm:$false
 
-            Context "Parameter Types" {
-                It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = "%PARAMETER1%"; type = "%DATA TYPE%" }
-                    @{ parameter = "%PARAMETER2%"; type = "%DATA TYPE%" }
-                ) {
-                    $command | Should -HaveParameter $parameter
-
-                    (Get-Member -InputObject $command.Parameters.Item($parameter)).Attributes | Should -Contain $typeName
-                }
+            Should -Invoke Invoke-JiraRequest -Exactly -Times 1 -ParameterFilter {
+                $Method -eq 'Post' -and $Uri -eq '/rest/api/2/resource' -and
+                ($Body | ConvertFrom-Json).name -eq 'Created item'
             }
-
-            Context "Default Values" {
-                It "parameter '<parameter>' has a default value of '<defaultValue>'" -TestCases @(
-                    @{ parameter = "%PARAMETER1%"; defaultValue = "%DEFAULT VALUE%" }
-                ) {
-                    $command | Should -HaveParameter $parameter -DefaultValue $defaultValue
-                }
-            }
-
-            Context "Mandatory Parameters" {
-                It "parameter '<parameter>' is mandatory" -TestCases @(
-                    @{ parameter = "%PARAMETER1%" }
-                ) {
-                    $command | Should -HaveParameter $parameter -Mandatory
-                }
-            }
+            $result | Should -BeOfType ([AtlassianPS.JiraPS.Filter])
+            $result.Id | Should -Be '12345'
+            $result.Name | Should -Be 'Created item'
         }
 
-        Describe "Behavior" {
-            <#
-            Behavior tests the actual functionality of the function.
-            This includes:
-              * Testing each "if" or "switch" branch.
-              * Testing that each function used within the function is called as expected (with correct parameters and number of times) by using `Should -Invoke`.
-              * Testing all possible output scenarios.
-              * Testing edge cases and expected outputs.
-            #>
-            # TODO: These are examples for inspiration
-            Context "Resolves inputs" {
-                It "resolves input string to object" {
-                    { %FUNCTION-NAME% -Id '12345' -Type "Global" } | Should -Not -Throw
-
-                    Should -Invoke 'Get-Jira%RESOURCE%' -ModuleName 'JiraPS' -Exactly -Times 1 -Scope It
-                }
-            }
-
-            Context "invokes Jira API" {
-                It "calls Invoke-JiraRequest with correct parameters" {
-                    { %FUNCTION-NAME% -Id 12844 -Type "Global" } | Should -Not -Throw
-
-                    Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
-                        $Method -eq 'Post' -and
-                        $URI -like '*/rest/api/*/filter/12844/permission'
-                    }
-                }
-            }
-
-            Context "returns an object" {
-                It "returns a JiraPS.%RESOURCE% object" {
-                    { %FUNCTION-NAME% -Id '12345' -Type "Global" } | Should -Not -Throw
-
-                    Should -Invoke 'ConvertTo-Jira%RESOURCE%' -ModuleName 'JiraPS' -Exactly -Times 1 -Scope It
-                }
-            }
+        It 'rejects invalid input before contacting Jira' {
+            { Your-Command -Name '' -Confirm:$false } | Should -Throw '*Name*'
+            Should -Invoke Invoke-JiraRequest -Exactly -Times 0
         }
 
-        Describe "Input Validation" {
-            <#
-            Input Validation tests the different combinations of inputs - usasualy each parameter set.
-            This includes:
-              * Testing that invalid inputs are rejected with meaningful error messages.
-              * Testing that valid inputs are accepted and processed correctly.
-            #>
-            # TODO: These are examples for inspiration
-            Context "%PARAMETER SET 1% - Negative Cases" {
-                It "rejects ..." {
-                    { %COMMAND% } | Should -Throw -ExpectedMessage "%ERROR MESSAGE%"
-                }
-            }
+        It 'makes no request under WhatIf' {
+            $result = Your-Command -Name 'Created item' -WhatIf
 
-            Context "%PARAMETER SET 1% - Positive Cases" {
-                It "accepts ..." {
-                    { %COMMAND% } | Should -Not -Throw
-                }
-            }
-
-            Context "Pipeline Support" {
-                It "..." {
-                    { %COMMAND% | %COMMAND% } | Should -Not -Throw
-                }
-            }
-
-            Context "Multiple Items" {
-                It "can process a collection" {
-                    # prepare a collection
-                    $collection = 1..5 | ForEach-Object { Get-Jira%RESOURCE% -Id 1 }
-
-                    { %FUNCTION-NAME% -%RESOURCE% $collection } | Should -Not -Throw
-
-                    Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 5 -Scope It
-                }
-
-                It "can process a list" {
-                    { %FUNCTION-NAME% -Id 1, 2, 3, 4, 5 } | Should -Not -Throw
-
-                    Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 5 -Scope It
-                }
-            }
+            Should -Invoke Invoke-JiraRequest -Exactly -Times 0
+            $result | Should -BeNullOrEmpty
         }
     }
 }

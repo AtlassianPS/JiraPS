@@ -122,34 +122,8 @@ InModuleScope JiraPS {
             #endregion Mocks
         }
 
-        Describe "Signature" {
-            Context "Parameter Types" {
-                It "keeps ID as an alias and has only the required parameter sets" {
-                    $command = Get-Command Get-JiraFilter
-                    $command.Parameters.Filter.Aliases | Should -Contain 'Id'
-                    $command.ParameterSets.Count | Should -Be 2
-                }
-
-                # TODO: Add parameter type validation tests
-            }
-
-            Context "Mandatory Parameters" {}
-
-            Context "Default Values" {}
-        }
-
         Describe "Behavior" {
             Context "Typed references and aliases" {
-                It "accepts arrays through '<parameter>'" -TestCases @(
-                    @{ parameter = 'Filter' }
-                    @{ parameter = 'Id' }
-                ) {
-                    param($parameter)
-                    $arguments = @{ $parameter = @('12345', '67890') }
-                    Get-JiraFilter @arguments
-
-                    Should -Invoke Invoke-JiraRequest -Exactly -Times 2
-                }
 
                 It "accepts numeric strings from the pipeline" {
                     '12345', '67890' | Get-JiraFilter
@@ -168,7 +142,6 @@ InModuleScope JiraPS {
                     Should -Invoke Invoke-JiraRequest -Exactly -Times 1
                 }
             }
-
 
             Context "Behavior testing" {
                 It "Queries JIRA for a filter with a given ID" {
@@ -195,12 +168,6 @@ InModuleScope JiraPS {
                     $script:sampleFilter = ConvertTo-JiraFilter (ConvertFrom-Json $responseFilter)
                 }
 
-                It "Accepts a filter ID without the -Filter parameter" {
-                    { Get-JiraFilter "12345" } | Should -Not -Throw
-
-                    Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1
-                }
-
                 It "Accepts multiple filter IDs to the -Filter parameter" {
                     { Get-JiraFilter -Id '12345', '67890' } | Should -Not -Throw
 
@@ -222,10 +189,5 @@ InModuleScope JiraPS {
             }
         }
 
-        Describe "Input Validation" {
-            Context "Type Validation - Positive Cases" {}
-
-            Context "Type Validation - Negative Cases" {}
-        }
     }
 }

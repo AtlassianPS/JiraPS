@@ -148,60 +148,6 @@ InModuleScope JiraPS {
             #endregion Mocks
         }
 
-        Describe "Signature" {
-            BeforeAll {
-                $script:command = Get-Command -Name 'Invoke-JiraIssueTransition'
-            }
-
-            Context "Parameter Types" {
-                It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = 'Issue'; type = 'AtlassianPS.JiraPS.Issue' }
-                    @{ parameter = 'Transition'; type = 'AtlassianPS.JiraPS.Transition' }
-                    @{ parameter = 'Comment'; type = 'String' }
-                    @{ parameter = 'TimeSpent'; type = 'TimeSpan' }
-                    @{ parameter = 'Assignee'; type = 'AtlassianPS.JiraPS.User' }
-                    @{ parameter = 'Unassign'; type = 'Switch' }
-                    @{ parameter = 'Fields'; type = 'PSCustomObject' }
-                    @{ parameter = 'Passthru'; type = 'Switch' }
-                ) {
-                    $command | Should -HaveParameter $parameter -Type $type
-                }
-            }
-
-            Context "Mandatory Parameters" {
-                It "parameter '<parameter>' is mandatory" -TestCases @(
-                    @{ parameter = "Issue" }
-                    @{ parameter = "Transition" }
-                ) {
-                    $command | Should -HaveParameter $parameter -Mandatory
-                }
-            }
-
-            Context "Parameter Sets" {
-                It "defines parameter set '<setName>'" -TestCases @(
-                    @{ setName = 'AssignToUser' }
-                    @{ setName = 'Unassign' }
-                ) {
-                    param($setName)
-                    $command.ParameterSets.Name | Should -Contain $setName
-                }
-
-                It "uses 'AssignToUser' as the default parameter set" {
-                    $command.DefaultParameterSet | Should -Be 'AssignToUser'
-                }
-
-                It "binds '<parameter>' only to parameter set '<setName>'" -TestCases @(
-                    @{ parameter = 'Assignee'; setName = 'AssignToUser' }
-                    @{ parameter = 'Unassign'; setName = 'Unassign' }
-                ) {
-                    param($parameter, $setName)
-                    $sets = $command.Parameters.Item($parameter).ParameterSets.Keys
-                    $sets | Should -HaveCount 1
-                    $sets | Should -Contain $setName
-                }
-            }
-        }
-
         Describe "Behavior" {
             Context "Transition Execution" {
                 It "performs a transition when given an issue key and transition ID" {

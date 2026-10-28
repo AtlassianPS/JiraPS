@@ -45,30 +45,6 @@ InModuleScope JiraPS {
             #endregion Mocks
         }
 
-        Describe "Signature" {
-            BeforeAll {
-                $script:command = Get-Command -Name Set-JiraIssueLabel
-            }
-
-            Context "Parameter Types" {
-                It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = 'Issue'; type = 'Issue' }
-                    @{ parameter = 'Set'; type = 'String[]' }
-                    @{ parameter = 'Add'; type = 'String[]' }
-                    @{ parameter = 'Remove'; type = 'String[]' }
-                    @{ parameter = 'Clear'; type = 'SwitchParameter' }
-                ) {
-                    param($parameter, $type)
-                    $command | Should -HaveParameter $parameter
-                    $command.Parameters[$parameter].ParameterType.Name | Should -Be $type
-                }
-            }
-
-            Context "Mandatory Parameters" {}
-
-            Context "Default Values" {}
-        }
-
         Describe "Behavior" {
             It "Does not update labels when WhatIf is supplied" {
                 Set-JiraIssueLabel -Issue TEST-001 -Set 'testLabel1' -WhatIf
@@ -114,7 +90,13 @@ InModuleScope JiraPS {
             }
 
             It "Allows use of both Add and Remove parameters at the same time" {
-                { Set-JiraIssueLabel -Issue TEST-001 -Add 'testLabel1' -Remove 'testLabel2' } | Should -Not -Throw
+                Set-JiraIssueLabel -Issue TEST-001 -Add 'testLabel1' -Remove 'existingLabel1'
+
+                Should -Invoke Invoke-JiraRequest -Exactly -Times 1 -ParameterFilter {
+                    $Method -eq 'PUT' -and
+                    $URI -eq "$jiraServer/rest/api/2/issue/12345" -and
+                    ((($Body | ConvertFrom-Json).update.labels[0].set) -join ',') -eq 'existingLabel2,testLabel1'
+                }
             }
 
             It "Does not emit pipeline output when -Add or -Remove are used without -PassThru" {
@@ -145,11 +127,6 @@ InModuleScope JiraPS {
 
         Describe "Input Validation" {
             Context "Positive cases" {
-                It "Accepts an issue key for the -Issue parameter" {
-                    { Set-JiraIssueLabel -Issue TEST-001 -Set 'testLabel1' } | Should -Not -Throw
-                    Should -Invoke Get-JiraIssueOperation -ModuleName JiraPS -Exactly -Times 1
-                    Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1
-                }
 
                 It "Accepts an issue object for the -Issue parameter" {
                     $issue = Get-JiraIssue -Key TEST-001
@@ -165,9 +142,6 @@ InModuleScope JiraPS {
                 }
             }
 
-            Context "Negative cases" {
-                # TODO: Add negative input validation tests
-            }
         }
     }
 }

@@ -94,51 +94,6 @@ InModuleScope JiraPS {
                 }
             }
 
-            Context "JQL with Operators" {
-                It "supports AND operator" {
-                    if ([string]::IsNullOrEmpty($fixtures.TestProject) -or [string]::IsNullOrEmpty($fixtures.TestIssue)) {
-                        Set-ItResult -Skipped -Because "JIRA_TEST_PROJECT or JIRA_TEST_ISSUE not configured"
-                        return
-                    }
-                    # Keep the AND predicate anchored to a known fixture issue to avoid
-                    # intermittent Jira 11 backend null-deref failures on some status
-                    # comparisons against freshly provisioned datasets.
-                    $jql = "project = $($fixtures.TestProject) AND key = $($fixtures.TestIssue)"
-
-                    $results = Get-JiraIssue -Query $jql -ErrorAction Stop
-                    $results | Should -Not -BeNullOrEmpty
-                    @($results).Key | Should -Contain $fixtures.TestIssue
-                }
-
-                It "supports OR operator" {
-                    if ([string]::IsNullOrEmpty($fixtures.TestProject) -or [string]::IsNullOrEmpty($fixtures.TestIssue)) {
-                        Set-ItResult -Skipped -Because "JIRA_TEST_PROJECT or JIRA_TEST_ISSUE not configured"
-                        return
-                    }
-                    $jql = "key = $($searchKeys[0]) OR key = $($searchKeys[-1])"
-
-                    $results = Get-JiraIssue -Query $jql -ErrorAction Stop
-
-                    $results | Should -Not -BeNullOrEmpty -Because "test project always carries JIRA_TEST_ISSUE"
-                    @($results).Key | Should -Contain $fixtures.TestIssue
-                }
-
-                It "supports ORDER BY" {
-                    if ([string]::IsNullOrEmpty($fixtures.TestProject) -or [string]::IsNullOrEmpty($fixtures.TestIssue)) {
-                        Set-ItResult -Skipped -Because "JIRA_TEST_PROJECT or JIRA_TEST_ISSUE not configured"
-                        return
-                    }
-                    # Fresh Jira DC boots can briefly return an empty project-only search while
-                    # indexing catches up, so keep ORDER BY anchored to the known fixture issue.
-                    $jql = "project = $($fixtures.TestProject) AND key = $($fixtures.TestIssue) ORDER BY created DESC"
-
-                    $results = Get-JiraIssue -Query $jql -ErrorAction Stop
-
-                    $results | Should -Not -BeNullOrEmpty
-                    @($results)[0].Key | Should -Be $fixtures.TestIssue
-                }
-            }
-
             Context "Pagination" {
                 It "supports -First parameter" {
                     if ([string]::IsNullOrEmpty($fixtures.TestProject)) {

@@ -83,32 +83,6 @@ InModuleScope JiraPS {
             #endregion Mocks
         }
 
-        Describe "Signature" {
-            BeforeAll {
-                $script:command = Get-Command -Name Set-JiraVersion
-            }
-
-            Context "Parameter Types" {
-                It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = 'Version'; type = 'AtlassianPS.JiraPS.Version[]' }
-                    @{ parameter = 'Name'; type = 'String' }
-                    @{ parameter = 'Description'; type = 'String' }
-                    @{ parameter = 'Archived'; type = 'Boolean' }
-                    @{ parameter = 'Released'; type = 'Boolean' }
-                    @{ parameter = 'ReleaseDate'; type = 'DateTime' }
-                    @{ parameter = 'StartDate'; type = 'DateTime' }
-                    @{ parameter = 'Project'; type = 'AtlassianPS.JiraPS.Project' }
-                ) {
-                    param($parameter, $type)
-                    $command | Should -HaveParameter $parameter -Type $type
-                }
-            }
-
-            Context "Mandatory Parameters" {}
-
-            Context "Default Values" {}
-        }
-
         Describe "Behavior" {
             Context "Version Update" {
                 It "sets an Issue's Version Name" {
@@ -141,10 +115,5 @@ InModuleScope JiraPS {
             }
         }
 
-        Describe "Input Validation" {
-            Context "Type Validation - Positive Cases" {}
-
-            Context "Type Validation - Negative Cases" {}
-        }
     }
 }

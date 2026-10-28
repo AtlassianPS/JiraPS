@@ -286,74 +286,22 @@ InModuleScope JiraPS {
                     total      = 10
                 }
 
-                # Mock Invoke-JiraRequest to return null on second call (simulating failure)
-                $script:callCount = 0
-                Mock Invoke-JiraRequest -ModuleName JiraPS {
-                    $script:callCount++
-                    if ($script:callCount -eq 1) {
-                        return $null  # Simulates auth failure or server error
-                    }
-                    return $null
-                }
+                Mock Invoke-JiraRequest -ModuleName JiraPS { $null }
             }
 
-            BeforeEach {
-                $script:callCount = 0
-            }
-
-            It "does not throw when Invoke-JiraRequest returns null" {
+            It 'returns the collected items and warns once when the next page is null' {
                 $params = @{
                     URI      = "$jiraServer/rest/api/2/search"
                     Method   = 'GET'
                     Response = $initialResponse
                 }
 
-                { Invoke-PaginatedRequest @params -WarningAction SilentlyContinue } | Should -Not -Throw
-            }
+                $result = @(Invoke-PaginatedRequest @params -WarningVariable capturedWarnings -WarningAction SilentlyContinue)
 
-            It "writes a warning when null response is received" {
-                $params = @{
-                    URI      = "$jiraServer/rest/api/2/search"
-                    Method   = 'GET'
-                    Response = $initialResponse
-                }
-
-                # Capture warnings using -WarningVariable (no $ prefix for target variable)
-                $null = Invoke-PaginatedRequest @params -WarningVariable capturedWarnings
-
-                $capturedWarnings | Should -Not -BeNullOrEmpty
+                $result.key | Should -Be @('TEST-1', 'TEST-2')
+                $capturedWarnings | Should -HaveCount 1
                 $capturedWarnings | Should -Match 'null response'
-            }
-
-            It "stops pagination and returns collected results" {
-                # First page has 2 issues, second call returns null
-                $script:pageCallCount = 0
-                Mock Invoke-JiraRequest -ModuleName JiraPS {
-                    $script:pageCallCount++
-                    if ($script:pageCallCount -gt 1) { return $null }
-                    return [PSCustomObject]@{
-                        issues     = @([PSCustomObject]@{ key = "TEST-$script:pageCallCount" })
-                        startAt    = 0
-                        maxResults = 1
-                        total      = 5
-                    }
-                }
-
-                $params = @{
-                    URI      = "$jiraServer/rest/api/2/search"
-                    Method   = 'GET'
-                    Response = [PSCustomObject]@{
-                        issues     = @([PSCustomObject]@{ key = 'TEST-0' })
-                        startAt    = 0
-                        maxResults = 1
-                        total      = 5
-                    }
-                }
-
-                $result = Invoke-PaginatedRequest @params -WarningAction SilentlyContinue
-
-                # Should have the initial result from Response parameter
-                $result | Should -Not -BeNullOrEmpty
+                Should -Invoke Invoke-JiraRequest -Exactly -Times 1
             }
         }
     }

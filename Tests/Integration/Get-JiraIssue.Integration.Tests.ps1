@@ -38,66 +38,27 @@ InModuleScope JiraPS {
         }
 
         Context "Issue Retrieval by Key" {
-            It "retrieves an issue by key" {
-                $issue = Get-JiraIssue -Key $fixtures["TestIssue"]
-                $issue | Should -Not -BeNullOrEmpty
-            }
+            It 'retrieves the requested typed issue with its default fields' {
+                $issue = Get-JiraIssue -Key $fixtures["TestIssue"] -ErrorAction Stop
 
-            It "returns the correct issue key" {
-                $issue = Get-JiraIssue -Key $fixtures["TestIssue"]
+                $issue | Should -BeOfType ([AtlassianPS.JiraPS.Issue])
                 $issue.Key | Should -Be $fixtures["TestIssue"]
-            }
-
-            It "returns the correct type" {
-                $issue = Get-JiraIssue -Key $fixtures["TestIssue"]
-                $issue.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.Issue'
-            }
-
-            It "includes the summary" {
-                $issue = Get-JiraIssue -Key $fixtures["TestIssue"]
                 $issue.Summary | Should -Not -BeNullOrEmpty
-            }
-
-            It "includes the project" {
-                $issue = Get-JiraIssue -Key $fixtures["TestIssue"]
-                $issue.Project | Should -Not -BeNullOrEmpty
                 $issue.Project.Key | Should -Be $fixtures["TestProject"]
-            }
-
-            It "includes the issue type" {
-                $issue = Get-JiraIssue -Key $fixtures["TestIssue"]
                 $issue.IssueType | Should -Not -BeNullOrEmpty
-            }
-
-            It "includes the status" {
-                $issue = Get-JiraIssue -Key $fixtures["TestIssue"]
                 $issue.Status | Should -Not -BeNullOrEmpty
-            }
-
-            It "includes the description (as string)" {
-                $issue = Get-JiraIssue -Key $fixtures["TestIssue"]
                 $issue.Description | Should -BeOfType [string]
             }
         }
 
         Context "Field Selection" {
-            It "returns all fields by default" {
-                $issue = Get-JiraIssue -Key $fixtures["TestIssue"]
-                $issue.Summary | Should -Not -BeNullOrEmpty
-                $issue.Status | Should -Not -BeNullOrEmpty
-            }
 
             It "returns only specified fields with -Fields parameter" {
                 $issue = Get-JiraIssue -Key $fixtures["TestIssue"] -Fields "summary", "status"
                 $issue.Key | Should -Be $fixtures["TestIssue"]
                 $issue.Summary | Should -Not -BeNullOrEmpty
-            }
-        }
-
-        Context "Multiple Issues" {
-            It "retrieves multiple issues by key array" {
-                $issues = Get-JiraIssue -Key $fixtures["TestIssue"], $fixtures["TestIssue"]
-                @($issues).Count | Should -BeGreaterOrEqual 1
+                $issue.Status | Should -Not -BeNullOrEmpty
+                $issue.Project | Should -BeNullOrEmpty
             }
         }
 

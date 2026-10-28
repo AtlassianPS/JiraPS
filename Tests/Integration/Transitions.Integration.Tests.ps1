@@ -117,7 +117,7 @@ InModuleScope JiraPS {
 
                 $targetTransition = $availableTransitions[0]
 
-                { Invoke-JiraIssueTransition -Issue $issue.Key -Transition $targetTransition.Id } |
+                { Invoke-JiraIssueTransition -Issue $issue.Key -Transition $targetTransition.Id -ErrorAction Stop } |
                     Should -Not -Throw
             }
 
@@ -137,7 +137,7 @@ InModuleScope JiraPS {
 
                 $targetTransition = $availableTransitions[0]
 
-                { Invoke-JiraIssueTransition -Issue $issue.Key -Transition $targetTransition } |
+                { Invoke-JiraIssueTransition -Issue $issue.Key -Transition $targetTransition -ErrorAction Stop } |
                     Should -Not -Throw
             }
 
@@ -179,7 +179,7 @@ InModuleScope JiraPS {
 
                 $targetTransition = $availableTransitions[0]
 
-                { $issue | Invoke-JiraIssueTransition -Transition $targetTransition.Id } |
+                { $issue | Invoke-JiraIssueTransition -Transition $targetTransition.Id -ErrorAction Stop } |
                     Should -Not -Throw
             }
 

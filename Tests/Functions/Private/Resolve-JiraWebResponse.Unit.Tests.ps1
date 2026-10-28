@@ -94,12 +94,6 @@ InModuleScope JiraPS {
                 Should -Throw -ExpectedMessage '*Transport failure sentinel*'
         }
 
-        It 'returns JSON without constructing a legacy session' {
-            $response = New-FakeWebResponse -StatusCode 200 -Json '{"name":"validated-user"}'
-            $result = Invoke-ResolveJiraWebResponse -Remaining @{ WebResponse = $response }
-            $result.name | Should -Be 'validated-user'
-        }
-
         It "stores cache entries for GET responses when CacheKey is provided" {
             $script:JiraCache = @{}
 

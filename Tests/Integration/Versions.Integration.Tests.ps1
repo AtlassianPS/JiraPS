@@ -96,7 +96,7 @@ InModuleScope JiraPS {
                     # have none. Assert the call succeeds and only type-check the payload
                     # when there is data; the populated-shape case is covered both by the
                     # next `It` block and by the `New-JiraVersion` round-trip below.
-                    { Get-JiraVersion -Project $fixtures.TestProject } | Should -Not -Throw
+                    { Get-JiraVersion -Project $fixtures.TestProject -ErrorAction Stop } | Should -Not -Throw
 
                     $versions = Get-JiraVersion -Project $fixtures.TestProject
                     if ($versions) { @($versions)[0] | Should -BeOfType [PSCustomObject] }
@@ -127,7 +127,7 @@ InModuleScope JiraPS {
                     $version = New-JiraVersion -Project $fixtures.TestProject -Name $versionName
                     $null = $script:createdVersions.Add($version)
 
-                    $version | Should -Not -BeNullOrEmpty
+                    $version | Should -BeOfType ([AtlassianPS.JiraPS.Version])
                     $version.Name | Should -Be $versionName
                 }
 
@@ -147,16 +147,7 @@ InModuleScope JiraPS {
                     $version = New-JiraVersion -Project $fixtures.TestProject -Name $versionName -ReleaseDate $releaseDate
                     $null = $script:createdVersions.Add($version)
 
-                    $version | Should -Not -BeNullOrEmpty
-                }
-
-                It "returns version object with correct type" {
-                    $versionName = New-TestResourceName -Type "VersionType"
-
-                    $version = New-JiraVersion -Project $fixtures.TestProject -Name $versionName
-                    $null = $script:createdVersions.Add($version)
-
-                    $version.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.Version'
+                    $version.ReleaseDate.Date | Should -Be $releaseDate.Date
                 }
             }
 

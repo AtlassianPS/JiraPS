@@ -25,36 +25,20 @@ InModuleScope JiraPS {
 
         Describe "Get-JiraProject" {
             Context "Listing Projects" {
-                It "retrieves all accessible projects" {
-                    $projects = Get-JiraProject
+                It 'lists accessible projects as typed models' {
+                    $projects = Get-JiraProject -ErrorAction Stop
 
                     $projects | Should -Not -BeNullOrEmpty
-                }
-
-                It "returns project objects with correct type" {
-                    $projects = Get-JiraProject
-
-                    @($projects)[0].PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.Project'
+                    @($projects)[0] | Should -BeOfType ([AtlassianPS.JiraPS.Project])
                 }
             }
 
             Context "Specific Project" {
-                It "retrieves a project by key" {
-                    $project = Get-JiraProject -Project $fixtures.TestProject
+                It 'retrieves the requested project with its name and ID' {
+                    $project = Get-JiraProject -Project $fixtures.TestProject -ErrorAction Stop
 
-                    $project | Should -Not -BeNullOrEmpty
                     $project.Key | Should -Be $fixtures.TestProject
-                }
-
-                It "includes project name" {
-                    $project = Get-JiraProject -Project $fixtures.TestProject
-
                     $project.Name | Should -Not -BeNullOrEmpty
-                }
-
-                It "includes project ID" {
-                    $project = Get-JiraProject -Project $fixtures.TestProject
-
                     $project.Id | Should -Not -BeNullOrEmpty
                 }
             }
@@ -80,7 +64,7 @@ InModuleScope JiraPS {
                     # returns `$null`. Assert the call succeeds and only type-check when
                     # data is present; the dedicated typed-shape assertion lives in the
                     # next `It` block.
-                    { Get-JiraComponent -Project $fixtures.TestProject } | Should -Not -Throw
+                    { Get-JiraComponent -Project $fixtures.TestProject -ErrorAction Stop } | Should -Not -Throw
 
                     if ($components) { @($components)[0] | Should -BeOfType [AtlassianPS.JiraPS.Component] }
                 }

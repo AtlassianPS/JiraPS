@@ -88,25 +88,12 @@ InModuleScope JiraPS {
             }
 
             Context "Parameter Types" {
-                It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = 'Filter'; type = 'AtlassianPS.JiraPS.Filter' }
-                    @{ parameter = 'Name'; type = 'String' }
-                    @{ parameter = 'Description'; type = 'String' }
-                    @{ parameter = 'JQL'; type = 'String' }
-                    @{ parameter = 'Favorite'; type = 'Boolean' }
-                ) {
-                    param($parameter, $type)
-                    $command | Should -HaveParameter $parameter -Type $type
-                }
 
                 It "has an alias 'Favourite' for parameter 'Favorite'" {
                     $command.Parameters.Item('Favorite').Aliases | Should -Contain 'Favourite'
                 }
             }
 
-            Context "Mandatory Parameters" {}
-
-            Context "Default Values" {}
         }
 
         Describe "Behavior" {

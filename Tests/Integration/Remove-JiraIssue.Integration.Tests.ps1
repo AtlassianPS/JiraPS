@@ -35,7 +35,7 @@ InModuleScope JiraPS {
                 }
                 $issue = New-TemporaryTestIssue -Fixtures $fixtures -Summary (New-TestResourceName -Type "DeleteKey")
 
-                { Remove-JiraIssue -Issue $issue.Key -Confirm:$false } | Should -Not -Throw
+                { Remove-JiraIssue -Issue $issue.Key -Confirm:$false -ErrorAction Stop } | Should -Not -Throw
 
                 { Get-JiraIssue -Key $issue.Key -ErrorAction Stop } | Should -Throw
             }
@@ -47,7 +47,7 @@ InModuleScope JiraPS {
                 }
                 $issue = New-TemporaryTestIssue -Fixtures $fixtures -Summary (New-TestResourceName -Type "DeletePipe")
 
-                { $issue | Remove-JiraIssue -Confirm:$false } | Should -Not -Throw
+                { $issue | Remove-JiraIssue -Confirm:$false -ErrorAction Stop } | Should -Not -Throw
 
                 { Get-JiraIssue -Key $issue.Key -ErrorAction Stop } | Should -Throw
             }
@@ -59,7 +59,7 @@ InModuleScope JiraPS {
                 }
                 $issue = New-TemporaryTestIssue -Fixtures $fixtures -Summary (New-TestResourceName -Type "DeleteObj")
 
-                { Remove-JiraIssue -Issue $issue -Confirm:$false } | Should -Not -Throw
+                { Remove-JiraIssue -Issue $issue -Confirm:$false -ErrorAction Stop } | Should -Not -Throw
 
                 { Get-JiraIssue -Key $issue.Key -ErrorAction Stop } | Should -Throw
             }

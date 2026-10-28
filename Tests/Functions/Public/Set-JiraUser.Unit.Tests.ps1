@@ -37,9 +37,7 @@ InModuleScope JiraPS {
 
             Mock Get-JiraUserOperation -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraUser' 'UserName'
-                $object = ConvertFrom-Json $restResultGet
-                $object.PSObject.TypeNames.Insert(0, 'AtlassianPS.JiraPS.User')
-                return $object
+                ConvertTo-JiraUser -InputObject (ConvertFrom-Json $restResultGet)
             }
 
             Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter { $Method -eq 'Put' -and $URI -eq "/rest/api/2/user?username=$testUsername" } {
@@ -54,36 +52,7 @@ InModuleScope JiraPS {
             #endregion Mocks
         }
 
-        Describe "Signature" {
-            BeforeAll {
-                $script:command = Get-Command -Name Set-JiraUser
-            }
-
-            Context "Parameter Types" {
-                It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = 'User'; type = 'User' }
-                    @{ parameter = 'DisplayName'; type = 'String' }
-                    @{ parameter = 'EmailAddress'; type = 'String' }
-                    @{ parameter = 'Active'; type = 'Boolean' }
-                    @{ parameter = 'PassThru'; type = 'SwitchParameter' }
-                ) {
-                    param($parameter, $type)
-                    $command | Should -HaveParameter $parameter
-                    $command.Parameters[$parameter].ParameterType.Name | Should -Be $type
-                }
-            }
-
-            Context "Mandatory Parameters" {}
-
-            Context "Default Values" {}
-        }
-
         Describe "Behavior" {
-            It "Accepts a username as a String to the -User parameter" {
-                { Set-JiraUser -User $testUsername -DisplayName $testDisplayNameChanged } | Should -Not -Throw
-                Should -Invoke Get-JiraUserOperation -ModuleName JiraPS -Exactly -Times 1
-                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1
-            }
 
             It "Accepts a AtlassianPS.JiraPS.User object to the -User parameter" {
                 $user = Get-JiraUser -User $testUsername
@@ -97,13 +66,21 @@ InModuleScope JiraPS {
             }
 
             It "Modifies a user's DisplayName if the -DisplayName parameter is passed" {
-                { Set-JiraUser -User $testUsername -DisplayName $testDisplayNameChanged } | Should -Not -Throw
-                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1
+                Set-JiraUser -User $testUsername -DisplayName $testDisplayNameChanged
+
+                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
+                    $Method -eq 'Put' -and $URI -eq "/rest/api/2/user?username=$testUsername" -and
+                    ($Body | ConvertFrom-Json).displayName -eq $testDisplayNameChanged
+                }
             }
 
             It "Modifies a user's EmailAddress if the -EmailAddress parameter is passed" {
-                { Set-JiraUser -User $testUsername -EmailAddress $testEmailChanged } | Should -Not -Throw
-                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1
+                Set-JiraUser -User $testUsername -EmailAddress $testEmailChanged
+
+                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
+                    $Method -eq 'Put' -and $URI -eq "/rest/api/2/user?username=$testUsername" -and
+                    ($Body | ConvertFrom-Json).emailAddress -eq $testEmailChanged
+                }
             }
 
             It "Provides no output if the -PassThru parameter is not passed" {
@@ -113,14 +90,9 @@ InModuleScope JiraPS {
 
             It "Outputs a AtlassianPS.JiraPS.User object if the -PassThru parameter is passed" {
                 $output = Set-JiraUser -User $testUsername -DisplayName $testDisplayNameChanged -PassThru
-                $output | Should -Not -BeNullOrEmpty
+                $output | Should -BeOfType ([AtlassianPS.JiraPS.User])
+                $output.Name | Should -Be $testUsername
             }
-        }
-
-        Describe "Input Validation" {
-            Context "Type Validation - Positive Cases" {}
-
-            Context "Type Validation - Negative Cases" {}
         }
 
         Describe "Cloud Deployment" {

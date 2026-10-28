@@ -48,42 +48,20 @@ InModuleScope JiraPS {
         }
 
         Context 'Optional object input' {
-            It '<converter> returns null for explicit null input' -TestCases $script:nullInputConverterCases {
+            It '<converter> emits no object for absent direct or pipeline input' -TestCases $script:nullInputConverterCases {
                 param($converter)
-                $result = & $converter -InputObject $null
-                ($null -eq $result) | Should -BeTrue
-            }
-
-            It '<converter> returns null when input is omitted' -TestCases $script:nullInputConverterCases {
-                param($converter)
-                $result = & $converter
-                ($null -eq $result) | Should -BeTrue
-            }
-
-            It '<converter> returns null for piped null input' -TestCases $script:nullInputConverterCases {
-                param($converter)
-                $result = $null | & $converter
-                ($null -eq $result) | Should -BeTrue
+                ($null -eq (& $converter -InputObject $null)) | Should -BeTrue -Because 'explicit null must remain absent'
+                ($null -eq (& $converter)) | Should -BeTrue -Because 'omitted input must remain absent'
+                ($null -eq ($null | & $converter)) | Should -BeTrue -Because 'piped null must remain absent'
             }
         }
 
         Context 'Array input' {
-            It '<converter> emits no objects for an empty array' -TestCases $script:arrayInputConverterCases {
+            It '<converter> emits no objects for empty or null-only collections' -TestCases $script:arrayInputConverterCases {
                 param($converter)
-                $result = @(& $converter -InputObject @())
-                $result.Count | Should -Be 0
-            }
-
-            It '<converter> emits no objects for null array entries' -TestCases $script:arrayInputConverterCases {
-                param($converter)
-                $result = @(& $converter -InputObject @($null, $null))
-                $result.Count | Should -Be 0
-            }
-
-            It '<converter> emits no objects for piped null array entries' -TestCases $script:arrayInputConverterCases {
-                param($converter)
-                $result = @(@($null, $null) | & $converter)
-                $result.Count | Should -Be 0
+                @(& $converter -InputObject @()) | Should -HaveCount 0
+                @(& $converter -InputObject @($null, $null)) | Should -HaveCount 0
+                @(@($null, $null) | & $converter) | Should -HaveCount 0
             }
 
             It '<converter> skips null entries without dropping adjacent objects' -TestCases $script:arrayInputConverterCases {

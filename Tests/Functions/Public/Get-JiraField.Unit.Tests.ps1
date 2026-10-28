@@ -156,25 +156,6 @@ InModuleScope JiraPS {
             #endregion Mocks
         }
 
-        Describe "Signature" {
-            BeforeAll {
-                $script:command = Get-Command -Name Get-JiraField
-            }
-
-            Context "Parameter Types" {
-                It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = 'Field'; type = 'AtlassianPS.JiraPS.Field[]' }
-                    @{ parameter = 'Refresh'; type = 'System.Management.Automation.SwitchParameter' }
-                ) {
-                    $command | Should -HaveParameter $parameter -Type $type
-                }
-            }
-
-            Context "Mandatory Parameters" {}
-
-            Context "Default Values" {}
-        }
-
         Describe "Behavior" {
             It "gets all fields in Jira if called with no parameters" {
                 $allResults = Get-JiraField
@@ -239,12 +220,6 @@ InModuleScope JiraPS {
                 Get-JiraField | Out-Null
                 Should -Invoke ConvertTo-JiraField
             }
-        }
-
-        Describe "Input Validation" {
-            Context "Type Validation - Positive Cases" {}
-
-            Context "Type Validation - Negative Cases" {}
         }
 
         Describe "Caching Behavior" {

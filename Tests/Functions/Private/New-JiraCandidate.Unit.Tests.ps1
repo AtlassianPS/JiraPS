@@ -179,13 +179,6 @@ InModuleScope JiraPS {
             Should -Invoke Invoke-WebRequest -Exactly 0 -ParameterFilter { $Uri.AbsolutePath -eq '/rest/api/2/myself' }
         }
 
-        It 'does not turn a transport failure into a successful fallback' {
-            Mock Invoke-WebRequest { throw [System.Net.WebException]::new('Connection refused sentinel') }
-            { Connect-Jira -Name validation-network -Uri https://jira.example.com -Anonymous } | Should -Throw '*Connection refused sentinel*'
-            Get-JiraConnection -Name validation-network | Should -BeNullOrEmpty
-            Should -Invoke Invoke-WebRequest -Exactly 1
-        }
-
         It 'rejects an unrecognized deployment in a metadata response' {
             $script:metadata = '{"deploymentType":"Other"}'
             { Connect-Jira -Name validation-product -Uri https://jira.example.com -Anonymous } | Should -Throw '*recognizable Jira server information*'

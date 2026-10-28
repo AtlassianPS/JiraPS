@@ -58,25 +58,6 @@ InModuleScope JiraPS {
             #endregion Mocks
         }
 
-        Describe "Signature" {
-            BeforeAll {
-                $script:command = Get-Command -Name Remove-JiraUser
-            }
-
-            Context "Parameter Types" {
-                It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = 'User'; type = 'AtlassianPS.JiraPS.User' }
-                ) {
-                    param($parameter, $type)
-                    $command | Should -HaveParameter $parameter -Type $type
-                }
-            }
-
-            Context "Mandatory Parameters" {}
-
-            Context "Default Values" {}
-        }
-
         Describe "Behavior" {
             Context "User Deletion" {
                 It "Accepts a username as a String to the -User parameter" {
@@ -95,21 +76,10 @@ InModuleScope JiraPS {
                     Should -Invoke -CommandName Invoke-JiraRequest -Exactly -Times 1
                 }
 
-                It "Removes a user from JIRA" {
-                    { Remove-JiraUser -User $testUsername -Confirm:$false } | Should -Not -Throw
-                    Should -Invoke -CommandName Invoke-JiraRequest -Exactly -Times 1
-                }
-
                 It "Provides no output" {
                     Remove-JiraUser -User $testUsername -Confirm:$false | Should -BeNullOrEmpty
                 }
             }
-        }
-
-        Describe "Input Validation" {
-            Context "Type Validation - Positive Cases" {}
-
-            Context "Type Validation - Negative Cases" {}
         }
 
         Describe "Cloud Deployment" {

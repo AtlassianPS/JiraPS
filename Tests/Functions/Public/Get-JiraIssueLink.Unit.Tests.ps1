@@ -58,24 +58,6 @@ InModuleScope JiraPS {
             #endregion Mocks
         }
 
-        Describe "Signature" {
-            BeforeAll {
-                $script:command = Get-Command -Name Get-JiraIssueLink
-            }
-
-            Context "Parameter Types" {
-                It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = "IssueLink"; type = "AtlassianPS.JiraPS.IssueLink[]" }
-                ) {
-                    $command | Should -HaveParameter $parameter
-                }
-            }
-
-            Context "Mandatory Parameters" {}
-
-            Context "Default Values" {}
-        }
-
         Describe "Behavior" {
             It "Returns details about specific issuelink" {
                 $result = Get-JiraIssueLink -Id $issueLinkId
@@ -98,10 +80,5 @@ InModuleScope JiraPS {
             }
         }
 
-        Describe "Input Validation" {
-            Context "Type Validation - Positive Cases" {}
-
-            Context "Type Validation - Negative Cases" {}
-        }
     }
 }

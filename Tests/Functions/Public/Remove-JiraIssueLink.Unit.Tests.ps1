@@ -63,26 +63,6 @@ InModuleScope JiraPS {
             #endregion Mocks
         }
 
-        Describe "Signature" {
-            BeforeAll {
-                $script:command = Get-Command -Name Remove-JiraIssueLink
-            }
-
-            Context "Parameter Types" {
-                It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = 'IssueLink'; type = 'AtlassianPS.JiraPS.IssueLink[]' }
-                    @{ parameter = 'Issue'; type = 'AtlassianPS.JiraPS.Issue[]' }
-                ) {
-                    param($parameter, $type)
-                    $command | Should -HaveParameter $parameter -Type $type
-                }
-            }
-
-            Context "Mandatory Parameters" {}
-
-            Context "Default Values" {}
-        }
-
         Describe "Behavior" {
             Context "Issue Link Deletion" {
                 It "Accepts typed Issue and IssueLink objects" {
@@ -112,9 +92,6 @@ InModuleScope JiraPS {
         }
 
         Describe "Input Validation" {
-            Context "Positive cases" {
-                # TODO: Add positive input validation tests
-            }
 
             Context "Negative cases" {
                 It "Validates pipeline input" {

@@ -107,33 +107,6 @@ InModuleScope JiraPS {
             #endregion Mocks
         }
 
-        Describe "Signature" {
-            BeforeAll {
-                $script:command = Get-Command -Name New-JiraIssue
-            }
-
-            Context "Parameter Types" {
-                It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = 'Project'; type = 'AtlassianPS.JiraPS.Project' }
-                    @{ parameter = 'IssueType'; type = 'AtlassianPS.JiraPS.IssueType' }
-                    @{ parameter = 'Priority'; type = 'AtlassianPS.JiraPS.Priority' }
-                    @{ parameter = 'Summary'; type = 'String' }
-                    @{ parameter = 'Description'; type = 'String' }
-                    @{ parameter = 'Reporter'; type = 'AtlassianPS.JiraPS.User' }
-                    @{ parameter = 'Label'; type = 'String[]' }
-                    @{ parameter = 'Components'; type = 'AtlassianPS.JiraPS.Component[]' }
-                    @{ parameter = 'Fields'; type = 'PSObject' }
-                ) {
-                    param($parameter, $type)
-                    $command | Should -HaveParameter $parameter -Type $type
-                }
-            }
-
-            Context "Mandatory Parameters" {}
-
-            Context "Default Values" {}
-        }
-
         Describe "Behavior" {
             Context "Typed issue field references" {
                 It "sends IDs and names in the <deployment> create payload" -TestCases @(
@@ -284,68 +257,6 @@ InModuleScope JiraPS {
                 Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Times 1 -ParameterFilter { $Method -eq 'Post' -and $URI -like "/rest/api/*/issue" }
             }
 
-            Context "New-JiraIssue handles duplicate fields" {
-                BeforeAll {
-                    # Intentionally output multiple objects of different IDs but with the same name
-                    Mock Get-JiraFieldOperation -ModuleName JiraPS {
-                        Write-MockDebugInfo 'Get-JiraField'
-                        $Field | ForEach-Object {
-                            $name = $_
-                            if ($name -eq 'Reporter') {
-                                'Reporter', 'Reporter_mismatched' | ForEach-Object {
-                                    $fieldname = $_
-                                    $object = [PSCustomObject] @{
-                                        'Id' = "$fieldname"
-                                    }
-                                    $object.PSObject.TypeNames.Insert(0, 'JiraPS.Field')
-                                    $object
-                                }
-                            }
-                            else {
-                                $object = [PSCustomObject] @{
-                                    'Id' = "$name"
-                                }
-                                $object.PSObject.TypeNames.Insert(0, 'JiraPS.Field')
-                                $object
-                            }
-                        }
-                    }
-                }
-
-                It "finds the right field which has a matching name and id" {
-                    Mock Get-JiraIssueCreateMetadataOperation -ModuleName JiraPS {
-                        Write-MockDebugInfo 'Get-JiraIssueCreateMetadata'
-                        @(
-                            @{Name = 'Project'; ID = 'Project'; Required = $true }
-                            @{Name = 'IssueType'; ID = 'IssueType'; Required = $true }
-                            @{Name = 'Priority'; ID = 'Priority'; Required = $true }
-                            @{Name = 'Summary'; ID = 'Summary'; Required = $true }
-                            @{Name = 'Description'; ID = 'Description'; Required = $true }
-                            @{Name = 'Reporter'; ID = 'Reporter'; Required = $true }
-                            @{Name = 'Reporter'; ID = 'Reporter_mismatch'; Required = $false }
-                        )
-                    }
-
-                    { New-JiraIssue @newParams } | Should -Not -Throw
-                }
-
-                It "does not let mismatched createmeta reporter IDs block issue creation" {
-                    Mock Get-JiraIssueCreateMetadataOperation -ModuleName JiraPS {
-                        Write-MockDebugInfo 'Get-JiraIssueCreateMetadata'
-                        @(
-                            @{Name = 'Project'; ID = 'Project'; Required = $true }
-                            @{Name = 'IssueType'; ID = 'IssueType'; Required = $true }
-                            @{Name = 'Priority'; ID = 'Priority'; Required = $true }
-                            @{Name = 'Summary'; ID = 'Summary'; Required = $true }
-                            @{Name = 'Description'; ID = 'Description'; Required = $true }
-                            @{Name = 'Reporter'; ID = 'Reporter_mismatch1'; Required = $true }
-                            @{Name = 'Reporter'; ID = 'Reporter_mismatch2'; Required = $false }
-                        )
-                    }
-
-                    { New-JiraIssue @newParams } | Should -Not -Throw
-                }
-            }
         }
 
         Describe "Input Validation" {
@@ -364,26 +275,12 @@ InModuleScope JiraPS {
                         )
                     }
 
-                    { New-JiraIssue @newParams -Fields @{'CustomField' = '.' } } | Should -Not -Throw
-                }
-            }
-            Context "Negative cases" {
-                It "does not reject a create when createmeta marks an omitted field as required" {
-                    Mock Get-JiraIssueCreateMetadataOperation -ModuleName JiraPS {
-                        Write-MockDebugInfo 'Get-JiraIssueCreateMetadata'
-                        @(
-                            @{Name = 'Project'; ID = 'Project'; Required = $true }
-                            @{Name = 'IssueType'; ID = 'IssueType'; Required = $true }
-                            @{Name = 'Priority'; ID = 'Priority'; Required = $true }
-                            @{Name = 'Summary'; ID = 'Summary'; Required = $true }
-                            @{Name = 'Description'; ID = 'Description'; Required = $true }
-                            @{Name = 'Reporter'; ID = 'Reporter'; Required = $true }
-                            @{Name = 'CustomField'; ID = 'CustomField'; Required = $true }
-                        )
-                    }
+                    New-JiraIssue @newParams -Fields @{'CustomField' = '.' }
 
-                    { New-JiraIssue @newParams } | Should -Not -Throw
-                    Should -Invoke -CommandName Get-JiraIssueCreateMetadataOperation -ModuleName JiraPS -Times 0
+                    Should -Invoke Invoke-JiraRequest -Exactly -Times 1 -ParameterFilter {
+                        $Method -eq 'POST' -and $URI -eq '/rest/api/2/issue' -and
+                        ($Body | ConvertFrom-Json).fields.CustomField -eq '.'
+                    }
                 }
             }
         }

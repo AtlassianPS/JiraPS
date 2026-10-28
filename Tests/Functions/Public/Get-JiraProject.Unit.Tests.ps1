@@ -86,16 +86,6 @@ InModuleScope JiraPS {
             #endregion Mocks
         }
 
-        Describe "Signature" {
-            Context "Parameter Types" {
-                # TODO: Add parameter type validation tests
-            }
-
-            Context "Mandatory Parameters" {}
-
-            Context "Default Values" {}
-        }
-
         Describe "Behavior" {
             It "Returns all projects if called with no parameters" {
                 $allResults = Get-JiraProject
@@ -107,6 +97,8 @@ InModuleScope JiraPS {
                 $oneResult = Get-JiraProject -Project $projectKey
                 $oneResult | Should -Not -BeNullOrEmpty
                 @($oneResult) | Should -HaveCount 1
+                $oneResult.Key | Should -Be $projectKey
+                $oneResult.Id | Should -Be $projectId
             }
 
             It "Returns details about specific projects if the project ID is supplied" {
@@ -115,21 +107,7 @@ InModuleScope JiraPS {
                 @($oneResult) | Should -HaveCount 1
             }
 
-            It "Provides the key of the project" {
-                $oneResult = Get-JiraProject -Project $projectKey
-                $oneResult.Key | Should -Be $projectKey
-            }
-
-            It "Provides the ID of the project" {
-                $oneResult = Get-JiraProject -Project $projectKey
-                $oneResult.Id | Should -Be $projectId
-            }
         }
 
-        Describe "Input Validation" {
-            Context "Type Validation - Positive Cases" {}
-
-            Context "Type Validation - Negative Cases" {}
-        }
     }
 }

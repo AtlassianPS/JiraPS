@@ -144,9 +144,6 @@ InModuleScope JiraPS {
 
             It "extracts plain text from an ADF body" {
                 $adfResult.Body | Should -Be "ADF comment body"
-            }
-
-            It "Body is a plain string, not a PSCustomObject" {
                 $adfResult.Body | Should -BeOfType [string]
             }
         }
