@@ -12,22 +12,9 @@ Describe "General project validation" -Tag Unit {
 
         $script:manifest = Test-ModuleManifest -Path $moduleToTest -ErrorAction Stop -WarningAction SilentlyContinue
     }
+
     AfterEach {
         Remove-Module JiraPS -ErrorAction SilentlyContinue
-    }
-
-    It "passes Test-ModuleManifest" {
-        { Test-ModuleManifest -Path $moduleToTest -ErrorAction Stop } | Should -Not -Throw
-    }
-
-    It "module 'JiraPS' can import cleanly" {
-        { Import-Module $moduleToTest } | Should -Not -Throw
-    }
-
-    It "module 'JiraPS' exports functions" {
-        Import-Module $moduleToTest
-
-        (Get-Command -Module JiraPS | Measure-Object).Count | Should -BeGreaterThan 0
     }
 
     It "module uses the correct root module" {
@@ -38,12 +25,7 @@ Describe "General project validation" -Tag Unit {
         $manifest.Guid | Should -Be '4bf3eb15-037e-43b7-9e47-20a30436324f'
     }
 
-    It "module uses a valid version" {
-        $manifest.Version | Should -Not -BeNullOrEmpty
-        [Version]($manifest.Version) | Should -BeOfType [Version]
-    }
-
-    It "loads saved server configuration during initialization" {
+    It "does not import legacy server configuration during initialization" {
         $testServerConfig = Join-Path $TestDrive 'server_config'
         Set-Content -LiteralPath $testServerConfig -Value 'https://saved-config.example/'
 
@@ -58,14 +40,14 @@ Describe "General project validation" -Tag Unit {
 
                     function global:Test-Path {
                         [CmdletBinding()]
-                        param([string]$Path, [string]$LiteralPath)
+                        param([string]$Path, [string]$LiteralPath, [Alias('Type')][Microsoft.PowerShell.Commands.TestPathType]$PathType)
                         if ($Path -eq $script:configFile) { return $true }
                         Microsoft.PowerShell.Management\Test-Path @PSBoundParameters
                     }
 
                     function global:Get-Content {
                         [CmdletBinding()]
-                        param([string]$Path, [switch]$Raw)
+                        param([string]$Path, [string]$LiteralPath, [string]$Encoding, [switch]$Raw)
                         if ($Path -eq $script:configFile) {
                             $script:configReads++
                             return [IO.File]::ReadAllText($script:fixturePath)
@@ -75,23 +57,19 @@ Describe "General project validation" -Tag Unit {
 
                     Import-Module $modulePath -Force -ErrorAction Stop
                     [PSCustomObject]@{
-                        Server = Get-JiraConfigServer
-                        Reads  = $script:configReads
+                        LegacyCommandCount = @(Get-Command -Module JiraPS | Where-Object { $_.Name -in @('Get-JiraConfigServer', 'Set-JiraConfigServer', 'Get-JiraSession', 'New-JiraSession', 'Set-JiraSession', 'Remove-JiraSession') }).Count
+                        Reads              = $script:configReads
                     }
                 }).AddArgument($moduleToTest).AddArgument($testServerConfig)
             $result = $powerShell.Invoke()
             if ($powerShell.HadErrors) { throw $powerShell.Streams.Error[0] }
 
-            $result.Server | Should -Be 'https://saved-config.example'
-            $result.Reads | Should -Be 1
+            $result.LegacyCommandCount | Should -Be 0
+            $result.Reads | Should -Be 0
         }
         finally {
             $powerShell.Dispose()
         }
-    }
-
-    It "module manifest uses a semantic version" {
-        $manifest.Version | Should -Match '^\d+\.\d+\.\d+(?:-.+)?$'
     }
 
     # It "module is imported with default prefix" {

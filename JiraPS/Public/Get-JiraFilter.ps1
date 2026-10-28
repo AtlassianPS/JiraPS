@@ -1,13 +1,13 @@
 ﻿function Get-JiraFilter {
     # .ExternalHelp ..\JiraPS-help.xml
-    [CmdletBinding( DefaultParameterSetName = 'ByInputObject' )]
+    [CmdletBinding( DefaultParameterSetName = 'ByFilter' )]
     param(
-        [Parameter( Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = 'ByInputObject' )]
+        [Parameter( Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = 'ByFilter' )]
         [ValidateNotNull()]
         [Alias('Id')]
         [AtlassianPS.JiraPS.FilterTransformation()]
         [AtlassianPS.JiraPS.Filter[]]
-        $InputObject,
+        $Filter,
 
         [Parameter( Mandatory, ParameterSetName = 'MyFavorite' )]
         [Alias('Favourite')]
@@ -15,46 +15,46 @@
         $Favorite,
 
         [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        [AtlassianPS.Connection]
+        $Connection
     )
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
+
+        $requestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
 
         $resourceURi = "/rest/api/2/filter/{0}"
     }
 
     process {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+        Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
 
         switch ($PSCmdlet.ParameterSetName) {
-            "ByInputObject" {
-                foreach ($filter in $InputObject) {
+            "ByFilter" {
+                foreach ($filter in $Filter) {
                     Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$filter]"
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$filter [$filter]"
+                    Write-DebugMessage "Processing `$filter [$filter]"
 
                     $parameter = @{
-                        URI        = $resourceURi -f $filter.Id
-                        Method     = "GET"
-                        Credential = $Credential
+                        URI    = $resourceURi -f $filter.Id
+                        Method = "GET"
                     }
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-                    $result = Invoke-JiraMethod @parameter
+                    Write-DebugMessage "Invoking JiraMethod with `$parameter"
+                    $result = Invoke-JiraRequest -RequestContext $RequestContext @parameter
 
                     Write-Output (ConvertTo-JiraFilter -InputObject $result)
                 }
             }
             "MyFavorite" {
                 $parameter = @{
-                    URI        = $resourceURi -f "favourite"
-                    Method     = "GET"
-                    Credential = $Credential
+                    URI    = $resourceURi -f "favourite"
+                    Method = "GET"
                 }
-                Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-                $result = Invoke-JiraMethod @parameter
+                Write-DebugMessage "Invoking JiraMethod with `$parameter"
+                $result = Invoke-JiraRequest -RequestContext $RequestContext @parameter
 
                 Write-Output (ConvertTo-JiraFilter -InputObject $result)
             }

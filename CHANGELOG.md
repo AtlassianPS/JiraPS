@@ -2,17 +2,30 @@
 
 ## Unreleased
 
-This release focuses on Cloud and Data Center compatibility, strongly typed objects, and automation.
-
-### Highlights for users
-
-- JiraPS supports deployment-aware authentication, user identity, rich text, and REST endpoints on Jira Cloud and Jira Data Center.
-- Domain objects use real .NET types under `AtlassianPS.JiraPS.*`, with typed inputs, nested properties, and IntelliSense support.
-- Frequently requested metadata is cached, and HTTP requests support timeouts and retries for throttling and transient outages.
-
 ### Breaking changes
 
 - Minimum supported PowerShell version is now 5.1.
+- Removed `Get/Set-JiraConfigServer` and `New/Get/Set/Remove-JiraSession`, including implicit `server_config` loading.
+  Use shared endpoint profiles and `Connect/Get/Select/Disconnect-Jira` for live connections.
+- Ordinary Jira commands use the selected connection or explicit `-Connection`; per-call `-Credential` and the `-Session` alias are removed.
+  Supply authentication to `Connect-Jira`, or use `Invoke-JiraMethod -BaseUri` for standalone requests.
+  Use `Connect-Jira -Anonymous` for anonymous access.
+- Authorization/Cookie request headers and low-level web request authentication defaults are unsupported.
+  Pass ordinary request headers to `Invoke-JiraMethod -Headers`.
+  Configure authentication with `Connect-Jira`.
+- Removed `Invoke-JiraMethod -StoreSession`, public internal transport controls and the deprecated `Format-Jira` alias.
+- `Get-JiraIssueAttachmentFile` is now `Save-JiraIssueAttachment`.
+  It returns `FileInfo`, supports `WhatIf`, and requires `-Force` to overwrite files.
+- Removal commands use `-Confirm:$false` instead of confirmation-only `-Force` switches.
+  Transitions and version moves now support `WhatIf` and `Confirm`.
+- `Get/Add-JiraFilterPermission` return permission records; bulk removal requires explicit `-All`.
+  `Set-JiraFilter` returns the successful update response only with `-PassThru`.
+- Exact users use `Get-JiraUser -User`; explicit `-Query` and `-All` provide search and enumeration.
+  User IDs remain opaque and deployment-specific.
+  `New-JiraUser` requires explicit Cloud products or a Data Center username; the unsupported Boolean `-Notify` option is removed.
+  `Set-JiraUser` fails actionably on Cloud, where the account-field update API is unavailable.
+- Cached metadata getters replace `-Force` with `-Refresh` to fetch and replace the selected connection's cached data.
+  Version name filtering precedes `First` and `Skip`; comments and worklogs expose standard paging.
 - Domain objects use `AtlassianPS.JiraPS.<Type>` instead of the historic `JiraPS.<Type>` PSTypeNames.
   Update type checks and mocks to the new namespace; prefer `$obj -is [AtlassianPS.JiraPS.Issue]` for type checks.
 - Issue, user, group, project, version, filter, and issue-link parameters use strongly typed objects with argument transformation.
@@ -36,11 +49,18 @@ This release focuses on Cloud and Data Center compatibility, strongly typed obje
   The `-Issue` anchor parameter was removed.
 
 See [`about_JiraPS_MigrationV3`](https://atlassianps.org/docs/JiraPS/about/migration-v3.html) for before/after examples and detailed input contracts.
+See the [authentication guide](docs/en-US/about_JiraPS_Authentication.md) for connection and session migration examples.
 
 ### Added
 
-- `New-JiraSession` supports Cloud API tokens through `-ApiToken` and `-EmailAddress`, and Data Center personal access tokens through `-PersonalAccessToken` (aliases `-PAT`, `-BearerToken`).
-  Token parameters accept `SecureString` values. (#576)
+- `Connect-Jira` detects deployment automatically without requiring a Jira version.
+  Authenticated connections always validate `myself` and reconcile metadata, gateway and identity evidence, including when deployment metadata is unavailable.
+  Anonymous connections require recognized deployment metadata from `serverInfo`.
+- `Connect-Jira`, `Get-JiraConnection`, `Select-JiraConnection`, and `Disconnect-Jira` manage named connections for multiple Jira sites and identities.
+  Pass `-Connection` to target one command; omitting it uses the selected Jira default.
+- `Connect-Jira` supports Cloud API tokens through `-ApiToken` and `-EmailAddress`, and Data Center personal access tokens through `-PersonalAccessToken` (aliases `-PAT`, `-BearerToken`).
+  Token parameters accept strings and `SecureString` values. (#576)
+  Cloud API tokens, including scoped tokens, work with the normal site URL through automatic API endpoint discovery.
 - `Get-JiraStatus` retrieves statuses by ID or name, or lists all statuses.
 - `Get-JiraIssue -IncludeHistory` returns issue history entries, with `-GetHistory` retained as an alias.
 - `Invoke-JiraIssueTransition -TimeSpent` records a worklog entry as part of an issue transition. (#343, [@alexsuslin])
@@ -50,10 +70,13 @@ See [`about_JiraPS_MigrationV3`](https://atlassianps.org/docs/JiraPS/about/migra
   `-Assignee` accepts a username, Cloud account ID, or typed `User`; omitting both parameters lets Jira apply the project default.
 - `New-JiraIssueLinkRequest` builds typed link requests from `-Type`, `-FromIssue`, and `-ToIssue`.
 - `ConvertTo-JiraTable` returns Jira wiki-markup table text.
-  `Format-Jira` remains a deprecated exported alias.
-- `Invoke-JiraMethod` supports `-TimeoutSec` (default `100`; `0` disables the timeout), plus `-CacheKey`, `-CacheExpiry`, and `-BypassCache` for response caching. (#576)
-- `Get-JiraField`, `Get-JiraIssueType`, `Get-JiraPriority`, and `Get-JiraServerInformation` cache responses and support `-Force` to refresh them.
-  `Clear-JiraCache` clears cached responses by type. (#576)
+- `Invoke-JiraMethod` accepts structured JSON bodies, explicit `-ContentType`, query values through `-QueryParameter`, and `-RawResponse` for status, headers and content inspection.
+  `-OutFile` saves response bytes and returns `FileInfo`.
+  Explicit GET paging supports `-PageSize`, `-First`, `-Skip` and `-IncludeTotalCount`.
+  `-TimeoutSec` defaults to `100`; `0` disables the request timeout. (#576)
+- `Get-JiraField`, `Get-JiraIssueType`, `Get-JiraIssueLinkType`, `Get-JiraPriority`, `Get-JiraStatus`, and `Get-JiraServerInformation` cache responses and support `-Refresh`.
+  Metadata responses expire after one hour; server information expires after five minutes.
+  `Clear-JiraCache` clears cached responses by type, including `IssueLinkTypes`. (#576)
 - `Set-JiraResponseHeaderLogConfiguration` enables debug logging for selected Jira response headers, and `Get-JiraResponseHeaderLogConfiguration` reports the active configuration. (#536)
 - Identifier-based constructors and hashtable initialization are supported for `Issue`, `User`, `Project`, `Group`, `Filter`, and `Version` objects.
   These types support equality, hashing, and sorting by their canonical identifiers; objects without identifiers remain distinct.
@@ -62,13 +85,23 @@ See [`about_JiraPS_MigrationV3`](https://atlassianps.org/docs/JiraPS/about/migra
 
 ### Changed
 
+- JiraPS uses AtlassianPS.Configuration for connection state, authentication and saved endpoint settings.
+- `Invoke-JiraMethod` uses only `-Uri` positionally and separates connection selection from standalone authentication with `-BaseUri`.
+  Existing connections retain their identity; per-call authentication overrides are rejected.
+  `-GetParameter` is now `-QueryParameter`, with array values represented as repeated query keys.
+  Ordinary requests no longer receive implicit pagination parameters.
+  Mutations and file output support `-WhatIf` and `-Confirm`; automatic retries apply only to GET, HEAD and OPTIONS.
+- Removed `Invoke-JiraMethod -StoreSession`, `-RawBody`, `-InFile`, `-OutputType`, public cache controls, and its `-Session` alias.
+  Use `Connect-Jira` for reusable authentication and `Add-JiraIssueAttachment` for multipart uploads.
+  Typed commands share one private transport; caching and typed conversion stay internal, and cached paging follows the same output path as fresh responses.
+- Debug messages follow Configuration's message settings, including breadcrumbs, and redact authentication values.
 - Core objects, leaf objects, issue history, remote links, visibility, role actors, schemas, filter subscriptions, and standard issue fields return typed .NET objects. (#681)
   Related properties contain typed objects, while custom fields and entity-property values retain the data supplied by Jira.
 - Issue, user, group, project, version, and filter inputs accept typed objects and supported identifier/name shorthand.
   User identifiers resolve as Cloud account IDs or Data Center usernames.
   `Get-JiraVersion` accepts version objects or integer/string version IDs through the pipeline, and project objects to list project versions.
 - Filter retrieval, removal, and permission commands accept typed filters or filter IDs, with identifier aliases and pipeline support.
-  Permission operations use the supplied credentials when resolving filters.
+  Permission operations use the selected connection when resolving filters.
   `Remove-JiraFilterPermission` accepts `-Filter` (aliases `-FilterId`, `-Id`) and optional typed `-Permission` values (alias `-PermissionId`), and validates all permission IDs before deleting any permissions.
 - `Add-JiraIssueComment` and `Add-JiraIssueWorklog` accept typed role/group `-Visibility`, with `-VisibleRole` retained as an alias.
   `All Users` leaves comments and worklogs unrestricted whether supplied as a role object or a string.
@@ -87,12 +120,23 @@ See [`about_JiraPS_MigrationV3`](https://atlassianps.org/docs/JiraPS/about/migra
 - `Get-JiraGroup` uses the supported Cloud and Data Center endpoints, reports non-terminating `GroupNotFound` errors for missing groups, and returns `Group.Id` with `GroupId` retained as an alias. (#606)
 - Group member and removal commands accept group names directly, using known group IDs on Cloud where available. (#606)
 - Attachment uploads preserve non-ASCII filenames. (#607)
-- `Invoke-JiraMethod` accepts absolute URLs and relative endpoints beginning with `/`, resolving relative paths against the configured Jira server.
+- `Invoke-JiraMethod` accepts absolute URLs and relative endpoints beginning with `/`, resolving relative paths against the selected connection's Jira endpoint.
 - HTTP retries cover 429 and 503 responses, vary retry timing, and cap delays at 60 seconds. (#576)
 - Jira error parsing supports `message`, `errorMessage`, `errorMessages`, and field-level `errors`. (#576)
 
 ### Fixed
 
+- `Disconnect-Jira` removes that connection's cached responses while switching between active connections preserves their caches.
+  Expired cache entries are removed when read.
+- Exact priority, status and issue link type lookups cache their responses and honor `-Refresh`.
+  Field and issue type selectors share one catalogue per invocation, so refreshing several selectors makes one request.
+  Unmatched field and issue type selectors return no objects.
+- Explicit Cloud gateway connections can learn the site origin from authenticated `myself.self` when `serverInfo` is unavailable.
+  Returned site resource links use the same validated gateway, and foreign endpoints remain rejected.
+- `Remove-JiraIssue` preserves the resolved issue URL so a typed issue from another endpoint cannot delete an issue on the selected site.
+- Each pagination continuation starts with a fresh HTTP retry budget.
+- `Get-JiraIssue` accepts string and numeric `Id` properties on piped issue selectors.
+- Explicit null request bodies serialize as JSON `null` on Windows PowerShell 5.1 and PowerShell 7.
 - PowerShell 7 HTTP errors without `ErrorDetails` report the HTTP status; Windows PowerShell 5.1 retains stream-based error parsing. (#604)
 - `Invoke-JiraIssueTransition` reports unresolved transitions, including issues with no available transitions.
 - Query keys, query values, and status names are percent-encoded, with spaces encoded as `%20`.
@@ -110,12 +154,15 @@ See [`about_JiraPS_MigrationV3`](https://atlassianps.org/docs/JiraPS/about/migra
 
 ### Internal
 
+- `Set-JiraIssueLabel` applies label changes directly through the shared transport.
+- Removed obsolete web-session capture code from the private transport.
+- Private helpers include comment-based help, and contributor guidance follows the current connection and transport contracts.
+- Candidate dependencies are provisioned in the OS temporary directory.
 - Build and test tooling uses AtlassianPS.Standards 0.4.0, Pester 6.2, and PlatyPS 1.0.
   Shared-standards scripts and workflow actions use the version declared in `Tools/build.requirements.psd1`; dependency updates honor `-WhatIf` before bootstrap side effects.
 - Shared standards tooling handles help generation, package validation, environment loading, test-module resolution, and release-note extraction.
   `CHANGELOG.md` supplies both GitHub release notes and PSGallery manifest release notes.
 - Continuous delivery promotes CI-tested artifacts after release-intent validation.
-  Automatic publishing remains gated by `JIRAPS_CD_ENABLED` pending explicit preparation of the v3 release.
 - Cloud smoke tests run in CI for first-party pull requests and pushes to `master`.
   Full Cloud and Dockerized Data Center integration suites run on a weekly schedule and manual dispatch, with a `track` selector.
   The former `run-integration-tests` label is retired.
@@ -131,7 +178,6 @@ See [`about_JiraPS_MigrationV3`](https://atlassianps.org/docs/JiraPS/about/migra
   Re-imports reuse loaded types and report incompatible partial type assemblies.
   Module packages must include the class source files, and hosts must permit `Add-Type` compilation.
 - Removed the custom JSON converter, legacy `Accept` header workaround, and BuildHelpers dependency.
-  Internal `Invoke-JiraMethod` parameters are hidden from tab completion.
 
 ## 2.16 - 2026-04-13
 

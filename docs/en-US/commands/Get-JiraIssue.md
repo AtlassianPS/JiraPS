@@ -14,43 +14,33 @@ Returns information about an issue in Jira.
 
 ## SYNTAX
 
-### ByIssueKey (Default)
+### Issue (Default)
 
 ```powershell
-Get-JiraIssue [-Key] <string[]> [-Fields <string[]>] [-Credential <pscredential>] [-IncludeHistory]
- [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
-```
-
-### ByInputObject
-
-```powershell
-Get-JiraIssue [-InputObject] <AtlassianPS.JiraPS.Issue> [-Fields <string[]>] [-Credential <pscredential>]
- [-IncludeHistory]
+Get-JiraIssue [-Issue] <AtlassianPS.JiraPS.Issue[]> [-Fields <string[]>] [-IncludeHistory] [-Connection <AtlassianPS.Connection>]
  [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```
 
 ### ByJQL
 
 ```powershell
-Get-JiraIssue -Query <string> [-Fields <string[]>] [-PageSize <uint>] [-Credential <pscredential>]
- [-IncludeHistory]
- [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
+Get-JiraIssue -Query <string> [-Fields <string[]>] [-PageSize <uint>] [-IncludeHistory]
+ [-Connection <AtlassianPS.Connection>] [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```
 
 ### ByFilter
 
 ```powershell
-Get-JiraIssue -Filter <AtlassianPS.JiraPS.Filter> [-Fields <string[]>] [-PageSize <uint>]
- [-Credential <pscredential>] [-IncludeHistory]
- [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
+Get-JiraIssue -Filter <AtlassianPS.JiraPS.Filter> [-Fields <string[]>] [-PageSize <uint>] [-IncludeHistory]
+ [-Connection <AtlassianPS.Connection>] [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
 
-This function retrieves the data of a issue in Jira.
+This function retrieves issue data from Jira.
 
 This function can be used to directly query Jira for a specific issue key or internal issue ID.
-It can also be used to query Jira for issues matching a specific criteria using JQL (Jira Query Language).
+It can also be used to query Jira for issues matching specific criteria using JQL (Jira Query Language).
 Use `-IncludeHistory` to request changelog expansion and include issue history entries in the returned issue object.
 
 > For more details on JQL syntax, see this article from Atlassian: [Atlassian's JQL reference](https://confluence.atlassian.com/display/JIRA/Advanced+Searching)
@@ -59,86 +49,133 @@ Output from this function can be piped to various other functions in this module
 
 ## EXAMPLES
 
-### Example 1
+### Example 1: Retrieve an issue by key or ID
 
 ```powershell
-Get-JiraIssue -Key TEST-001
+Get-JiraIssue -Issue 'PROJ-1'
+
+# Or use Jira's internal issue ID.
+Get-JiraIssue -Issue '10001'
 ```
 
-This example fetches the issue "TEST-001".
+Retrieve a single issue using the selected connection.
+`-Key` and `-Id` remain aliases for `-Issue`.
 
-The default `Format-Table` view of a Jira issue only shows the value of `Key`, `Summary`, `Status` and `Created`.
-> This can be manipulated with `Format-Table`, `Format-List` and `Select-Object`
-
-### Example 2
+### Example 2: Retrieve several issues
 
 ```powershell
-Get-JiraIssue 'TEST-002' | Add-JiraIssueComment 'Test comment from PowerShell'
+Get-JiraIssue -Issue 'PROJ-1', 'PROJ-2'
 ```
 
-This example illustrates pipeline use from `Get-JiraIssue` to `Add-JiraIssueComment`.
+Retrieve each issue in the supplied list.
+You can also pipe issue keys to `Get-JiraIssue`.
 
-### Example 3
+### Example 3: Search recently created issues with JQL
 
 ```powershell
-Get-JiraIssue -Query 'project = "TEST" AND created >= -5d'
+Get-JiraIssue -Query 'project = PROJ AND created >= -5d ORDER BY created DESC'
 ```
 
-This example illustrates using the `-Query` parameter and JQL syntax to query Jira for matching issues.
+Retrieve issues created in project PROJ during the last five days, newest first.
+JQL and saved-filter searches automatically retrieve subsequent pages until all matches have been returned or `-First` is satisfied.
 
-### Example 4
+### Example 4: Retrieve issues from a saved filter
 
 ```powershell
-Get-JiraIssue -InputObject $oldIssue
+Get-JiraIssue -Filter 12345
+
+# Or pass a filter object explicitly.
+$filter = Get-JiraFilter -Filter 12345
+Get-JiraIssue -Filter $filter
 ```
 
-This example illustrates how to get an update of an issue from an old result of `Get-JiraIssue` stored in $oldIssue.
+Retrieve issues matching the saved filter's criteria.
+Use `-Filter` for filter IDs and objects; pipeline input selects issues to retrieve.
 
-### Example 5
+### Example 5: Request only the fields you need
 
 ```powershell
-Get-JiraIssue TEST-001 | Get-JiraIssue
+Get-JiraIssue -Query 'project = PROJ' -Fields 'summary', 'assignee', 'status' |
+    Select-Object Key, Summary, Assignee, Status
 ```
 
-This example shows how to refresh issue data by piping an existing issue object back to `Get-JiraIssue`.
-The `-Key` parameter accepts pipeline input by property name, so the `Key` property from the piped issue is used.
+Limit the fields Jira sends to reduce the response payload.
+The issue key and ID remain available; fields that were not requested may be empty in the returned object.
+`Select-Object` chooses the output columns, while `-Fields` controls the request to Jira.
 
-### Example 6
+### Example 6: Inspect all returned issue properties
 
 ```powershell
-Get-JiraFilter -Id 12345 | Get-JiraIssue
+Get-JiraIssue -Issue 'PROJ-1' | Format-List *
 ```
 
-This example retrieves all issues that match the criteria in the saved filter with ID 12345.
+The default table view displays only a subset of the issue's properties.
+Use `Format-List *` to inspect every returned property, or `Select-Object` to choose specific properties for further processing.
 
-### Example 7
+### Example 7: Refresh an existing issue object
 
 ```powershell
-Get-JiraFilter 12345 | Get-JiraIssue | Select-Object *
+$issue = Get-JiraIssue -Issue 'PROJ-1'
+Get-JiraIssue -Issue $issue
+
+# Alternatively, pipe the existing issue object.
+$issue | Get-JiraIssue
 ```
 
-This prints all fields of the issue to the console.
+Fetch the current issue data again after changes made in Jira.
+Assign the result back to `$issue` to replace the stored snapshot.
 
-### Example 8
+### Example 8: Add a comment through the pipeline
 
 ```powershell
-Get-JiraIssue -Query 'project = TEST' -Fields 'key', 'summary', 'assignee'
+Get-JiraIssue -Issue 'PROJ-1' |
+    Add-JiraIssueComment -Comment 'Reviewed from PowerShell.'
 ```
 
-This example retrieves all issues in project "TEST" - but only the 3 properties listed above: key, summary and assignee
+Pass the retrieved issue to `Add-JiraIssueComment` to add a comment.
+Both commands use the selected connection.
 
-By retrieving only the data really needed, the payload the server sends is reduced, which speeds up the query.
+### Example 9: Limit search results and include their total count
+
+```powershell
+Get-JiraIssue -Query 'project = PROJ ORDER BY key' -Skip 20 -First 10 -PageSize 50 -IncludeTotalCount
+```
+
+Skip the first 20 matches and return up to 10 issues.
+`-PageSize` controls the requested API page size; `-First` limits the number of issues returned.
+Total-count information is emitted before the issue objects, with unknown accuracy when Jira does not supply a total.
+
+### Example 10: Retrieve issue history
+
+```powershell
+$issue = Get-JiraIssue -Issue 'PROJ-1' -IncludeHistory
+$issue.History | Format-List *
+```
+
+Request changelog expansion and inspect the returned history entries.
+The entries are available through the issue's `History` property.
+
+### Example 11: Use a named connection
+
+```powershell
+$work = Get-JiraConnection -Name work
+Get-JiraIssue -Issue 'PROJ-1' -Connection $work
+```
+
+Retrieve an issue through the existing connection named work.
+Pass the same `-Connection` to any downstream Jira command that should use that site and identity.
 
 ## PARAMETERS
 
-### -Credential
+### -Connection
 
-Credentials to use to connect to Jira.
-If not specified, this function will use anonymous access.
+Active Jira connection for this operation.
+When omitted, the command uses the selected Jira default.
+Create connections with Connect-Jira; resolve names with Get-JiraConnection -Name.
 
 ```yaml
-Type: PSCredential
-DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
+Type: AtlassianPS.Connection
+DefaultValue: None
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
@@ -185,7 +222,8 @@ HelpMessage: ''
 
 ### -Filter
 
-An existing Jira filter whose results are returned.
+A saved filter ID or typed filter object.
+Pass it explicitly with `-Filter`.
 
 ```yaml
 Type: AtlassianPS.JiraPS.Filter
@@ -196,6 +234,27 @@ ParameterSets:
 - Name: ByFilter
   Position: Named
   IsRequired: true
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -First
+
+Maximum number of matching records to return.
+
+```yaml
+Type: UInt64
+DefaultValue: 18446744073709551615
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
   ValueFromPipeline: false
   ValueFromPipelineByPropertyName: false
   ValueFromRemainingArguments: false
@@ -227,32 +286,10 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
-### -First
-
-Indicates how many items to return.
-
-```yaml
-Type: UInt64
-DefaultValue: 18446744073709551615
-SupportsWildcards: false
-Aliases: []
-ParameterSets:
-- Name: (All)
-  Position: Named
-  IsRequired: false
-  ValueFromPipeline: false
-  ValueFromPipelineByPropertyName: false
-  ValueFromRemainingArguments: false
-DontShow: false
-AcceptedValues: []
-HelpMessage: ''
-```
-
 ### -IncludeTotalCount
 
-Causes an extra output of the total count at the beginning.
-
-Note this is actually a uInt64, but with a custom string representation.
+Return total-count information before the records.
+Accuracy is unknown when Jira does not provide a total.
 
 ```yaml
 Type: SwitchParameter
@@ -271,42 +308,22 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
-### -InputObject
+### -Issue
 
-An existing issue to retrieve.
-
-```yaml
-Type: AtlassianPS.JiraPS.Issue
-DefaultValue: ''
-SupportsWildcards: false
-Aliases: []
-ParameterSets:
-- Name: ByInputObject
-  Position: 0
-  IsRequired: true
-  ValueFromPipeline: true
-  ValueFromPipelineByPropertyName: false
-  ValueFromRemainingArguments: false
-DontShow: false
-AcceptedValues: []
-HelpMessage: ''
-```
-
-### -Key
-
-Key of the issue to search for.
+Issue keys, numeric ID strings or typed issue objects.
 
 ```yaml
-Type: String[]
+Type: AtlassianPS.JiraPS.Issue[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
-- Issue
+- Key
+- Id
 ParameterSets:
-- Name: ByIssueKey
+- Name: Issue
   Position: 0
   IsRequired: true
-  ValueFromPipeline: false
+  ValueFromPipeline: true
   ValueFromPipelineByPropertyName: true
   ValueFromRemainingArguments: false
 DontShow: false
@@ -316,9 +333,8 @@ HelpMessage: ''
 
 ### -PageSize
 
-How many issues should be returned per call to Jira.
-
-Normally, you should not need to adjust this parameter, but if the REST calls take a long time, try playing with different values here.
+Number of records requested per page.
+Use First to limit output and Skip to skip records.
 
 ```yaml
 Type: UInt32
@@ -367,9 +383,7 @@ HelpMessage: ''
 
 ### -Skip
 
-Controls how many things will be skipped before starting output.
-
-Defaults to 0.
+Number of matching records to skip before returning output.
 
 ```yaml
 Type: UInt64
@@ -390,21 +404,17 @@ HelpMessage: ''
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable, -ProgressAction, -Verbose, -WarningAction, and -WarningVariable.
-For more information, see [about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
+-InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
+-ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
+[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
-### AtlassianPS.JiraPS.Issue / String
+### AtlassianPS.JiraPS.Issue[]
 
-The `-Key` parameter accepts pipeline input by property name.
-This means:
-
-- If an `AtlassianPS.JiraPS.Issue` object is piped, its `Key` property is bound to the `-Key` parameter.
-- If a String is passed, this function searches for an issue with that issue key or internal ID.
-- If an object with a `Key` property is piped, that property value is used.
-
-This enables patterns like `Get-JiraIssue TEST-1 | Get-JiraIssue` to refresh issue data.
+Accepts issue keys, numeric ID strings, issue objects, and objects with a `Key` or `Id` property.
+Pipe an existing issue object back to `Get-JiraIssue` to retrieve its current data.
 
 ## OUTPUTS
 
@@ -412,11 +422,13 @@ This enables patterns like `Get-JiraIssue TEST-1 | Get-JiraIssue` to refresh iss
 
 ## NOTES
 
-This function requires either the `-Credential` parameter to be passed or a persistent Jira session.
-See `New-JiraSession` for more details.
-If neither are supplied, this function will run with anonymous access to Jira.
+This function uses the selected Jira connection unless you pass another connection through `-Connection`.
+Use `Connect-Jira` to create a connection.
+For anonymous access, create the connection with `Connect-Jira -Anonymous`.
 
 ## RELATED LINKS
+
+[about_JiraPS_Authentication](../../about/authentication.html)
 
 [about_JiraPS_CreatingIssues](../../about/creating-issues.html)
 

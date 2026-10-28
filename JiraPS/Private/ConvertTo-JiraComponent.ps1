@@ -1,4 +1,8 @@
 ﻿function ConvertTo-JiraComponent {
+    <#
+    .SYNOPSIS
+        Convert Jira response data to AtlassianPS.JiraPS.Component objects.
+    #>
     [CmdletBinding()]
     [OutputType([AtlassianPS.JiraPS.Component])]
     param(
@@ -10,7 +14,7 @@
     process {
         foreach ($i in $InputObject) {
             if ($null -eq $i) { continue }
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to AtlassianPS.JiraPS.Component"
+            Write-DebugMessage "Converting `$InputObject to AtlassianPS.JiraPS.Component"
 
             $props = @{
                 'ID'          = $i.id

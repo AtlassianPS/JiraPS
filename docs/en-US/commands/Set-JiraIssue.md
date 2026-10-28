@@ -17,31 +17,25 @@ Modifies an existing issue in Jira.
 ### AssignToUser (Default)
 
 ```powershell
-Set-JiraIssue -Issue <AtlassianPS.JiraPS.Issue> [-Summary <string>] [-Description <string>]
- [-FixVersion <string[]>]
- [-Assignee <AtlassianPS.JiraPS.User>] [-Label <string[]>] [-Fields <psobject>] [-AddComment <string>]
- [-Credential <pscredential>] [-PassThru] [-SkipNotification] [-WhatIf] [-Confirm]
- [<CommonParameters>]
+Set-JiraIssue -Issue <AtlassianPS.JiraPS.Issue> [-Summary <string>] [-Description <string>] [-FixVersion <AtlassianPS.JiraPS.Version[]>]
+ [-Assignee <AtlassianPS.JiraPS.User>] [-Label <string[]>] [-Fields <psobject>] [-AddComment <string>] [-PassThru]
+ [-SkipNotification] [-Connection <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ### Unassign
 
 ```powershell
-Set-JiraIssue -Issue <AtlassianPS.JiraPS.Issue> [-Summary <string>] [-Description <string>]
- [-FixVersion <string[]>]
- [-Unassign] [-Label <string[]>] [-Fields <psobject>] [-AddComment <string>]
- [-Credential <pscredential>] [-PassThru] [-SkipNotification] [-WhatIf] [-Confirm]
- [<CommonParameters>]
+Set-JiraIssue -Issue <AtlassianPS.JiraPS.Issue> [-Summary <string>] [-Description <string>] [-FixVersion <AtlassianPS.JiraPS.Version[]>]
+ [-Unassign] [-Label <string[]>] [-Fields <psobject>] [-AddComment <string>] [-PassThru]
+ [-SkipNotification] [-Connection <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ### UseDefaultAssignee
 
 ```powershell
-Set-JiraIssue -Issue <AtlassianPS.JiraPS.Issue> [-Summary <string>] [-Description <string>]
- [-FixVersion <string[]>]
- [-UseDefaultAssignee] [-Label <string[]>] [-Fields <psobject>] [-AddComment <string>]
- [-Credential <pscredential>] [-PassThru] [-SkipNotification] [-WhatIf] [-Confirm]
- [<CommonParameters>]
+Set-JiraIssue -Issue <AtlassianPS.JiraPS.Issue> [-Summary <string>] [-Description <string>] [-FixVersion <AtlassianPS.JiraPS.Version[]>]
+ [-UseDefaultAssignee] [-Label <string[]>] [-Fields <psobject>] [-AddComment <string>] [-PassThru]
+ [-SkipNotification] [-Connection <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -53,7 +47,9 @@ On **Jira Cloud**, both the `-Description` and the `-AddComment` text are interp
 On **Jira Server / Data Center**, both fields are sent verbatim and the legacy wiki-markup syntax continues to apply.
 See [`ConvertTo-AtlassianDocumentFormat`](../ConvertTo-AtlassianDocumentFormat/) for the supported Markdown subset.
 
-> Passing `-Description ''` is currently a no-op on both deployments — empty strings are filtered out before the request is built. To clear the description field today, set the field via `-Fields @{ description = $null }`. The semantics of `-Description ''` (clear vs. ignore) are tracked in the backlog.
+> Passing `-Description ''` is currently a no-op on both deployments — empty strings are filtered out before the request is built.
+> To clear the description field today, set the field via `-Fields @{ description = $null }`.
+> The semantics of `-Description ''` (clear vs. ignore) are tracked in the backlog.
 
 ## EXAMPLES
 
@@ -190,14 +186,15 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
-### -Credential
+### -Connection
 
-Credentials to use to connect to Jira.
-If not specified, this function will use anonymous access.
+Active Jira connection for this operation.
+When omitted, the command uses the selected Jira default.
+Create connections with Connect-Jira; resolve names with Get-JiraConnection -Name.
 
 ```yaml
-Type: PSCredential
-DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
+Type: AtlassianPS.Connection
+DefaultValue: None
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
@@ -214,7 +211,8 @@ HelpMessage: ''
 
 ### -Description
 
-New description of the issue.
+Replacement description.
+An empty string or null clears the description; omission preserves it.
 
 ```yaml
 Type: String
@@ -267,10 +265,11 @@ HelpMessage: ''
 
 ### -FixVersion
 
-Set the FixVersion of the issue, this will overwrite any present FixVersions.
+Typed versions or version names/IDs to replace on the issue.
+An empty array clears fix versions; omission preserves them.
 
 ```yaml
-Type: String[]
+Type: AtlassianPS.JiraPS.Version[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
@@ -289,9 +288,7 @@ HelpMessage: ''
 
 ### -Issue
 
-Issue to be changed.
-
-Can be an `AtlassianPS.JiraPS.Issue` object, issue key, or internal issue ID.
+Issue keys, numeric ID strings or typed issue objects.
 
 ```yaml
 Type: AtlassianPS.JiraPS.Issue
@@ -313,11 +310,8 @@ HelpMessage: ''
 
 ### -Label
 
-Labels to be set on the issue.
-
-These will overwrite any existing labels on the issue.
-
-For more granular control over issue labels, use `Set-JiraIssueLabel`.
+Labels to replace on the issue.
+An empty array or null clears labels; omission preserves them.
 
 ```yaml
 Type: String[]
@@ -470,12 +464,14 @@ HelpMessage: ''
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable, -ProgressAction, -Verbose, -WarningAction, and -WarningVariable.
-For more information, see [about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
+-InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
+-ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
+[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
-### AtlassianPS.JiraPS.Issue / String / Int
+### AtlassianPS.JiraPS.Issue
 
 ## OUTPUTS
 
@@ -486,11 +482,13 @@ Otherwise, this function does not provide output.
 
 ## NOTES
 
-This function requires either the `-Credential` parameter to be passed or a persistent Jira session.
-See `New-JiraSession` for more details.
-If neither are supplied, this function will run with anonymous access to Jira.
+This function uses the selected Jira connection unless you pass another connection through `-Connection`.
+Use `Connect-Jira` to create a connection.
+For anonymous access, create the connection with `Connect-Jira -Anonymous`.
 
 ## RELATED LINKS
+
+[about_JiraPS_Authentication](../../about/authentication.html)
 
 [about_JiraPS_UpdatingIssues](../../about/updating-issues.html)
 

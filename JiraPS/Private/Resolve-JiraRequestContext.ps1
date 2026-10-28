@@ -1,73 +1,68 @@
 ﻿function Resolve-JiraRequestContext {
+    <#
+    .SYNOPSIS
+        Resolve a Jira resource and merge query values without implicit paging.
+    .DESCRIPTION
+        Explicit paging adds the page size and supported offset controls.
+        Enhanced-search token pagination omits offset parameters.
+    #>
     [CmdletBinding()]
     param(
-        [Parameter(Mandatory)]
+        [Parameter( Mandatory )]
         [Uri]
         $Uri,
+
+        [Parameter( Mandatory )]
+        [AtlassianPS.Connection]
+        $RequestContext,
 
         [Hashtable]
         $GetParameter = @{},
 
-        [Parameter(Mandatory)]
+        [Parameter( Mandatory )]
         [ValidateRange(1, [int]::MaxValue)]
         [int]
         $DefaultPageSize,
+
+        [Switch]
+        $Paging,
 
         [System.Management.Automation.PSCmdlet]
         $Cmdlet
     )
 
-    $providedUriValue = $Uri.OriginalString
-    if (-not $Uri.IsAbsoluteUri) {
-        if (-not $providedUriValue.StartsWith('/')) {
-            $errorParameter = @{
-                Cmdlet       = $Cmdlet
-                Exception    = [System.ArgumentException]::new("Invalid URI path '$providedUriValue'. Relative URIs must start with '/'.")
-                ErrorId      = 'ParameterValue.UriPathMustStartWithSlash'
-                Category     = [System.Management.Automation.ErrorCategory]::InvalidArgument
-                TargetObject = $providedUriValue
-            }
-            ThrowError @errorParameter
-        }
+    $Uri = Resolve-JiraResourceUri -Uri $Uri -RequestContext $RequestContext
 
-        $server = Get-JiraConfigServer -ErrorAction SilentlyContinue
-        if ([String]::IsNullOrWhiteSpace($server)) {
-            $errorParameter = @{
-                Cmdlet       = $Cmdlet
-                Exception    = [System.ArgumentException]::new("Cannot resolve relative URI '$providedUriValue' because no Jira server is configured. Use Set-JiraConfigServer first.")
-                ErrorId      = 'ParameterValue.JiraServerNotConfigured'
-                Category     = [System.Management.Automation.ErrorCategory]::InvalidArgument
-                TargetObject = $providedUriValue
-            }
-            ThrowError @errorParameter
-        }
-
-        [Uri]$Uri = "{0}{1}" -f $server.TrimEnd('/'), $providedUriValue
+    $uriQuery = @{}
+    $queryParts = ($Uri.Query -replace '^\?', '').Split('&') | ForEach-Object {
+        if ($_ -and -not $_.Contains('=')) { "$_=" } else { $_ }
     }
-
-    if (-not $Uri.IsAbsoluteUri) {
-        $errorParameter = @{
-            Cmdlet       = $Cmdlet
-            Exception    = [System.ArgumentException]::new("Invoke-JiraMethod: -Uri must be an absolute URI. Got '$providedUriValue'.")
-            ErrorId      = 'ParameterValue.UriMustBeAbsolute'
-            Category     = [System.Management.Automation.ErrorCategory]::InvalidArgument
-            TargetObject = $providedUriValue
-        }
-        ThrowError @errorParameter
+    $query = [Web.HttpUtility]::ParseQueryString($queryParts -join '&')
+    foreach ($key in $query.AllKeys) {
+        if ([String]::IsNullOrEmpty($key)) { continue }
+        $values = $query.GetValues($key)
+        $uriQuery[$key] = if ($values.Count -eq 1) { $values[0] } else { $values }
     }
-
-    $uriQuery = ConvertTo-ParameterHash -Uri $Uri
     $internalGetParameter = Join-Hashtable $uriQuery, $GetParameter
 
     [Uri]$resolvedUri = $Uri.GetLeftPart("Path")
 
-    if (-not $internalGetParameter.ContainsKey("maxResults")) { $internalGetParameter["maxResults"] = $DefaultPageSize }
-
-    if ($Cmdlet -and $Cmdlet.PagingParameters) {
-        if ($Cmdlet.PagingParameters.Skip) { $internalGetParameter["startAt"] = $Cmdlet.PagingParameters.Skip }
-
-        if ($Cmdlet.PagingParameters.First -lt $internalGetParameter["maxResults"]) {
-            $internalGetParameter["maxResults"] = $Cmdlet.PagingParameters.First
+    if ($Paging) {
+        if (-not $internalGetParameter.ContainsKey('maxResults')) { $internalGetParameter['maxResults'] = $DefaultPageSize }
+        $tokenPaging = $Uri.AbsolutePath -match '/rest/api/[23]/search/jql$|/rest/api/2/user/list$'
+        if ($tokenPaging -and $internalGetParameter.ContainsKey('startAt')) { throw 'Enhanced-search token paging does not support startAt. Use -Skip to skip items locally.' }
+        foreach ($key in @('maxResults', 'startAt')) {
+            if (-not $internalGetParameter.ContainsKey($key)) { continue }
+            $value = 0L
+            if (-not [long]::TryParse([String]$internalGetParameter[$key], [ref]$value) -or $value -lt 0 -or ($key -eq 'maxResults' -and $value -eq 0)) {
+                throw "Paging query parameter $key must be a single valid integer."
+            }
+        }
+        if ($Cmdlet -and $Cmdlet.PagingParameters) {
+            if ($Cmdlet.PagingParameters.Skip -and -not $tokenPaging) { $internalGetParameter['startAt'] = $Cmdlet.PagingParameters.Skip }
+            if ($Cmdlet.PagingParameters.First -gt 0 -and $Cmdlet.PagingParameters.First -lt $internalGetParameter['maxResults'] -and -not ($tokenPaging -and $Cmdlet.PagingParameters.Skip)) {
+                $internalGetParameter['maxResults'] = $Cmdlet.PagingParameters.First
+            }
         }
     }
 

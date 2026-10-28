@@ -1,4 +1,8 @@
 ﻿function ConvertTo-JiraIssueSecurityLevel {
+    <#
+    .SYNOPSIS
+        Convert Jira response data to AtlassianPS.JiraPS.IssueSecurityLevel objects.
+    #>
     [CmdletBinding()]
     [OutputType([AtlassianPS.JiraPS.IssueSecurityLevel])]
     param(
@@ -10,7 +14,7 @@
     process {
         foreach ($i in $InputObject) {
             if ($null -eq $i) { continue }
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to AtlassianPS.JiraPS.IssueSecurityLevel"
+            Write-DebugMessage "Converting `$InputObject to AtlassianPS.JiraPS.IssueSecurityLevel"
 
             [AtlassianPS.JiraPS.IssueSecurityLevel]@{
                 Id          = $i.id

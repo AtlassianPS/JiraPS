@@ -15,11 +15,11 @@ InModuleScope JiraPS {
 
             $script:environment = Initialize-IntegrationEnvironment
             $script:session = Connect-JiraTestServer -Environment $environment
-            $script:missingIssueUri = "$($environment.CloudUrl)/rest/api/2/issue/0"
+            $script:missingIssueUri = "$($session.BaseUri.AbsoluteUri.TrimEnd('/'))/rest/api/2/issue/0"
         }
 
         AfterAll {
-            Remove-JiraSession -ErrorAction SilentlyContinue
+            Disconnect-Jira -ErrorAction SilentlyContinue
         }
 
         It "preserves Jira's message for a missing issue" {
@@ -39,7 +39,7 @@ InModuleScope JiraPS {
         }
 
         It "captures a real empty HEAD error response" {
-            $splat = New-JiraWebRequestSplat -Uri $missingIssueUri -Method Head -Headers $script:DefaultHeaders
+            $splat = New-JiraWebRequestSplat -Uri $missingIssueUri -Method Head -Headers $script:DefaultHeaders.Clone() -RequestContext $session
             $result = Invoke-JiraWebRequestSafely -SplatParameters $splat
 
             try {

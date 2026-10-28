@@ -15,7 +15,7 @@ Returns a group from Jira
 ## SYNTAX
 
 ```powershell
-Get-JiraGroup [-GroupName] <string[]> [[-Credential] <pscredential>] [<CommonParameters>]
+Get-JiraGroup [-GroupName] <string[]> [[-Connection] <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -59,14 +59,15 @@ This example returns the groups Jira can resolve and stores any `GroupNotFound` 
 
 ## PARAMETERS
 
-### -Credential
+### -Connection
 
-Credentials to use to connect to JIRA.
-If not specified, this function will use anonymous access.
+Active Jira connection for this operation.
+When omitted, the command uses the selected Jira default.
+Create connections with Connect-Jira; resolve names with Get-JiraConnection -Name.
 
 ```yaml
-Type: PSCredential
-DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
+Type: AtlassianPS.Connection
+DefaultValue: None
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
@@ -112,6 +113,8 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## INPUTS
 
+### System.String[]
+
 ## OUTPUTS
 
 ### JiraPS.Group
@@ -122,9 +125,9 @@ Missing groups are reported as non-terminating `GroupNotFound` errors rather tha
 
 ## NOTES
 
-This function requires either the `-Credential` parameter to be passed or a persistent JIRA session.
-See `New-JiraSession` for more details.
-If neither are supplied, this function will run with anonymous access to JIRA.
+This function uses the selected Jira connection unless you pass another connection through `-Connection`.
+Use `Connect-Jira` to create a connection.
+For anonymous access, create the connection with `Connect-Jira -Anonymous`.
 
 `Get-JiraGroup` uses different REST paths on Cloud and Data Center because the canonical group lookup surface diverged between the two products.
 On Jira Cloud, only an exact canonical match is accepted.
@@ -132,6 +135,8 @@ On Jira Data Center, the cmdlet derives canonical group information from `/group
 If you only need to work with a known group name, prefer the cmdlets that accept `-Group` or `-GroupName` directly.
 
 ## RELATED LINKS
+
+[about_JiraPS_Authentication](../../about/authentication.html)
 
 [Get-JiraGroupMember](../Get-JiraGroupMember/)
 

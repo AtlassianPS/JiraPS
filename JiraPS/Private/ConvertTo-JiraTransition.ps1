@@ -1,4 +1,8 @@
 ﻿function ConvertTo-JiraTransition {
+    <#
+    .SYNOPSIS
+        Convert Jira response data to AtlassianPS.JiraPS.Transition objects.
+    #>
     [CmdletBinding()]
     [OutputType([AtlassianPS.JiraPS.Transition])]
     param(
@@ -10,7 +14,7 @@
     process {
         foreach ($i in $InputObject) {
             if ($null -eq $i) { continue }
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to AtlassianPS.JiraPS.Transition"
+            Write-DebugMessage "Converting `$InputObject to AtlassianPS.JiraPS.Transition"
 
             $props = @{
                 'ID'           = ConvertTo-JiraNullableInt64 $i.id

@@ -24,48 +24,38 @@ InModuleScope JiraPS {
         }
 
         AfterAll {
-            Remove-JiraSession -ErrorAction SilentlyContinue
+            Disconnect-Jira -ErrorAction SilentlyContinue
         }
 
         Describe "Get-JiraUser" {
             Context "User Retrieval" -Skip:$SkipUserTests {
-                It "retrieves a user by account ID" {
-                    $user = Get-JiraUser -AccountId $fixtures.TestUser
+                It 'retrieves the requested typed Cloud user with a display name' {
+                    $user = Get-JiraUser -User $fixtures.TestUser -ErrorAction Stop
 
-                    $user | Should -Not -BeNullOrEmpty
-                }
-
-                It "returns user object with correct type" {
-                    $user = Get-JiraUser -AccountId $fixtures.TestUser
-
-                    $user.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.User'
-                }
-
-                It "includes display name" {
-                    $user = Get-JiraUser -AccountId $fixtures.TestUser
-
+                    $user | Should -BeOfType ([AtlassianPS.JiraPS.User])
                     $user.DisplayName | Should -Not -BeNullOrEmpty
-                }
-
-                It "includes account ID" {
-                    $user = Get-JiraUser -AccountId $fixtures.TestUser
-
                     $user.AccountId | Should -Be $fixtures.TestUser
                 }
             }
 
             Context "Current User" {
                 It "retrieves the current authenticated user via session" {
-                    $session = Get-JiraSession
+                    $connection = Get-JiraConnection -Default
 
-                    $session | Should -Not -BeNullOrEmpty
-                    $session.WebSession | Should -Not -BeNullOrEmpty -Because "session should have a valid WebSession"
+                    $connection | Should -BeOfType [AtlassianPS.Connection]
+                    $connection.State | Should -Be 'Active'
+                    $connection.InstanceId | Should -Be $session.InstanceId
+
+                    $user = Get-JiraUser -ErrorAction Stop
+                    $identityProperty = $env.UserIdProperty
+                    $user.$identityProperty | Should -Not -BeNullOrEmpty
+                    $user.$identityProperty | Should -Be $connection.Username
                 }
             }
 
             Context "Error Handling" {
                 It "fails for non-existent account ID" {
-                    { Get-JiraUser -AccountId 'nonexistent-account-id-12345' -ErrorAction Stop } |
+                    { Get-JiraUser -User 'nonexistent-account-id-12345' -ErrorAction Stop } |
                         Should -Throw
                 }
             }

@@ -29,25 +29,25 @@
         $FilePath,
 
         [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty,
-
         [Switch]
-        $PassThru
+        $PassThru,
+
+        [AtlassianPS.Connection]$Connection
     )
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
+        $RequestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
+
         $resourceURi = "{0}/attachments"
     }
 
     process {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+        Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
 
-        $issueObj = Resolve-JiraIssueObject -InputObject $Issue -Credential $Credential
+        $issueObj = Resolve-JiraIssueObject -InputObject $Issue -RequestContext $RequestContext
 
         foreach ($file in $FilePath) {
             $file = Resolve-FilePath -Path $file
@@ -59,15 +59,14 @@
             }
 
             $parameter = @{
-                URI        = $resourceURi -f $issueObj.RestURL
-                Method     = "POST"
-                InFile     = $file
-                Headers    = $headers
-                Credential = $Credential
+                URI     = $resourceURi -f $issueObj.RestURL
+                Method  = "POST"
+                InFile  = $file
+                Headers = $headers
             }
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+            Write-DebugMessage "Invoking JiraMethod with `$parameter"
             if ($PSCmdlet.ShouldProcess($IssueObj.Key, "Adding attachment '$($fileName)'.")) {
-                $rawResult = Invoke-JiraMethod @parameter
+                $rawResult = Invoke-JiraRequest -RequestContext $RequestContext @parameter
 
                 if ($PassThru) { Write-Output (ConvertTo-JiraAttachment -InputObject $rawResult) }
             }

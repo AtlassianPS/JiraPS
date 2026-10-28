@@ -1,4 +1,8 @@
 ﻿function Convert-Result {
+    <#
+    .SYNOPSIS
+        Apply the requested private converter when available, otherwise emit the response unchanged.
+    #>
     [CmdletBinding()]
     param(
         [Parameter( ValueFromPipeline )]
@@ -13,11 +17,11 @@
             if ($OutputType) { $converter = "ConvertTo-$OutputType" }
 
             if ($converter -and (Test-Path function:\$converter)) {
-                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Outputting `$result as $OutputType"
+                Write-DebugMessage "Outputting `$result as $OutputType"
                 $item | & $converter
             }
             else {
-                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Outputting `$result"
+                Write-DebugMessage "Outputting `$result"
                 $item
             }
         }

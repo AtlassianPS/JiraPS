@@ -9,50 +9,52 @@
         $Status,
 
         [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        [Switch]
+        $Refresh,
+
+        [Parameter()]
+        [AtlassianPS.Connection]
+        $Connection
     )
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $server = Get-JiraConfigServer -ErrorAction Stop
+        $RequestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
 
-        $resourceURi = "$server/rest/api/latest/status{0}"
+        $resourceUri = "/rest/api/latest/status"
+        $parameter = @{
+            URI         = $resourceUri
+            Method      = "GET"
+            CacheKey    = 'Statuses'
+            CacheExpiry = [TimeSpan]::FromHours(1)
+            BypassCache = $Refresh
+        }
     }
 
     process {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+        Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
 
         switch ($PSCmdlet.ParameterSetName) {
             '_All' {
-                $parameter = @{
-                    URI        = $resourceURi -f ""
-                    Method     = "GET"
-                    Credential = $Credential
-                }
-                Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-                $result = Invoke-JiraMethod @parameter
+                Write-DebugMessage "Invoking JiraMethod with `$parameter"
+                $result = Invoke-JiraRequest -RequestContext $RequestContext @parameter
 
                 Write-Output (ConvertTo-JiraStatus -InputObject $result)
             }
             '_Search' {
                 foreach ($_status in $Status) {
                     Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_status]"
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_status [$_status]"
+                    Write-DebugMessage "Processing `$_status [$_status]"
 
-                    $statusIdentifier = if ($null -ne $_status.Id) { [String] $_status.Id } else { $_status.Name }
+                    $statusIdentifier = if ($null -ne $_status.Id) { [String] $_status.Id }
+                    else { $_status.Name }
                     $encodedIdentifier = ConvertTo-URLEncoded -InputString $statusIdentifier
 
-                    $parameter = @{
-                        URI        = $resourceURi -f "/$encodedIdentifier"
-                        Method     = "GET"
-                        Credential = $Credential
-                    }
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-                    $result = Invoke-JiraMethod @parameter
+                    $parameter.URI = "$resourceUri/$encodedIdentifier"
+                    Write-DebugMessage "Invoking JiraMethod with `$parameter"
+                    $result = Invoke-JiraRequest -RequestContext $RequestContext @parameter
 
                     Write-Output (ConvertTo-JiraStatus -InputObject $result)
                 }

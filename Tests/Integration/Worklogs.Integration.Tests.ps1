@@ -27,10 +27,10 @@ InModuleScope JiraPS {
         AfterAll {
             foreach ($issue in $script:createdIssues) {
                 if ($issue -and $issue.Key) {
-                    Remove-JiraIssue -IssueId $issue.Key -Force -ErrorAction SilentlyContinue
+                    Remove-JiraIssue -Issue $issue.Key -Confirm:$false -ErrorAction SilentlyContinue
                 }
             }
-            Remove-JiraSession -ErrorAction SilentlyContinue
+            Disconnect-Jira -ErrorAction SilentlyContinue
         }
 
         Describe "Get-JiraIssueWorklog" {
@@ -40,7 +40,7 @@ InModuleScope JiraPS {
                         Set-ItResult -Skipped -Because "JIRA_TEST_ISSUE not configured"
                         return
                     }
-                    { Get-JiraIssueWorklog -Issue $fixtures.TestIssue } | Should -Not -Throw
+                    { Get-JiraIssueWorklog -Issue $fixtures.TestIssue -ErrorAction Stop } | Should -Not -Throw
                 }
 
                 It "returns worklog objects with correct type" {
@@ -60,7 +60,7 @@ InModuleScope JiraPS {
                     }
                     $issue = Get-JiraIssue -Key $fixtures.TestIssue
 
-                    { $issue | Get-JiraIssueWorklog } | Should -Not -Throw
+                    { $issue | Get-JiraIssueWorklog -ErrorAction Stop } | Should -Not -Throw
                 }
             }
         }
@@ -101,9 +101,9 @@ InModuleScope JiraPS {
                         Set-ItResult -Skipped -Because "JIRA_TEST_PROJECT not configured"
                         return
                     }
-                    { Add-JiraIssueWorklog -Issue $tempIssue.Key -TimeSpent ([TimeSpan]::FromHours(2)) -DateStarted (Get-Date) -Comment "TimeSpan test 1" } | Should -Not -Throw
-                    { Add-JiraIssueWorklog -Issue $tempIssue.Key -TimeSpent ([TimeSpan]::FromMinutes(90)) -DateStarted (Get-Date) -Comment "TimeSpan test 2" } | Should -Not -Throw
-                    { Add-JiraIssueWorklog -Issue $tempIssue.Key -TimeSpent (New-TimeSpan -Hours 1 -Minutes 30) -DateStarted (Get-Date) -Comment "TimeSpan test 3" } | Should -Not -Throw
+                    { Add-JiraIssueWorklog -Issue $tempIssue.Key -TimeSpent ([TimeSpan]::FromHours(2)) -DateStarted (Get-Date) -Comment "TimeSpan test 1" -ErrorAction Stop } | Should -Not -Throw
+                    { Add-JiraIssueWorklog -Issue $tempIssue.Key -TimeSpent ([TimeSpan]::FromMinutes(90)) -DateStarted (Get-Date) -Comment "TimeSpan test 2" -ErrorAction Stop } | Should -Not -Throw
+                    { Add-JiraIssueWorklog -Issue $tempIssue.Key -TimeSpent (New-TimeSpan -Hours 1 -Minutes 30) -DateStarted (Get-Date) -Comment "TimeSpan test 3" -ErrorAction Stop } | Should -Not -Throw
                 }
 
                 It "persists the comment server-side as part of the create response" {

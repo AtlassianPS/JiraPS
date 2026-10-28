@@ -43,27 +43,28 @@
         $Property,
 
         [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty,
-
         [Switch]
-        $PassThru
+        $PassThru,
+
+        [AtlassianPS.Connection]$Connection
     )
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $isCloud = Test-JiraCloudServer -Credential $Credential
+        $RequestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
 
-        $resourceURi = if ($isCloud) { "/rest/api/2/user?accountId={0}" } else { "/rest/api/2/user?username={0}" }
+        $isCloud = Test-JiraCloudServer -RequestContext $RequestContext
+
+        if ($isCloud) { throw 'Jira Cloud does not support updating user account fields through this API. Manage the user through Atlassian account administration.' }
+        $resourceURi = "/rest/api/2/user?username={0}"
     }
 
     process {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+        Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
 
-        $userObj = Resolve-JiraUser -InputObject $User -Exact -Credential $Credential -ErrorAction Stop
+        $userObj = Resolve-JiraUser -InputObject $User -RequestContext $RequestContext -ErrorAction Stop
 
         $requestBody = @{}
 
@@ -88,16 +89,16 @@
             'ByHashtable' { $requestBody = $Property }
         }
 
-        $userIdentifier = if ($userObj.AccountId) { $userObj.AccountId } else { $userObj.Name }
+        $userIdentifier = $userObj.Name
+        if (-not $userIdentifier) { throw 'User requires a Data Center username.' }
         $parameter = @{
-            URI        = $resourceURi -f $userIdentifier
-            Method     = "PUT"
-            Body       = ConvertTo-Json -InputObject $requestBody -Depth 4
-            Credential = $Credential
+            URI    = $resourceURi -f [Uri]::EscapeDataString($userIdentifier)
+            Method = "PUT"
+            Body   = ConvertTo-Json -InputObject $requestBody -Depth 4
         }
-        Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+        Write-DebugMessage "Invoking JiraMethod with `$parameter"
         if ($PSCmdlet.ShouldProcess($UserObj.DisplayName, "Updating user")) {
-            $result = Invoke-JiraMethod @parameter
+            $result = Invoke-JiraRequest -RequestContext $RequestContext @parameter
 
             if ($PassThru) {
                 if ($userObj.AccountId -or $userObj.Name) {
@@ -105,7 +106,7 @@
                         AccountId = $userObj.AccountId
                         Name      = $userObj.Name
                     }
-                    Write-Output (Resolve-JiraUser -InputObject $refreshUser -Exact -Credential $Credential -ErrorAction Stop)
+                    Write-Output (Resolve-JiraUser -InputObject $refreshUser -RequestContext $RequestContext -ErrorAction Stop)
                 }
                 else { Write-Output (ConvertTo-JiraUser -InputObject $result) }
             }

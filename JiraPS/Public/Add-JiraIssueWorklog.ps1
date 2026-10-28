@@ -31,28 +31,30 @@
                     throw 'Visibility requires a non-empty Value or Identifier.'
                 }
                 return $true
-            })]
+            }
+        )]
         [AtlassianPS.JiraPS.Visibility]
         $Visibility,
 
         [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        [AtlassianPS.Connection]
+        $Connection
     )
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
+        $RequestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
+
         $resourceURi = "{0}/worklog"
     }
 
     process {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+        Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
 
         # Find the proper object for the Issue
-        $issueObj = Resolve-JiraIssueObject -InputObject $Issue -Credential $Credential
+        $issueObj = Resolve-JiraIssueObject -InputObject $Issue -RequestContext $RequestContext
 
         if (-not $issueObj) {
             $errorMessage = @{
@@ -68,7 +70,7 @@
         # which is required by the API
         $DateStarted = [DateTime]::new($DateStarted.Ticks, 'Local')
 
-        $isCloud = Test-JiraCloudServer -Credential $Credential
+        $isCloud = Test-JiraCloudServer -RequestContext $RequestContext
 
         $requestBody = @{
             'comment'          = Resolve-JiraTextFieldPayload -Text $Comment -IsCloud $isCloud
@@ -82,7 +84,8 @@
         # Unrestricted access omits visibility; older Jira versions reject an "All Users" role.
         if ($Visibility -and $Visibility.Type -and -not (
                 $Visibility.Type -eq 'role' -and $Visibility.Value -eq 'All Users' -and -not $Visibility.Identifier
-            )) {
+            )
+        ) {
             $requestBody.visibility = @{ type = $Visibility.Type }
             if ($Visibility.Value) { $requestBody.visibility.value = $Visibility.Value }
             if ($Visibility.Identifier) { $requestBody.visibility.identifier = $Visibility.Identifier }
@@ -91,14 +94,13 @@
         $issueRestUrl = ConvertTo-JiraRestApiV3Url -Url $issueObj.RestUrl -IsCloud $isCloud
 
         $parameter = @{
-            URI        = $resourceURi -f $issueRestUrl
-            Method     = "POST"
-            Body       = ConvertTo-Json -InputObject $requestBody -Depth 20
-            Credential = $Credential
+            URI    = $resourceURi -f $issueRestUrl
+            Method = "POST"
+            Body   = ConvertTo-Json -InputObject $requestBody -Depth 20
         }
-        Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+        Write-DebugMessage "Invoking JiraMethod with `$parameter"
         if ($PSCmdlet.ShouldProcess($issueObj.Key)) {
-            $result = Invoke-JiraMethod @parameter
+            $result = Invoke-JiraRequest -RequestContext $RequestContext @parameter
 
             Write-Output (ConvertTo-JiraWorklogitem -InputObject $result)
         }

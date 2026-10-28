@@ -77,7 +77,7 @@ else { $filterObject.FilterPermissions }
 
 if ($item.RestUrl) { $item }
 else {
-    Get-JiraFilter -Id $item.Id -Credential $Credential -ErrorAction Stop
+    Get-JiraFilter -Id $item.Id -Connection $requestContext -ErrorAction Stop
 }
 
 switch ($deploymentType) {
@@ -101,14 +101,14 @@ else {
 
 ### REST API Calls
 
-All HTTP calls go through `Invoke-JiraMethod`:
+Jira REST calls go through private `Invoke-JiraRequest` with the resolved connection context:
 
 ```powershell
 $parameter = @{
-    URI    = "$($script:JiraServerUrl)/rest/api/2/issue/$IssueKey"
+    URI    = "/rest/api/2/issue/$IssueKey"
     Method = "GET"
 }
-$result = Invoke-JiraMethod @parameter
+$result = Invoke-JiraRequest -RequestContext $requestContext @parameter
 ```
 
 ### Type Conversion
@@ -118,7 +118,7 @@ Pass optional nested objects directly to converters that accept null input; they
 Keep guards when they enforce additional behavior or the converter requires a non-null value:
 
 ```powershell
-$result = Invoke-JiraMethod @parameter
+$result = Invoke-JiraRequest -RequestContext $requestContext @parameter
 ConvertTo-JiraIssue -InputObject $result
 ```
 
@@ -131,9 +131,7 @@ param(
     [ValidateNotNullOrEmpty()]
     [String]$IssueKey,
 
-    [PSCredential]
-    [System.Management.Automation.Credential()]
-    $Credential = [System.Management.Automation.PSCredential]::Empty
+    [AtlassianPS.Connection]$Connection
 )
 ```
 
@@ -159,7 +157,7 @@ Cmdlet-specific result semantics means decisions like:
 - whether a response is ambiguous and therefore violates the cmdlet contract.
 
 Do not duplicate transport, retry, paging, or generic HTTP error parsing logic in public cmdlets.
-That belongs in shared helpers such as `Invoke-JiraMethod`, `Test-ServerResponse`, `Resolve-ErrorWebResponse`, `Invoke-PaginatedRequest`, `Expand-Result`, and `Convert-Result`.
+That belongs in private `Invoke-JiraRequest` and the existing response and paging helpers.
 
 Do not hand-build typed output objects in public cmdlets.
 Return typed objects through `ConvertTo-*` functions.
@@ -175,7 +173,7 @@ Lookup-style misses are the common case.
 This matches standard cmdlet behavior such as `Get-Item`, which writes an error by default but becomes terminating under `-ErrorAction Stop`.
 
 Let shared helpers surface transport and server failures.
-Do not wrap `Invoke-JiraMethod` in a blanket `try`/`catch` just to restate the same HTTP failure in the public cmdlet.
+Do not wrap `Invoke-JiraRequest` in a blanket `try`/`catch` just to restate the same HTTP failure in the public cmdlet.
 Only catch in the public cmdlet when you are intentionally translating a lower-level failure into a different cmdlet-level contract.
 
 Prefer ordinary control flow over exceptions for expected misses.
@@ -183,7 +181,7 @@ If a "not found" branch is part of normal lookup behavior, set the result or wri
 
 ## Testing Requirements
 
-- Every function needs a corresponding `.Unit.Tests.ps1` file
+- Follow [test selection guidance](../../Tests/README.md#choosing-tests): protect observable contracts and plausible regressions, and remove redundant checks.
 - Use Pester 6 syntax
 - Public functions: `Tests/Functions/Public/<FunctionName>.Unit.Tests.ps1`
 - Private functions: `Tests/Functions/Private/<FunctionName>.Unit.Tests.ps1`

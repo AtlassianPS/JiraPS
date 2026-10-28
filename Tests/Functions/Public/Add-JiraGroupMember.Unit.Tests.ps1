@@ -23,11 +23,6 @@ InModuleScope JiraPS {
             #region Mocks
             Mock Test-JiraCloudServer -ModuleName JiraPS { $false }
 
-            Mock Get-JiraConfigServer -ModuleName JiraPS {
-                Write-MockDebugInfo 'Get-JiraConfigServer'
-                Write-Output $jiraServer
-            }
-
             Mock Get-JiraGroup -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraGroup'
                 $object = [PSCustomObject] @{
@@ -63,45 +58,14 @@ InModuleScope JiraPS {
                 $InputObject
             }
 
-            Mock Invoke-JiraMethod -ModuleName JiraPS {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri', 'Body'
+            Mock Invoke-JiraRequest -ModuleName JiraPS {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri', 'Body'
                 return $true
             }
             #endregion Mocks
         }
 
         Describe "Signature" {
-            BeforeAll {
-                $script:command = Get-Command -Name "Add-JiraGroupMember"
-            }
-
-            Context "Parameter Types" {
-                It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = "Group"; type = "AtlassianPS.JiraPS.Group[]" }
-                    @{ parameter = "UserName"; type = "AtlassianPS.JiraPS.User[]" }
-                    @{ parameter = "Credential"; type = "System.Management.Automation.PSCredential" }
-                    @{ parameter = "Passthru"; type = "Switch" }
-                ) {
-                    $command | Should -HaveParameter $parameter -Type $type
-                }
-            }
-
-            Context "Default Values" {
-                It "parameter '<parameter>' has a default value of '<defaultValue>'" -TestCases @(
-                    @{ parameter = "Credential"; defaultValue = "[System.Management.Automation.PSCredential]::Empty" }
-                ) {
-                    $command | Should -HaveParameter $parameter -DefaultValue $defaultValue
-                }
-            }
-
-            Context "Mandatory Parameters" {
-                It "parameter '<parameter>' is mandatory" -TestCases @(
-                    @{ parameter = "Group" }
-                    @{ parameter = "UserName" }
-                ) {
-                    $command | Should -HaveParameter $parameter -Mandatory
-                }
-            }
 
             It "Accepts a group name as a String to the -Group parameter" {
                 { Add-JiraGroupMember -Group $testGroupName -User $testUsername2 } | Should -Not -Throw
@@ -109,7 +73,7 @@ InModuleScope JiraPS {
 
                 Should -Invoke -CommandName Get-JiraGroupMember -Exactly -Times 2
                 Should -Invoke -CommandName Resolve-JiraUser -Exactly -Times 2
-                Should -Invoke -CommandName Invoke-JiraMethod -ParameterFilter {
+                Should -Invoke -CommandName Invoke-JiraRequest -ParameterFilter {
                     $URI -eq '/rest/api/2/group/user' -and
                     $GetParameter['groupname'] -eq $testGroupName
                 } -Exactly -Times 2
@@ -120,7 +84,7 @@ InModuleScope JiraPS {
                 $group = Get-JiraGroup -GroupName $testGroupName
                 { Add-JiraGroupMember -Group $group -User $testUsername2 } | Should -Not -Throw
 
-                Should -Invoke -CommandName Invoke-JiraMethod -ParameterFilter {
+                Should -Invoke -CommandName Invoke-JiraRequest -ParameterFilter {
                     $URI -eq '/rest/api/2/group/user' -and
                     $GetParameter['groupname'] -eq $testGroupName
                 } -Exactly -Times 1
@@ -129,7 +93,7 @@ InModuleScope JiraPS {
             It "Accepts pipeline input from Get-JiraGroup" {
                 { Get-JiraGroup -GroupName $testGroupName | Add-JiraGroupMember -User $testUsername2 } | Should -Not -Throw
 
-                Should -Invoke -CommandName Invoke-JiraMethod -ParameterFilter {
+                Should -Invoke -CommandName Invoke-JiraRequest -ParameterFilter {
                     $URI -eq '/rest/api/2/group/user' -and
                     $GetParameter['groupname'] -eq $testGroupName
                 } -Exactly -Times 1
@@ -147,7 +111,7 @@ InModuleScope JiraPS {
             It "Adds a user to a JIRA group if the user is not a member" {
                 { Add-JiraGroupMember -Group $testGroupName -User $testUsername2 } | Should -Not -Throw
 
-                Should -Invoke -CommandName Invoke-JiraMethod -ParameterFilter {
+                Should -Invoke -CommandName Invoke-JiraRequest -ParameterFilter {
                     $Method -eq 'POST' -and
                     $URI -eq '/rest/api/2/group/user' -and
                     $GetParameter['groupname'] -eq $testGroupName -and
@@ -162,7 +126,7 @@ InModuleScope JiraPS {
                 # Should use the REST method twice, since at present, you can only add one group member per API call
                 { Add-JiraGroupMember -Group $testGroupName -User $testUsername1, $testUsername2 } | Should -Not -Throw
 
-                Should -Invoke -CommandName Invoke-JiraMethod -ParameterFilter {
+                Should -Invoke -CommandName Invoke-JiraRequest -ParameterFilter {
                     $Method -eq 'Post' -and
                     $URI -eq '/rest/api/2/group/user' -and
                     $GetParameter['groupname'] -eq $testGroupName
@@ -174,18 +138,12 @@ InModuleScope JiraPS {
             It "Gracefully handles cases where a provided user is already in the provided group" {
                 { Add-JiraGroupMember -Group $testGroupName -User $testUsername1, $testUsername2 -ErrorAction SilentlyContinue } | Should -Not -Throw
 
-                Should -Invoke -CommandName Invoke-JiraMethod -ParameterFilter {
+                Should -Invoke -CommandName Invoke-JiraRequest -ParameterFilter {
                     $Method -eq 'Post' -and
                     $URI -eq '/rest/api/2/group/user' -and
                     $GetParameter['groupname'] -eq $testGroupName
                 } -Exactly -Times 1
             }
-        }
-
-        Describe "Input Validation" {
-            Context "Type Validation - Positive Cases" {}
-
-            Context "Type Validation - Negative Cases" {}
         }
 
         Describe "Cloud Deployment" {
@@ -213,7 +171,7 @@ InModuleScope JiraPS {
             It "uses accountId in POST body when adding a user on Cloud" {
                 { Add-JiraGroupMember -Group $testGroupName -User $testUsername2 } | Should -Not -Throw
 
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly 1 -ParameterFilter {
+                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly 1 -ParameterFilter {
                     $Method -eq 'Post' -and
                     $URI -eq '/rest/api/2/group/user' -and
                     $GetParameter['groupname'] -eq $testGroupName -and
@@ -228,7 +186,7 @@ InModuleScope JiraPS {
 
                 { Add-JiraGroupMember -Group $group -User $testUsername2 } | Should -Not -Throw
 
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly 1 -ParameterFilter {
+                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly 1 -ParameterFilter {
                     $Method -eq 'Post' -and
                     $URI -eq '/rest/api/2/group/user' -and
                     $GetParameter['groupId'] -eq 'cloud-group-id' -and

@@ -19,11 +19,6 @@ InModuleScope JiraPS {
             #endregion Definitions
 
             #region Mocks
-            Mock Get-JiraConfigServer -ModuleName JiraPS {
-                Write-MockDebugInfo 'Get-JiraConfigServer'
-                $jiraServer
-            }
-
             Mock Get-JiraIssueLink -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraIssueLink' 'Id'
                 [AtlassianPS.JiraPS.IssueLink]@{
@@ -56,37 +51,16 @@ InModuleScope JiraPS {
                 $InputObject
             }
 
-            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Delete' -and $URI -like "/rest/api/*/issueLink/1234" } {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+            Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter { $Method -eq 'Delete' -and $URI -like "/rest/api/*/issueLink/1234" } {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
             }
 
             # Generic catch-all. This will throw an exception if we forgot to mock something.
-            Mock Invoke-JiraMethod -ModuleName JiraPS {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-                throw "Unidentified call to Invoke-JiraMethod"
+            Mock Invoke-JiraRequest -ModuleName JiraPS {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
+                throw "Unidentified call to Invoke-JiraRequest"
             }
             #endregion Mocks
-        }
-
-        Describe "Signature" {
-            BeforeAll {
-                $script:command = Get-Command -Name Remove-JiraIssueLink
-            }
-
-            Context "Parameter Types" {
-                It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = 'IssueLink'; type = 'AtlassianPS.JiraPS.IssueLink[]' }
-                    @{ parameter = 'Issue'; type = 'AtlassianPS.JiraPS.Issue[]' }
-                    @{ parameter = 'Credential'; type = 'PSCredential' }
-                ) {
-                    param($parameter, $type)
-                    $command | Should -HaveParameter $parameter -Type $type
-                }
-            }
-
-            Context "Mandatory Parameters" {}
-
-            Context "Default Values" {}
         }
 
         Describe "Behavior" {
@@ -96,31 +70,28 @@ InModuleScope JiraPS {
                     $issue = Get-JiraIssue -Key TEST-01
                     { Remove-JiraIssueLink -IssueLink $issueLink } | Should -Not -Throw
                     { Remove-JiraIssueLink -Issue $issue } | Should -Not -Throw
-                    Should -Invoke -CommandName Invoke-JiraMethod -Exactly -Times 2
+                    Should -Invoke -CommandName Invoke-JiraRequest -Exactly -Times 2
                 }
 
                 It "Accepts a AtlassianPS.JiraPS.Issue object over the pipeline" {
                     { Get-JiraIssue -Key TEST-01 | Remove-JiraIssueLink } | Should -Not -Throw
-                    Should -Invoke -CommandName Invoke-JiraMethod -Exactly -Times 1
+                    Should -Invoke -CommandName Invoke-JiraRequest -Exactly -Times 1
                 }
 
                 It "Resolves string stubs passed to -Issue" {
                     { Remove-JiraIssueLink -Issue 'TEST-01' } | Should -Not -Throw
                     Should -Invoke -CommandName Resolve-JiraIssueObject -Exactly -Times 1 -ParameterFilter { $InputObject.Key -eq 'TEST-01' }
-                    Should -Invoke -CommandName Invoke-JiraMethod -Exactly -Times 1
+                    Should -Invoke -CommandName Invoke-JiraRequest -Exactly -Times 1
                 }
 
                 It "Accepts an AtlassianPS.JiraPS.IssueLink over the pipeline" {
                     { Get-JiraIssueLink -Id 1234 | Remove-JiraIssueLink } | Should -Not -Throw
-                    Should -Invoke -CommandName Invoke-JiraMethod -Exactly -Times 1
+                    Should -Invoke -CommandName Invoke-JiraRequest -Exactly -Times 1
                 }
             }
         }
 
         Describe "Input Validation" {
-            Context "Positive cases" {
-                # TODO: Add positive input validation tests
-            }
 
             Context "Negative cases" {
                 It "Validates pipeline input" {

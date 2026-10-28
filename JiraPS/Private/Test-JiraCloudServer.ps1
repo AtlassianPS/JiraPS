@@ -1,11 +1,15 @@
 ﻿function Test-JiraCloudServer {
+    <#
+    .SYNOPSIS
+        Report whether a request context has validated Cloud deployment metadata.
+    #>
     [CmdletBinding()]
-    [OutputType([System.Boolean])]
+    [OutputType( [Boolean] )]
     param(
-        [PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        [Parameter( Mandatory )]
+        [AtlassianPS.Connection]
+        $RequestContext
     )
 
-    (Get-JiraServerInformation -Credential $Credential -ErrorAction SilentlyContinue).DeploymentType -eq 'Cloud'
+    $RequestContext.DeploymentType -eq 'Cloud'
 }

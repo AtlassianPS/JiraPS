@@ -74,32 +74,27 @@ InModuleScope JiraPS {
             $script:result | Should -BeNullOrEmpty
         }
 
-        It "returns transformed session when -StoreSession is set" {
-            Mock ConvertTo-JiraSession -ModuleName 'JiraPS' {
-                [PSCustomObject]@{
-                    Username = $Username
-                }
-            }
+        It 'preserves the original transport ErrorRecord and caller error preferences' {
+            $exception = [System.Net.WebException]::new('Transport failure sentinel')
+            $errorRecord = [System.Management.Automation.ErrorRecord]::new(
+                $exception,
+                'ReviewTransportFailure',
+                [System.Management.Automation.ErrorCategory]::ConnectionError,
+                'https://jira.example.com'
+            )
+            $errors = @()
 
-            $response = New-FakeWebResponse -StatusCode 200
-            $securePassword = [System.Security.SecureString]::new()
-            'pw'.ToCharArray() | ForEach-Object { $securePassword.AppendChar($_) }
-            $securePassword.MakeReadOnly()
-            $credential = [pscredential]::new('user@example.com', $securePassword)
-            $session = [Microsoft.PowerShell.Commands.WebRequestSession]::new()
-            $result = Invoke-ResolveJiraWebResponse -Remaining @{
-                WebResponse                 = $response
-                StoreSession                = $true
-                Credential                  = $credential
-                SessionTransformationMethod = 'ConvertTo-JiraSession'
-                Session                     = $session
-            }
+            $result = Invoke-ResolveJiraWebResponse -Remaining @{ Exception = $errorRecord } -ErrorAction SilentlyContinue -ErrorVariable errors
 
-            $result.Username | Should -Be 'user@example.com'
+            $result | Should -BeNullOrEmpty
+            $errors.Count | Should -Be 1
+            [Object]::ReferenceEquals($errors[0].Exception, $exception) | Should -BeTrue
+            $errors[0].FullyQualifiedErrorId | Should -Match 'ReviewTransportFailure'
+            { Invoke-ResolveJiraWebResponse -Remaining @{ Exception = $errorRecord } -ErrorAction Stop } |
+                Should -Throw -ExpectedMessage '*Transport failure sentinel*'
         }
 
         It "stores cache entries for GET responses when CacheKey is provided" {
-            Mock Get-JiraConfigServer -ModuleName 'JiraPS' { 'https://jira.example.com' }
             $script:JiraCache = @{}
 
             $response = New-FakeWebResponse -StatusCode 200 -Json '{"name":"field"}'
@@ -110,12 +105,11 @@ InModuleScope JiraPS {
                 CacheExpiry = [TimeSpan]::FromMinutes(30)
             }
 
-            $script:JiraCache.ContainsKey('Fields:https://jira.example.com') | Should -BeTrue
-            $script:JiraCache['Fields:https://jira.example.com'].Data.name | Should -Be 'field'
+            $script:JiraCache.ContainsKey('Fields') | Should -BeTrue
+            $script:JiraCache['Fields'].Data.name | Should -Be 'field'
         }
 
         It "does not create a cache entry for non-GET responses" {
-            Mock Get-JiraConfigServer -ModuleName 'JiraPS' { 'https://jira.example.com' }
             $script:JiraCache = @{}
 
             $response = New-FakeWebResponse -StatusCode 200 -Json '{"name":"field"}'
@@ -186,7 +180,10 @@ InModuleScope JiraPS {
             $result = Invoke-ResolveJiraWebResponse -Remaining @{
                 WebResponse     = $response
                 Paging          = $true
-                BoundParameters = @{ Uri = 'https://jira.example.com' }
+                BoundParameters = @{
+                    Uri            = 'https://jira.example.com'
+                    RequestContext = (Get-JiraConnection -Default)
+                }
             }
 
             $result | Should -Be @('paged')

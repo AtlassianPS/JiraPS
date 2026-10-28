@@ -26,10 +26,10 @@ InModuleScope JiraPS {
         AfterAll {
             try {
                 foreach ($filter in $script:createdFilters) {
-                    Remove-JiraFilter -InputObject $filter -Confirm:$false -ErrorAction Stop
+                    Remove-JiraFilter -Filter $filter -Confirm:$false -ErrorAction Stop
                 }
             }
-            finally { Remove-JiraSession -ErrorAction SilentlyContinue }
+            finally { Disconnect-Jira -ErrorAction SilentlyContinue }
         }
 
         It "adds and removes a project share using typed filter permissions" {
@@ -39,20 +39,20 @@ InModuleScope JiraPS {
             $null = $script:createdFilters.Add($filter)
 
             $shared = Add-JiraFilterPermission -Filter $filter -Type Project -Value $project.Id -Confirm:$false -ErrorAction Stop
-            $shared | Should -BeOfType ([AtlassianPS.JiraPS.Filter])
-            $permission = @($shared.FilterPermissions | Where-Object { $_.Project.Id -eq $project.Id })
+            $shared | Should -BeOfType ([AtlassianPS.JiraPS.FilterPermission])
+            $permission = @(@($shared) | Where-Object { $_.Project.Id -eq $project.Id })
             $permission.Count | Should -Be 1
             $permission[0] | Should -BeOfType ([AtlassianPS.JiraPS.FilterPermission])
             $permission[0].Id | Should -Not -BeNullOrEmpty
             $permission[0].Type | Should -Be ([AtlassianPS.JiraPS.FilterShareType]::PROJECT)
 
             $persisted = Get-JiraFilterPermission -Filter $filter -ErrorAction Stop
-            @($persisted.FilterPermissions | Where-Object Id -EQ $permission[0].Id).Count | Should -Be 1
+            @(@($persisted) | Where-Object Id -EQ $permission[0].Id).Count | Should -Be 1
 
-            Remove-JiraFilterPermission -Filter $shared -Permission $permission[0] -Confirm:$false -ErrorAction Stop
+            Remove-JiraFilterPermission -Filter $filter -Permission $permission[0] -Confirm:$false -ErrorAction Stop
 
             $updated = Get-JiraFilterPermission -Filter $filter -ErrorAction Stop
-            @($updated.FilterPermissions | Where-Object Id -EQ $permission[0].Id).Count | Should -Be 0
+            @(@($updated) | Where-Object Id -EQ $permission[0].Id).Count | Should -Be 0
         }
     }
 }

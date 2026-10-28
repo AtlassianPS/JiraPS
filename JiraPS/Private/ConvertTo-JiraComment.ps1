@@ -1,4 +1,8 @@
 ﻿function ConvertTo-JiraComment {
+    <#
+    .SYNOPSIS
+        Convert Jira response data to AtlassianPS.JiraPS.Comment objects.
+    #>
     [CmdletBinding()]
     [OutputType([AtlassianPS.JiraPS.Comment])]
     param(
@@ -10,7 +14,7 @@
     process {
         foreach ($i in $InputObject) {
             if ($null -eq $i) { continue }
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to AtlassianPS.JiraPS.Comment"
+            Write-DebugMessage "Converting `$InputObject to AtlassianPS.JiraPS.Comment"
 
             $hash = @{
                 ID         = $i.id

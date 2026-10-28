@@ -1,22 +1,13 @@
 ﻿function Get-JiraIssue {
     # .ExternalHelp ..\JiraPS-help.xml
-    [CmdletBinding( SupportsPaging, DefaultParameterSetName = 'ByIssueKey' )]
+    [CmdletBinding( SupportsPaging, DefaultParameterSetName = 'Issue' )]
     param(
-        [Parameter( Position = 0, Mandatory, ValueFromPipelineByPropertyName, ParameterSetName = 'ByIssueKey' )]
-        [ValidateNotNullOrEmpty()]
-        [Alias('Issue')]
-        [String[]]
-        $Key,
-
-        [Parameter( Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = 'ByInputObject' )]
+        [Parameter( Position = 0, Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName, ParameterSetName = 'Issue' )]
         [ValidateNotNull()]
-        [AtlassianPS.JiraPS.IssueTransformation()]
-        [AtlassianPS.JiraPS.Issue]
-        $InputObject,
-        <#
-          #ToDo:Deprecate
-          This is not necessary if $Key uses ValueFromPipelineByPropertyName
-        #>
+        [Alias('Key', 'Id')]
+        [AtlassianPS.JiraPS.IssueTransformation(AllowCollection = $true, AllowPipelineFallthrough = $true)]
+        [AtlassianPS.JiraPS.Issue[]]
+        $Issue,
 
         [Parameter( Mandatory, ParameterSetName = 'ByJQL' )]
         [Alias('JQL')]
@@ -40,20 +31,21 @@
         $PageSize = $script:DefaultPageSize,
 
         [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty,
-
-        [Parameter()]
         [Alias('GetHistory')]
         [Switch]
-        $IncludeHistory
+        $IncludeHistory,
+
+        [AtlassianPS.Connection]
+        $Connection
     )
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
 
-        $isCloud = Test-JiraCloudServer -Credential $Credential
+        $requestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
+
+        $isCloud = Test-JiraCloudServer -RequestContext $RequestContext
 
         $searchURi = "/rest/api/2/search"
         $searchURi_v3 = "/rest/api/3/search/jql"
@@ -63,16 +55,18 @@
     }
 
     process {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+        Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
 
         switch ($PSCmdlet.ParameterSetName) {
-            'ByIssueKey' {
-                foreach ($_key in $Key) {
+            'Issue' {
+                foreach ($item in $Issue) {
+                    $_key = if ($item.Key) { $item.Key } else { $item.Id }
                     Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_key]"
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_key [$_key]"
+                    Write-DebugMessage "Processing `$_key [$_key]"
 
-                    $expandValue = if ($IncludeHistory) { "transitions,changelog" } else { "transitions" }
+                    $expandValue = if ($IncludeHistory) { "transitions,changelog" }
+                    else { "transitions" }
                     $getParameter = @{ expand = $expandValue }
                     if ($Fields) { $getParameter["fields"] = $Fields }
 
@@ -80,24 +74,17 @@
                         URI          = $resourceURi -f $_key
                         Method       = "GET"
                         GetParameter = $getParameter
-                        Credential   = $Credential
                     }
 
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-                    $result = Invoke-JiraMethod @parameter
+                    Write-DebugMessage "Invoking JiraMethod with `$parameter"
+                    $result = Invoke-JiraRequest -RequestContext $RequestContext @parameter
 
                     Write-Output (ConvertTo-JiraIssue -InputObject $result)
                 }
             }
-            'ByInputObject' {
-                # Write-Warning "[$($MyInvocation.MyCommand.Name)] The parameter '-InputObject' has been marked as deprecated."
-                Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$InputObject]"
-                Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$InputObject [$InputObject]"
-
-                Write-Output (Get-JiraIssue -Key $InputObject.Key -Fields $Fields -Credential $Credential -IncludeHistory:$IncludeHistory)
-            }
             'ByJQL' {
-                $expandValue = if ($IncludeHistory) { "transitions,changelog" } else { "transitions" }
+                $expandValue = if ($IncludeHistory) { "transitions,changelog" }
+                else { "transitions" }
                 $parameter = @{
                     URI          = if ($isCloud) { $searchURi_v3 } else { $searchURi }
                     Method       = "GET"
@@ -109,7 +96,6 @@
                     }
                     OutputType   = "JiraIssue"
                     Paging       = $true
-                    Credential   = $Credential
                 }
                 if ($Fields) { $parameter["GetParameter"]["fields"] = $Fields }
                 # Paging
@@ -117,12 +103,13 @@
                     $parameter[$_] = $PSCmdlet.PagingParameters.$_
                 }
 
-                Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-                Invoke-JiraMethod @parameter
+                Write-DebugMessage "Invoking JiraMethod with `$parameter"
+                Invoke-JiraRequest -RequestContext $RequestContext @parameter
             }
             'ByFilter' {
-                $filterObj = (Get-JiraFilter -Id $Filter.ID -Credential $Credential -ErrorAction Stop).SearchUrl
-                $expandValue = if ($IncludeHistory) { "transitions,changelog" } else { "transitions" }
+                $filterObj = (Get-JiraFilter -Id $Filter.ID -Connection $RequestContext -ErrorAction Stop).SearchUrl
+                $expandValue = if ($IncludeHistory) { "transitions,changelog" }
+                else { "transitions" }
                 $parameter = @{
                     URI          = $filterObj
                     Method       = "GET"
@@ -133,8 +120,6 @@
                     }
                     OutputType   = "JiraIssue"
                     Paging       = $true
-                    Credential   = $Credential
-
                 }
                 if ($Fields) { $parameter["GetParameter"]["fields"] = $Fields }
                 # Paging
@@ -142,8 +127,8 @@
                     $parameter[$_] = $PSCmdlet.PagingParameters.$_
                 }
 
-                Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-                Invoke-JiraMethod @parameter
+                Write-DebugMessage "Invoking JiraMethod with `$parameter"
+                Invoke-JiraRequest -RequestContext $RequestContext @parameter
             }
         }
     }

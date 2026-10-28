@@ -12,20 +12,21 @@
         $Comment,
 
         [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        [AtlassianPS.Connection]
+        $Connection
     )
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
+        $RequestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
+
         $resourceURi = "/rest/api/2/issueLink"
     }
 
     process {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+        Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
 
         foreach ($typedIssueLink in $IssueLink) {
             if (-not $typedIssueLink.Type -or -not $typedIssueLink.InwardIssue -or -not $typedIssueLink.OutwardIssue) {
@@ -91,15 +92,15 @@
             if ($Comment) { $body.comment = @{ body = $Comment } }
 
             $parameter = @{
-                URI        = $resourceURi
-                Method     = "POST"
-                Body       = ConvertTo-Json -InputObject $body
-                Credential = $Credential
+                URI    = $resourceURi
+                Method = "POST"
+                Body   = ConvertTo-Json -InputObject $body
             }
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-            $typeTarget = if ($typedIssueLink.Type.Name) { $typedIssueLink.Type.Name } else { $typedIssueLink.Type.Id }
+            Write-DebugMessage "Invoking JiraMethod with `$parameter"
+            $typeTarget = if ($typedIssueLink.Type.Name) { $typedIssueLink.Type.Name }
+            else { $typedIssueLink.Type.Id }
             $whatIfTarget = "$inwardTarget -[$typeTarget]-> $outwardTarget"
-            if ($PSCmdlet.ShouldProcess($whatIfTarget)) { Invoke-JiraMethod @parameter }
+            if ($PSCmdlet.ShouldProcess($whatIfTarget)) { Invoke-JiraRequest -RequestContext $RequestContext @parameter }
         }
     }
 

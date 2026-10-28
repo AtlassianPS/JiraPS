@@ -29,19 +29,14 @@ InModuleScope JiraPS {
             #endregion Definitions
 
             #region Mocks
-            Mock Get-JiraConfigServer -ModuleName JiraPS {
-                Write-MockDebugInfo 'Get-JiraConfigServer'
-                Write-Output $jiraServer
-            }
-
             # Generic catch-all. This will throw an exception if we forgot to mock something.
-            Mock Invoke-JiraMethod -ModuleName JiraPS {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-                throw "Unidentified call to Invoke-JiraMethod"
+            Mock Invoke-JiraRequest -ModuleName JiraPS {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
+                throw "Unidentified call to Invoke-JiraRequest"
             }
 
-            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $URI -eq "/rest/api/2/issueLink/1234" } {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+            Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $URI -eq "/rest/api/2/issueLink/1234" } {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
                 ConvertFrom-Json $resultsJson
             }
 
@@ -63,25 +58,6 @@ InModuleScope JiraPS {
             #endregion Mocks
         }
 
-        Describe "Signature" {
-            BeforeAll {
-                $script:command = Get-Command -Name Get-JiraIssueLink
-            }
-
-            Context "Parameter Types" {
-                It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = "Id"; type = "Int32[]" }
-                    @{ parameter = "Credential"; type = "System.Management.Automation.PSCredential" }
-                ) {
-                    $command | Should -HaveParameter $parameter
-                }
-            }
-
-            Context "Mandatory Parameters" {}
-
-            Context "Default Values" {}
-        }
-
         Describe "Behavior" {
             It "Returns details about specific issuelink" {
                 $result = Get-JiraIssueLink -Id $issueLinkId
@@ -100,14 +76,9 @@ InModuleScope JiraPS {
             }
 
             It 'Fails if input from the pipeline is of the wrong type' {
-                { [PSCustomObject]@{id = $issueLinkId } | Get-JiraIssueLink } | Should -Throw -ExpectedMessage "*Invalid Parameter*"
+                { [PSCustomObject]@{name = 'invalid' } | Get-JiraIssueLink -ErrorAction Stop } | Should -Throw -ExpectedMessage "*IssueLink*"
             }
         }
 
-        Describe "Input Validation" {
-            Context "Type Validation - Positive Cases" {}
-
-            Context "Type Validation - Negative Cases" {}
-        }
     }
 }

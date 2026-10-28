@@ -14,27 +14,27 @@ InModuleScope JiraPS {
 
         BeforeEach {
             $script:JiraCache = @{}
-            Mock Get-JiraConfigServer -ModuleName 'JiraPS' { 'https://jira.example.com' }
+            $script:cacheKey = '11111111-1111-1111-1111-111111111111:https://jira.example.com/rest/api/2/field:Fields'
         }
 
         It "returns null when cache should be bypassed" {
-            $script:JiraCache['Fields:https://jira.example.com'] = @{
+            $script:JiraCache[$cacheKey] = @{
                 Data   = @{ id = 1 }
                 Expiry = (Get-Date).AddMinutes(5)
             }
 
-            $result = Get-JiraCachedResponse -CacheKey 'Fields' -BypassCache
+            $result = Get-JiraCachedResponse -CacheKey $cacheKey -BypassCache
 
             $result | Should -BeNullOrEmpty
         }
 
         It "returns null for non-GET methods" {
-            $script:JiraCache['Fields:https://jira.example.com'] = @{
+            $script:JiraCache[$cacheKey] = @{
                 Data   = @{ id = 1 }
                 Expiry = (Get-Date).AddMinutes(5)
             }
 
-            $result = Get-JiraCachedResponse -CacheKey 'Fields' -Method 'POST'
+            $result = Get-JiraCachedResponse -CacheKey $cacheKey -Method 'POST'
 
             $result | Should -BeNullOrEmpty
         }
@@ -44,11 +44,21 @@ InModuleScope JiraPS {
                 Data   = @{ id = 1 }
                 Expiry = (Get-Date).AddMinutes(5)
             }
-            $script:JiraCache['Fields:https://jira.example.com'] = $entry
+            $script:JiraCache[$cacheKey] = $entry
 
-            $result = Get-JiraCachedResponse -CacheKey 'Fields'
+            $result = Get-JiraCachedResponse -CacheKey $cacheKey
 
             $result | Should -Be $entry
+        }
+
+        It 'removes an expired entry without returning its response' {
+            $script:JiraCache[$cacheKey] = @{
+                Data   = @{ id = 1 }
+                Expiry = (Get-Date).AddMinutes(-1)
+            }
+
+            Get-JiraCachedResponse -CacheKey $cacheKey | Should -BeNullOrEmpty
+            $script:JiraCache.ContainsKey($cacheKey) | Should -BeFalse
         }
     }
 }

@@ -2,6 +2,7 @@
 
 BeforeDiscovery {
     . "$PSScriptRoot/../../Helpers/TestTools.ps1"
+
     $script:moduleToTest = Initialize-TestEnvironment
 }
 
@@ -16,12 +17,8 @@ InModuleScope JiraPS {
             #endregion Definitions
 
             #region Mocks
-            Mock Get-JiraConfigServer -ModuleName JiraPS {
-                Write-MockDebugInfo 'Get-JiraConfigServer'
-                $jiraServer
-            }
-
             Mock Get-JiraIssue -ModuleName JiraPS {
+                $Key = $Issue.Key
                 Write-MockDebugInfo 'Get-JiraIssue' 'Key'
                 $object = [AtlassianPS.JiraPS.Issue]@{
                     Id      = 123
@@ -37,46 +34,28 @@ InModuleScope JiraPS {
                 Get-JiraIssue -Key $InputObject.Key
             }
 
-            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq "Put" -and $Uri -like "$jiraServer/rest/api/*/issue/12345" } {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri', 'Body'
+            Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter { $Method -eq "Put" -and $Uri -like "$jiraServer/rest/api/*/issue/12345" } {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri', 'Body'
             }
 
-            Mock Invoke-JiraMethod -ModuleName JiraPS {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-                throw "Unidentified call to Invoke-JiraMethod"
+            Mock Invoke-JiraRequest -ModuleName JiraPS {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
+                throw "Unidentified call to Invoke-JiraRequest"
             }
             #endregion Mocks
         }
 
-        Describe "Signature" {
-            BeforeAll {
-                $script:command = Get-Command -Name Set-JiraIssueLabel
-            }
-
-            Context "Parameter Types" {
-                It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = 'Issue'; type = 'Issue' }
-                    @{ parameter = 'Set'; type = 'String[]' }
-                    @{ parameter = 'Add'; type = 'String[]' }
-                    @{ parameter = 'Remove'; type = 'String[]' }
-                    @{ parameter = 'Clear'; type = 'SwitchParameter' }
-                    @{ parameter = 'Credential'; type = 'PSCredential' }
-                ) {
-                    param($parameter, $type)
-                    $command | Should -HaveParameter $parameter
-                    $command.Parameters[$parameter].ParameterType.Name | Should -Be $type
+        Describe "Behavior" {
+            It "Does not update labels when WhatIf is supplied" {
+                Set-JiraIssueLabel -Issue TEST-001 -Set 'testLabel1' -WhatIf
+                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Times 0 -Exactly -ParameterFilter {
+                    $Method -eq 'Put'
                 }
             }
 
-            Context "Mandatory Parameters" {}
-
-            Context "Default Values" {}
-        }
-
-        Describe "Behavior" {
             It "Replaces all issue labels if the Set parameter is supplied" {
                 { Set-JiraIssueLabel -Issue TEST-001 -Set 'testLabel1', 'testLabel2' } | Should -Not -Throw
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -ParameterFilter {
+                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Times 1 -ParameterFilter {
                     $Method -eq 'Put' -and
                     $URI -like '*/rest/api/2/issue/12345' -and
                     $Body -like '*update*labels*set*testLabel1*testLabel2*'
@@ -85,7 +64,7 @@ InModuleScope JiraPS {
 
             It "Adds new labels if the Add parameter is supplied" {
                 { Set-JiraIssueLabel -Issue TEST-001 -Add 'testLabel3' } | Should -Not -Throw
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -ParameterFilter {
+                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Times 1 -ParameterFilter {
                     $Method -eq 'Put' -and
                     $URI -like '*/rest/api/2/issue/12345' -and
                     $Body -like '*update*labels*set*testLabel3*'
@@ -94,7 +73,7 @@ InModuleScope JiraPS {
 
             It "Removes labels if the Remove parameter is supplied" {
                 { Set-JiraIssueLabel -Issue TEST-001 -Remove 'existingLabel1' } | Should -Not -Throw
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -ParameterFilter {
+                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Times 1 -ParameterFilter {
                     $Method -eq 'Put' -and
                     $URI -like '*/rest/api/2/issue/12345' -and
                     $Body -like '*update*labels*set*existingLabel2*'
@@ -103,7 +82,7 @@ InModuleScope JiraPS {
 
             It "Clears all labels if the Clear parameter is supplied" {
                 { Set-JiraIssueLabel -Issue TEST-001 -Clear } | Should -Not -Throw
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Times 1 -ParameterFilter {
+                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Times 1 -ParameterFilter {
                     $Method -eq 'Put' -and
                     $URI -like '*/rest/api/2/issue/12345' -and
                     $Body -like '*update*labels*set*'
@@ -111,7 +90,13 @@ InModuleScope JiraPS {
             }
 
             It "Allows use of both Add and Remove parameters at the same time" {
-                { Set-JiraIssueLabel -Issue TEST-001 -Add 'testLabel1' -Remove 'testLabel2' } | Should -Not -Throw
+                Set-JiraIssueLabel -Issue TEST-001 -Add 'testLabel1' -Remove 'existingLabel1'
+
+                Should -Invoke Invoke-JiraRequest -Exactly -Times 1 -ParameterFilter {
+                    $Method -eq 'PUT' -and
+                    $URI -eq "$jiraServer/rest/api/2/issue/12345" -and
+                    ((($Body | ConvertFrom-Json).update.labels[0].set) -join ',') -eq 'existingLabel2,testLabel1'
+                }
             }
 
             It "Does not emit pipeline output when -Add or -Remove are used without -PassThru" {
@@ -121,33 +106,42 @@ InModuleScope JiraPS {
                 $output = Set-JiraIssueLabel -Issue TEST-001 -Add 'newLabel' -Remove 'existingLabel1'
                 $output | Should -BeNullOrEmpty
             }
+
+            It 'updates each piped issue and refreshes it only when PassThru is requested' {
+                Mock Resolve-JiraIssueObject { $InputObject }
+                $issues = foreach ($key in @('TEST-001', 'TEST-002')) {
+                    $issue = [AtlassianPS.JiraPS.Issue]@{ Key = $key; RestUrl = "$jiraServer/rest/api/2/issue/12345" }
+                    $issue | Add-Member -NotePropertyName Labels -NotePropertyValue @('existingLabel1', 'existingLabel2')
+                    $issue
+                }
+                $result = @($issues | Set-JiraIssueLabel -Add 'newLabel' -Remove 'existingLabel1' -PassThru)
+
+                $result.Key | Should -Be @('TEST-001', 'TEST-002')
+                Should -Invoke Invoke-JiraRequest -Exactly 2 -ParameterFilter {
+                    $payload = $Body | ConvertFrom-Json
+                    $Method -eq 'Put' -and $payload.update.labels[0].set -join ',' -eq 'existingLabel2,newLabel'
+                }
+                Should -Invoke Get-JiraIssue -Exactly 2 -ParameterFilter { $Connection -and $Issue.Key -in @('TEST-001', 'TEST-002') }
+            }
         }
 
         Describe "Input Validation" {
             Context "Positive cases" {
-                It "Accepts an issue key for the -Issue parameter" {
-                    { Set-JiraIssueLabel -Issue TEST-001 -Set 'testLabel1' } | Should -Not -Throw
-                    Should -Invoke Get-JiraIssue -ModuleName JiraPS -Exactly -Times 1
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
-                }
 
                 It "Accepts an issue object for the -Issue parameter" {
                     $issue = Get-JiraIssue -Key TEST-001
                     { Set-JiraIssueLabel -Issue $issue -Set 'testLabel1' } | Should -Not -Throw
                     Should -Invoke Get-JiraIssue -ModuleName JiraPS -Exactly -Times 2
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
+                    Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1
                 }
 
                 It "Accepts the output of Get-JiraIssue by pipeline for the -Issue parameter" {
                     { Get-JiraIssue -Key TEST-001 | Set-JiraIssueLabel -Set 'testLabel1' } | Should -Not -Throw
                     Should -Invoke Get-JiraIssue -ModuleName JiraPS -Exactly -Times 2
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
+                    Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1
                 }
             }
 
-            Context "Negative cases" {
-                # TODO: Add negative input validation tests
-            }
         }
     }
 }

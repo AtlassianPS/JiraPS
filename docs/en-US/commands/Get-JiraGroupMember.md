@@ -15,7 +15,7 @@ Returns members of a given group in Jira.
 ## SYNTAX
 
 ```powershell
-Get-JiraGroupMember [-Group] <AtlassianPS.JiraPS.Group[]> [[-PageSize] <uint>] [[-Credential] <pscredential>]
+Get-JiraGroupMember [-Group] <AtlassianPS.JiraPS.Group[]> [[-PageSize] <uint>] [[-Connection] <AtlassianPS.Connection>]
  [-IncludeInactive] [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```
 
@@ -49,14 +49,15 @@ This example returns the members of the Developers group without first resolving
 
 ## PARAMETERS
 
-### -Credential
+### -Connection
 
-Credentials to use to connect to Jira.
-If not specified, this function will use anonymous access.
+Active Jira connection for this operation.
+When omitted, the command uses the selected Jira default.
+Create connections with Connect-Jira; resolve names with Get-JiraConnection -Name.
 
 ```yaml
-Type: PSCredential
-DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
+Type: AtlassianPS.Connection
+DefaultValue: None
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
@@ -73,7 +74,7 @@ HelpMessage: ''
 
 ### -First
 
-Indicates how many items to return.
+Maximum number of matching records to return.
 
 ```yaml
 Type: UInt64
@@ -141,9 +142,8 @@ HelpMessage: ''
 
 ### -IncludeTotalCount
 
-Causes an extra output of the total count at the beginning.
-
-Note this is actually a uInt64, but with a custom string representation.
+Return total-count information before the records.
+Accuracy is unknown when Jira does not provide a total.
 
 ```yaml
 Type: SwitchParameter
@@ -164,11 +164,8 @@ HelpMessage: ''
 
 ### -PageSize
 
-Maximum number of results to fetch per call.
-
-This setting can be tuned to get better performance according to the load on the server.
-
-> Warning: too high of a PageSize can cause a timeout on the request.
+Number of records requested per page.
+Use First to limit output and Skip to skip records.
 
 ```yaml
 Type: UInt32
@@ -189,9 +186,7 @@ HelpMessage: ''
 
 ### -Skip
 
-Controls how many things will be skipped before starting output.
-
-Defaults to 0.
+Number of matching records to skip before returning output.
 
 ```yaml
 Type: UInt64
@@ -212,14 +207,14 @@ HelpMessage: ''
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable, -ProgressAction, -Verbose, -WarningAction, and -WarningVariable.
-For more information, see [about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
+-InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
+-ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
+[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
-### AtlassianPS.JiraPS.Group
-
-The group to query for members
+### AtlassianPS.JiraPS.Group[]
 
 ## OUTPUTS
 
@@ -238,11 +233,13 @@ This appears to be a limitation of Jira's REST API.
 
 On Jira Data Center, prefer `Get-JiraGroupMember -Group '<name>'` over `Get-JiraGroup '<name>' | Get-JiraGroupMember` unless you already have a resolved group object.
 
-This function requires either the `-Credential` parameter to be passed or a persistent Jira session.
-See `New-JiraSession` for more details.
-If neither are supplied, this function will run with anonymous access to Jira.
+This function uses the selected Jira connection unless you pass another connection through `-Connection`.
+Use `Connect-Jira` to create a connection.
+For anonymous access, create the connection with `Connect-Jira -Anonymous`.
 
 ## RELATED LINKS
+
+[about_JiraPS_Authentication](../../about/authentication.html)
 
 [Get-JiraGroup](../Get-JiraGroup/)
 

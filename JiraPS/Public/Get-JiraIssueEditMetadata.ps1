@@ -3,43 +3,38 @@
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseSingularNouns', '')]
     [CmdletBinding()]
     param(
-        [Parameter( Mandatory )]
-        [String]
+        [Parameter( Mandatory, ValueFromPipeline )]
+        [ValidateNotNull()]
+        [AtlassianPS.JiraPS.IssueTransformation()]
+        [AtlassianPS.JiraPS.Issue]
         $Issue,
-        <#
-          #ToDo:CustomClass
-          Now that we have custom classes, this could be typed as [AtlassianPS.JiraPS.Issue]
-        #>
 
         [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        [AtlassianPS.Connection]
+        $Connection
     )
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
+
+        $requestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
 
         $resourceURi = "/rest/api/2/issue/{0}/editmeta"
     }
 
     process {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+        Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
 
         $parameter = @{
-            URI        = $resourceURi -f $Issue
-            <#
-              #ToDo:CustomClass
-              When the Input is typecasted to a AtlassianPS.JiraPS.Issue, the `self` of the issue can be used
-            #>
-            Method     = "GET"
-            Credential = $Credential
+            URI    = $resourceURi -f $(if ($Issue.Key) { $Issue.Key } else { $Issue.Id })
+            Method = "GET"
         }
-        Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-        $result = Invoke-JiraMethod @parameter
+        Write-DebugMessage "Invoking JiraMethod with `$parameter"
+        $result = Invoke-JiraRequest -RequestContext $RequestContext @parameter
 
-        Write-Debug ($result | Out-String)
+        Write-DebugMessage ($result | Out-String)
 
         if ($result) { Write-Output (ConvertTo-JiraEditMetaField -InputObject $result) }
         else {

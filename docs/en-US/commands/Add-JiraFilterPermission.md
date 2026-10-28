@@ -16,43 +16,47 @@ Share a filter with other users.
 
 ```powershell
 Add-JiraFilterPermission [-Filter] <AtlassianPS.JiraPS.Filter[]> -Type <string> [-Value <string>]
- [-Credential <pscredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
+ [-Connection <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
 
 Share a filter with a group, project role, authenticated users or everyone.
 Use `Type` to choose the permission and `Value` to identify the group, project or role.
+Returns the typed permission records Jira supplies.
 
 ## EXAMPLES
 
-### Example 1
+### Example 1: Share a filter with everyone
 
 ```powershell
-Add-JiraFilterPermission -Filter (Get-JiraFilter 12345) -Type 'Global'
-# Or use the ID directly.
-Add-JiraFilterPermission -Id 12345 -Type 'Global'
+Add-JiraFilterPermission -Filter 12345 -Type Global
+
+# Or pass a filter object.
+Add-JiraFilterPermission -Filter (Get-JiraFilter -Filter 12345) -Type Global
 ```
 
-Two methods of sharing filter 12345 with everyone.
+Share filter 12345 with everyone using its ID or a filter object.
+Each call returns the permission records Jira supplies.
 
-### Example 2
+### Example 2: Share a piped filter ID with authenticated users
 
 ```powershell
-12345 | Add-JiraFilterPermission -Type 'Authenticated'
+12345 | Add-JiraFilterPermission -Type Authenticated
 ```
 
 Share filter 12345 with authenticated users.
+Filter IDs can also come from a file or another command.
 
-The ID can be read from a file.
-
-### Example 3
+### Example 3: Share a filter with a group
 
 ```powershell
-Get-JiraFilter 12345 | Add-JiraFilterPermission -Type 'Group' -Value 'administrators'
+Get-JiraFilter -Filter 12345 |
+    Add-JiraFilterPermission -Type Group -Value 'administrators'
 ```
 
-Share filter 12345 only with users in the administrators group.
+Add sharing permission for users in the administrators group.
+Pipe the filter object returned by Get-JiraFilter into Add-JiraFilterPermission.
 
 ## PARAMETERS
 
@@ -78,14 +82,15 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
-### -Credential
+### -Connection
 
-Credentials to use to connect to Jira.
-If not specified, this function will use anonymous access.
+Active Jira connection for this operation.
+When omitted, the command uses the selected Jira default.
+Create connections with Connect-Jira; resolve names with Get-JiraConnection -Name.
 
 ```yaml
-Type: PSCredential
-DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
+Type: AtlassianPS.Connection
+DefaultValue: None
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
@@ -102,9 +107,8 @@ HelpMessage: ''
 
 ### -Filter
 
-Filter objects or positive numeric filter IDs to share.
-Accepts numeric strings and pipeline input.
-`Id` is an alias for `Filter`.
+Filter identifiers or typed filter objects.
+Pipe filter objects to this parameter.
 
 ```yaml
 Type: AtlassianPS.JiraPS.Filter[]
@@ -206,28 +210,31 @@ HelpMessage: ''
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable, -ProgressAction, -Verbose, -WarningAction, and -WarningVariable.
-For more information, see [about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
+-InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
+-ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
+[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
-### AtlassianPS.JiraPS.Filter
-
+### AtlassianPS.JiraPS.Filter[]
 
 ## OUTPUTS
 
-### AtlassianPS.JiraPS.Filter
+### AtlassianPS.JiraPS.FilterPermission
 
 ## NOTES
 
 The command sends `Value` to Jira without validating it locally.
 Jira reports an error if the value is invalid or missing.
 
-This function requires either the `-Credential` parameter to be passed or a persistent Jira session.
-See `New-JiraSession` for more details.
-If neither are supplied, this function will run with anonymous access to Jira.
+This function uses the selected Jira connection unless you pass another connection through `-Connection`.
+Use `Connect-Jira` to create a connection.
+For anonymous access, create the connection with `Connect-Jira -Anonymous`.
 
 ## RELATED LINKS
+
+[about_JiraPS_Authentication](../../about/authentication.html)
 
 [Get-JiraFilter](../Get-JiraFilter/)
 

@@ -8,51 +8,48 @@
 
         [Parameter()]
         [Switch]
-        $Force,
+        $Refresh,
 
         [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        [AtlassianPS.Connection]
+        $Connection
     )
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
 
-        $resourceURi = "/rest/api/2/priority{0}"
+        $requestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
+
+        $resourceUri = "/rest/api/2/priority"
+        $parameter = @{
+            URI         = $resourceUri
+            Method      = "GET"
+            CacheKey    = 'Priorities'
+            CacheExpiry = [TimeSpan]::FromHours(1)
+            BypassCache = $Refresh
+        }
     }
 
     process {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+        Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
 
         switch ($PSCmdlet.ParameterSetName) {
             '_All' {
-                $parameter = @{
-                    URI         = $resourceURi -f ""
-                    Method      = "GET"
-                    Credential  = $Credential
-                    CacheKey    = 'Priorities'
-                    CacheExpiry = [TimeSpan]::FromHours(1)
-                    BypassCache = $Force
-                }
-                Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-                $result = Invoke-JiraMethod @parameter
+                Write-DebugMessage "Invoking JiraMethod with `$parameter"
+                $result = Invoke-JiraRequest -RequestContext $RequestContext @parameter
 
                 Write-Output (ConvertTo-JiraPriority -InputObject $result)
             }
             '_Search' {
                 foreach ($_id in $Id) {
                     Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_id]"
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_id [$_id]"
+                    Write-DebugMessage "Processing `$_id [$_id]"
 
-                    $parameter = @{
-                        URI        = $resourceURi -f "/$_id"
-                        Method     = "GET"
-                        Credential = $Credential
-                    }
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-                    $result = Invoke-JiraMethod @parameter
+                    $parameter.URI = "$resourceUri/$_id"
+                    Write-DebugMessage "Invoking JiraMethod with `$parameter"
+                    $result = Invoke-JiraRequest -RequestContext $RequestContext @parameter
 
                     Write-Output (ConvertTo-JiraPriority -InputObject $result)
                 }

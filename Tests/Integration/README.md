@@ -94,7 +94,7 @@ Copy-Item .env.example .env
 
 Edit `.env` with your Jira Cloud connection details:
 
-```
+```text
 JIRA_CLOUD_URL=https://your-instance.atlassian.net/
 JIRA_CLOUD_USERNAME=your-email@example.com
 JIRA_CLOUD_PASSWORD=your-api-token
@@ -174,7 +174,8 @@ Invoke-Pester -Configuration $config
 ```
 
 **Smoke tests cover:**
-- Authentication (New-JiraSession, Get-JiraSession)
+
+- Authentication (Connect-Jira, Get-JiraConnection)
 - Server connectivity (Get-JiraServerInformation)
 - Issue retrieval (Get-JiraIssue)
 - Issue creation (New-JiraIssue)
@@ -274,7 +275,7 @@ InModuleScope JiraPS {
         }
 
         AfterAll {
-            Remove-JiraSession -ErrorAction SilentlyContinue
+            $session | Disconnect-Jira -ErrorAction SilentlyContinue
         }
 
         Context "Issue Retrieval" {
@@ -586,3 +587,11 @@ Startup verifies the expected scheme and screen fields and fails on an incompati
 4. Run the test locally before committing
 
 See existing tests for examples of common patterns.
+
+### Gateway token acceptance
+
+Use `JIRA_CLOUD_API_TOKEN` for the normal Cloud API token (`JIRA_CLOUD_PASSWORD` remains supported).
+Set `JIRA_CLOUD_SCOPED_API_TOKEN` to a separate scoped token for gateway acceptance.
+Both tokens must permit authenticated `/rest/api/2/myself` and the test issue read.
+Atlassian lists the required scopes for [current user](https://developer.atlassian.com/cloud/jira/platform/rest/v2/api-group-myself/#api-rest-api-2-myself-get) and [get issue](https://developer.atlassian.com/cloud/jira/platform/rest/v2/api-group-issues/#api-rest-api-2-issue-issueidorkey-get).
+A scope failure remains an acceptance failure; missing token kinds are explicitly skipped.

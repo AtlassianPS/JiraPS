@@ -144,13 +144,8 @@ InModuleScope JiraPS {
             #endregion Definitions
 
             #region Mocks
-            Mock Get-JiraConfigServer -ModuleName JiraPS {
-                Write-MockDebugInfo 'Get-JiraConfigServer'
-                Write-Output $jiraServer
-            }
-
-            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $Uri -eq "/rest/api/2/field" } {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+            Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $Uri -eq "/rest/api/2/field" } {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
                 ConvertFrom-Json $restResult
             }
 
@@ -161,33 +156,13 @@ InModuleScope JiraPS {
             #endregion Mocks
         }
 
-        Describe "Signature" {
-            BeforeAll {
-                $script:command = Get-Command -Name Get-JiraField
-            }
-
-            Context "Parameter Types" {
-                It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = 'Field'; type = 'AtlassianPS.JiraPS.Field[]' }
-                    @{ parameter = 'Force'; type = 'System.Management.Automation.SwitchParameter' }
-                    @{ parameter = 'Credential'; type = 'System.Management.Automation.PSCredential' }
-                ) {
-                    $command | Should -HaveParameter $parameter -Type $type
-                }
-            }
-
-            Context "Mandatory Parameters" {}
-
-            Context "Default Values" {}
-        }
-
         Describe "Behavior" {
             It "gets all fields in Jira if called with no parameters" {
                 $allResults = Get-JiraField
                 $allResults | Should -Not -BeNullOrEmpty
                 @($allResults).Count | Should -Be @((ConvertFrom-Json -InputObject $restResult)).Count
 
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1
+                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1
             }
 
             It "gets a specified field if a field ID is provided" {
@@ -247,50 +222,22 @@ InModuleScope JiraPS {
             }
         }
 
-        Describe "Input Validation" {
-            Context "Type Validation - Positive Cases" {}
-
-            Context "Type Validation - Negative Cases" {}
-        }
-
         Describe "Caching Behavior" {
-            BeforeAll {
-                Mock Invoke-WebRequest -ModuleName JiraPS {
-                    [PSCustomObject]@{
-                        StatusCode       = 200
-                        Content          = $restResult
-                        RawContentStream = [System.IO.MemoryStream]::new([System.Text.Encoding]::UTF8.GetBytes($restResult))
-                    }
-                }
-            }
-
             BeforeEach {
                 $script:JiraCache = @{}
             }
 
-            It "passes CacheKey to Invoke-JiraMethod" {
-                $null = Get-JiraField
+            It 'refreshes one catalogue for <InputMode> selectors' -ForEach @(
+                @{ InputMode = 'array' }
+                @{ InputMode = 'pipeline' }
+            ) {
+                $result = if ($InputMode -eq 'array') { @(Get-JiraField -Field 'issuetype', 'summary' -Refresh) }
+                else { @('issuetype', 'summary' | Get-JiraField -Refresh) }
 
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
-                    $CacheKey -eq 'Fields'
-                }
+                $result.Id | Should -Be @('issuetype', 'summary')
+                Should -Invoke Invoke-JiraRequest -Exactly -Times 1 -ParameterFilter { $BypassCache }
             }
 
-            It "passes BypassCache to Invoke-JiraMethod when -Force is specified" {
-                $null = Get-JiraField -Force
-
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
-                    $BypassCache -eq $true
-                }
-            }
-
-            It "passes -Force to nested Get-JiraField call when searching" {
-                $null = Get-JiraField -Field 'issuetype' -Force
-
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
-                    $BypassCache -eq $true
-                }
-            }
         }
     }
 }

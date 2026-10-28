@@ -59,8 +59,6 @@ InModuleScope JiraPS {
                 @{ typeName = 'AtlassianPS.JiraPS.ServerInfo'; property = @{ Version = '1001.0.0' }; scenario = 'version fallback'; expected = '1001.0.0' }
                 @{ typeName = 'AtlassianPS.JiraPS.ServerInfo'; property = @{ DeploymentType = 'Cloud' }; scenario = 'deployment fallback'; expected = 'Cloud' }
                 @{ typeName = 'AtlassianPS.JiraPS.ServerInfo'; property = @{}; scenario = 'empty'; expected = '' }
-                @{ typeName = 'AtlassianPS.JiraPS.Session'; property = @{ JSessionID = 'abc' }; scenario = 'session ID'; expected = 'JiraSession[JSessionID=abc]' }
-                @{ typeName = 'AtlassianPS.JiraPS.Session'; property = @{}; scenario = 'empty'; expected = 'JiraSession' }
             ) {
                 param($typeName, $property, $expected)
 

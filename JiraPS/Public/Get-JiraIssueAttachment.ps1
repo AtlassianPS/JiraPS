@@ -13,24 +13,26 @@
         $FileName,
 
         [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        [AtlassianPS.Connection]
+        $Connection
     )
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
+
+        $requestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
     }
 
     process {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+        Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
 
         # Find the proper object for the Issue
-        $issueObj = Resolve-JiraIssueObject -InputObject $Issue -Credential $Credential
+        $issueObj = Resolve-JiraIssueObject -InputObject $Issue -RequestContext $RequestContext
 
         if ($issueObj.Attachment) {
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Found Attachments on the Issue."
+            Write-DebugMessage "Found Attachments on the Issue."
             if ($FileName) { $attachments = $issueObj.Attachment | Where-Object { $_.Filename -like $FileName } }
             else { $attachments = $issueObj.Attachment }
 
@@ -42,4 +44,3 @@
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }
-

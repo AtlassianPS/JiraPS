@@ -68,37 +68,22 @@ InModuleScope JiraPS {
             #endregion Definitions
 
             #region Mocks
-            Mock Get-JiraConfigServer -ModuleName JiraPS {
-                Write-MockDebugInfo 'Get-JiraConfigServer'
-                Write-Output $jiraServer
-            }
-
-            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $URI -like "/rest/api/*/project*" } {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+            Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $URI -like "/rest/api/*/project*" } {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
                 ConvertFrom-Json $restResultAll
             }
 
-            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $URI -like "/rest/api/*/project/$projectKey?*" } {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+            Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $URI -like "/rest/api/*/project/$projectKey?*" } {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
                 ConvertFrom-Json $restResultOne
             }
 
             # Generic catch-all. This will throw an exception if we forgot to mock something.
-            Mock Invoke-JiraMethod -ModuleName JiraPS {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-                throw "Unidentified call to Invoke-JiraMethod"
+            Mock Invoke-JiraRequest -ModuleName JiraPS {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
+                throw "Unidentified call to Invoke-JiraRequest"
             }
             #endregion Mocks
-        }
-
-        Describe "Signature" {
-            Context "Parameter Types" {
-                # TODO: Add parameter type validation tests
-            }
-
-            Context "Mandatory Parameters" {}
-
-            Context "Default Values" {}
         }
 
         Describe "Behavior" {
@@ -112,6 +97,8 @@ InModuleScope JiraPS {
                 $oneResult = Get-JiraProject -Project $projectKey
                 $oneResult | Should -Not -BeNullOrEmpty
                 @($oneResult) | Should -HaveCount 1
+                $oneResult.Key | Should -Be $projectKey
+                $oneResult.Id | Should -Be $projectId
             }
 
             It "Returns details about specific projects if the project ID is supplied" {
@@ -120,21 +107,7 @@ InModuleScope JiraPS {
                 @($oneResult) | Should -HaveCount 1
             }
 
-            It "Provides the key of the project" {
-                $oneResult = Get-JiraProject -Project $projectKey
-                $oneResult.Key | Should -Be $projectKey
-            }
-
-            It "Provides the ID of the project" {
-                $oneResult = Get-JiraProject -Project $projectKey
-                $oneResult.Id | Should -Be $projectId
-            }
         }
 
-        Describe "Input Validation" {
-            Context "Type Validation - Positive Cases" {}
-
-            Context "Type Validation - Negative Cases" {}
-        }
     }
 }

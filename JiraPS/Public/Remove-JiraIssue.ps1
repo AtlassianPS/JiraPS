@@ -1,100 +1,32 @@
 ﻿function Remove-JiraIssue {
     # .ExternalHelp ..\JiraPS-help.xml
-    [CmdletBinding(
-        ConfirmImpact = 'High',
-        SupportsShouldProcess,
-        DefaultParameterSetName = "ByInputObject"
-    )]
-    param (
-        [Parameter(
-            Mandatory,
-            ValueFromPipeline,
-            Position = 0,
-            ParameterSetName = "ByInputObject"
-        )]
+    [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'High')]
+    param(
+        [Parameter(Mandatory, Position = 0, ValueFromPipeline)]
         [ValidateNotNull()]
-        [AtlassianPS.JiraPS.IssueTransformation()]
-        [Alias("Issue")]
-        [AtlassianPS.JiraPS.Issue]
-        $InputObject,
+        [Alias('Key', 'Id')]
+        [AtlassianPS.JiraPS.IssueTransformation(AllowCollection = $true)]
+        [AtlassianPS.JiraPS.Issue[]]$Issue,
 
-        # The issue's ID number or key.
-        [Parameter(
-            Mandatory,
-            Position = 0,
-            ParameterSetName = "ByIssueId"
-        )]
-        [ValidateNotNullOrEmpty()]
-        [Alias(
-            "Id",
-            "Key",
-            "issueIdOrKey"
-        )]
-        [String[]]
-        $IssueId,
+        [Alias('deleteSubtasks')]
+        [Switch]$IncludeSubTasks,
 
-        [Switch]
-        [Alias("deleteSubtasks")]
-        $IncludeSubTasks,
-
-        [System.Management.Automation.CredentialAttribute()]
-        [System.Management.Automation.PSCredential]
-        $Credential = [System.Management.Automation.PSCredential]::Empty,
-
-        [Switch]
-        $Force
+        [AtlassianPS.Connection]$Connection
     )
 
-    begin {
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
-
-        $resourceURi = "/rest/api/2/issue/{0}?deleteSubtasks={1}"
-
-        if ($Force) {
-            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] -Force was passed. Backing up current ConfirmPreference [$ConfirmPreference] and setting to None"
-            $oldConfirmPreference = $ConfirmPreference
-            $ConfirmPreference = 'None'
-        }
-    }
-
+    begin { $requestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters }
     process {
-
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
-
-        $issuesToRemove = switch ($PsCmdlet.ParameterSetName) {
-            "ByInputObject" { , $InputObject }
-            "ByIssueId" {
-                $IssueID | ForEach-Object { Get-JiraIssue -Key $_ -Credential $Credential -ErrorAction Stop }
+        foreach ($item in $Issue) {
+            $issueObject = Resolve-JiraIssueObject -InputObject $item -RequestContext $requestContext
+            $action = if ($IncludeSubTasks) { 'Remove issue and sub-tasks' } else { 'Remove issue' }
+            if ($PSCmdlet.ShouldProcess($issueObject.Key, $action)) {
+                $parameters = @{
+                    Uri          = $issueObject.RestUrl
+                    Method       = 'Delete'
+                    GetParameter = @{ deleteSubtasks = $IncludeSubTasks.ToString().ToLowerInvariant() }
+                }
+                $null = Invoke-JiraRequest -RequestContext $requestContext @parameters
             }
         }
-
-        $ActionText = if ($IncludeSubTasks) { "Remove issue and sub-tasks" } else { "Remove issue" }
-
-        foreach ($_issue in $issuesToRemove) {
-            Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_issue]"
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_issue [$_issue]"
-
-            $parameter = @{
-                URI        = $resourceURi -f $_issue.Key, $IncludeSubTasks
-                Method     = "DELETE"
-                Credential = $Credential
-                Cmdlet     = $PsCmdlet
-            }
-
-            if ($PSCmdlet.ShouldProcess($_issue.ToString(), $ActionText)) {
-                Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-                Invoke-JiraMethod @parameter
-            }
-        }
-    }
-
-    end {
-        if ($Force) {
-            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Restoring ConfirmPreference to [$oldConfirmPreference]"
-            $ConfirmPreference = $oldConfirmPreference
-        }
-
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

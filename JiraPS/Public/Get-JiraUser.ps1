@@ -1,161 +1,90 @@
 ﻿function Get-JiraUser {
     # .ExternalHelp ..\JiraPS-help.xml
-    [CmdletBinding( DefaultParameterSetName = 'Self' )]
+    [CmdletBinding(SupportsPaging, DefaultParameterSetName = 'Self')]
     param(
-        [Parameter( Position = 0, Mandatory, ValueFromPipelineByPropertyName, ParameterSetName = 'ByUserName' )]
-        [AllowEmptyString()]
-        [Alias('User', 'Name')]
-        [String[]]
-        $UserName,
-
-        [Parameter( Position = 0, Mandatory, ValueFromPipelineByPropertyName, ParameterSetName = 'ByAccountId' )]
-        [ValidateNotNullOrEmpty()]
-        [String[]]
-        $AccountId,
-
-        [Parameter( Position = 0, Mandatory, ParameterSetName = 'ByInputObject' )]
+        [Parameter(Mandatory, Position = 0, ValueFromPipeline, ParameterSetName = 'User')]
         [ValidateNotNull()]
         [AtlassianPS.JiraPS.UserTransformation()]
-        [AtlassianPS.JiraPS.User[]]
-        $InputObject,
+        [AtlassianPS.JiraPS.User[]]$User,
 
-        [Parameter( ParameterSetName = 'ByInputObject' )]
-        [Parameter( ParameterSetName = 'ByUserName' )]
-        [Parameter( ParameterSetName = 'ByAccountId' )]
-        [Switch]$Exact,
-
-        [Switch]
-        $IncludeInactive,
-
-        [Parameter( ParameterSetName = 'ByUserName' )]
-        [Parameter( ParameterSetName = 'ByAccountId' )]
-        [ValidateRange(1, 1000)]
-        [UInt32]
-        $MaxResults = 50,
-
-        [Parameter( ParameterSetName = 'ByUserName' )]
-        [Parameter( ParameterSetName = 'ByAccountId' )]
+        [Parameter(Mandatory, ParameterSetName = 'Query')]
         [ValidateNotNullOrEmpty()]
-        [UInt64]
-        $Skip = 0,
+        [String]$Query,
 
-        [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        [Parameter(Mandatory, ParameterSetName = 'All')]
+        [Switch]$All,
+
+        [Parameter(ParameterSetName = 'Query')]
+        [Switch]$IncludeInactive,
+
+        [Parameter(ParameterSetName = 'Query')]
+        [Parameter(ParameterSetName = 'All')]
+        [ValidateRange(1, 1000)]
+        [Int]$PageSize = $script:DefaultPageSize,
+
+        [AtlassianPS.Connection]$Connection
     )
 
     begin {
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
-
-        $isCloud = Test-JiraCloudServer -Credential $Credential
-
-        $selfResourceUri = "/rest/api/2/myself"
-
-        if ($isCloud) {
-            $searchResourceUri = "/rest/api/2/user/search?query={0}"
-            $exactResourceUri = "/rest/api/2/user?accountId={0}"
+        if ($PSCmdlet.ParameterSetName -in @('Self', 'User') -and @('First', 'Skip', 'IncludeTotalCount' | Where-Object { $PSBoundParameters.ContainsKey($_) }).Count) {
+            throw 'User paging parameters require -Query or -All.'
         }
-        else {
-            $searchResourceUri = "/rest/api/2/user/search?username={0}"
-            $exactResourceUri = "/rest/api/2/user?username={0}"
-        }
+        $requestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
 
-        if ($IncludeInactive) { $searchResourceUri += "&includeInactive=true" }
-        if ($MaxResults) { $searchResourceUri += "&maxResults=$MaxResults" }
-        if ($Skip) { $searchResourceUri += "&startAt=$Skip" }
+        $isCloud = Test-JiraCloudServer -RequestContext $RequestContext
+        if ($isCloud -and $IncludeInactive) { throw 'Cloud user search returns active users only. Use -All to include inactive and deleted users.' }
+        if ($PSCmdlet.ParameterSetName -eq 'All' -and -not $All) { throw 'Supply -All to enumerate Jira users.' }
+        $apiVersion = if ($isCloud) { '3' } else { '2' }
     }
 
     process {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
-
-        $ParameterSetName = ''
-        switch ($PsCmdlet.ParameterSetName) {
-            'ByInputObject' {
-                if ($isCloud) {
-                    $lookupValue = foreach ($inputUser in $InputObject) {
-                        if ($inputUser.AccountId) { $inputUser.AccountId } else { $inputUser.Name }
-                    }
-                }
-                else {
-                    $lookupValue = foreach ($inputUser in $InputObject) { $inputUser.Name }
-                }
-                $ParameterSetName = 'ByLookupValue'
-                $Exact = $true
+        switch ($PSCmdlet.ParameterSetName) {
+            'Self' {
+                $result = Invoke-JiraRequest -RequestContext $RequestContext -Uri "/rest/api/$apiVersion/myself" -Method Get -GetParameter @{ expand = 'groups' }
+                ConvertTo-JiraUser -InputObject $result
             }
-            'ByAccountId' {
-                $lookupValue = $AccountId
-                $ParameterSetName = 'ByLookupValue'
-                $Exact = $true
-            }
-            'ByUserName' {
-                $lookupValue = $UserName
-                $ParameterSetName = 'ByLookupValue'
-            }
-            'Self' { $ParameterSetName = 'Self' }
-        }
-
-        switch ($ParameterSetName) {
-            "Self" {
-                $resourceURi = $selfResourceUri
-
-                $parameter = @{
-                    URI        = $resourceURi
-                    Method     = "GET"
-                    Credential = $Credential
-                }
-                Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-                $result = Invoke-JiraMethod @parameter
-
-                if ($isCloud -and $result.accountId) {
-                    Get-JiraUser -AccountId $result.accountId -Exact -Credential $Credential
-                }
-                elseif ($result.Name) {
-                    Get-JiraUser -UserName $result.Name -Exact -Credential $Credential
-                }
-                else { Write-Output (ConvertTo-JiraUser -InputObject $result) }
-            }
-            "ByLookupValue" {
-                $resourceURi = if ($Exact) { $exactResourceUri } else { $searchResourceUri }
-
-                foreach ($user in $lookupValue) {
-                    Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$user]"
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$user [$user]"
-
-                    $parameter = @{
-                        URI        = $resourceURi -f $user
-                        Method     = "GET"
-                        Credential = $Credential
+            'User' {
+                foreach ($item in $User) {
+                    $identifier = if ($isCloud -and $item.AccountId) { $item.AccountId } else { $item.Name }
+                    if (-not $identifier -or ($isCloud -and $item.RestUrl -and -not $item.AccountId)) {
+                        throw 'User requires an accountId on Cloud or a username on Data Center. Display names are not identifiers.'
                     }
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-                    if ($users = Invoke-JiraMethod @parameter) {
-                        foreach ($item in $users) {
-                            $parameter = @{
-                                URI        = "{0}&expand=groups" -f $item.self
-                                Method     = "GET"
-                                Credential = $Credential
-                            }
-                            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-                            $result = Invoke-JiraMethod @parameter
-
-                            Write-Output (ConvertTo-JiraUser -InputObject $result)
-                        }
+                    $queryParameters = @{ expand = 'groups' }
+                    $identifierField = if ($isCloud) { 'accountId' } else { 'username' }
+                    $queryParameters[$identifierField] = $identifier
+                    $result = Invoke-JiraRequest -RequestContext $RequestContext -Uri "/rest/api/$apiVersion/user" -Method Get -GetParameter $queryParameters
+                    ConvertTo-JiraUser -InputObject $result
+                }
+            }
+            default {
+                $resource = if ($PSCmdlet.ParameterSetName -eq 'Query') { 'user/search' }
+                elseif ($isCloud) { 'users/search' }
+                else { 'user/list' }
+                $queryParameters = @{ maxResults = $PageSize }
+                if ($PSCmdlet.ParameterSetName -eq 'Query') {
+                    $queryField = if ($isCloud) { 'query' } else { 'username' }
+                    $queryParameters[$queryField] = $Query
+                    if ($IncludeInactive) { $queryParameters['includeInactive'] = 'true' }
+                }
+                $parameters = @{
+                    Uri               = "/rest/api/$apiVersion/$resource"
+                    Method            = 'Get'
+                    GetParameter      = $queryParameters
+                    Paging            = $true
+                    PageSize          = $PageSize
+                    OutputType        = 'JiraUser'
+                    First             = $PSCmdlet.PagingParameters.First
+                    Skip              = $PSCmdlet.PagingParameters.Skip
+                    IncludeTotalCount = $PSCmdlet.PagingParameters.IncludeTotalCount
+                }
+                try { Invoke-JiraRequest -RequestContext $RequestContext @parameters -ErrorAction Stop }
+                catch {
+                    if (-not $isCloud -and $All -and $_.FullyQualifiedErrorId -like '*NotFound*') {
+                        throw 'This Data Center installation does not expose /rest/api/2/user/list. Use -Query for supported user searches or upgrade to a version with user enumeration.'
                     }
-                    else {
-                        $errorMessage = @{
-                            Category         = "ObjectNotFound"
-                            CategoryActivity = "Searching for user"
-                            Message          = "No results when searching for user $user"
-                        }
-                        Write-Error @errorMessage
-                    }
+                    throw
                 }
             }
         }
-    }
-
-    end {
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

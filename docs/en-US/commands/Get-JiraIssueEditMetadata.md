@@ -15,7 +15,7 @@ Returns metadata required to change an issue in JIRA
 ## SYNTAX
 
 ```powershell
-Get-JiraIssueEditMetadata [-Issue] <string> [[-Credential] <pscredential>] [<CommonParameters>]
+Get-JiraIssueEditMetadata [-Issue] <AtlassianPS.JiraPS.Issue> [[-Connection] <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -27,33 +27,25 @@ This function is particularly useful when your JIRA instance includes custom fie
 
 ## EXAMPLES
 
-### EXAMPLE 1
+### Example 1
 
 ```powershell
-Get-JiraIssueEditMetadata -Issue "TEST-001"
+Get-JiraIssue -Issue PROJ-1 | Get-JiraIssueEditMetadata
 ```
 
-This example returns the fields available when updating the issue "TEST-001".
-
-### EXAMPLE 2
-
-```powershell
-Get-JiraIssueEditMetadata -Issue "TEST-001" | ? {$_.Required -eq $true}
-```
-
-This example returns fields available when updating the issue "TEST-001".
-It then uses `Where-Object` (aliased by the question mark) to filter only the fields that are required.
+Retrieve edit metadata through a typed issue pipeline.
 
 ## PARAMETERS
 
-### -Credential
+### -Connection
 
-Credentials to use to connect to JIRA.
-If not specified, this function will use anonymous access.
+Active Jira connection for this operation.
+When omitted, the command uses the selected Jira default.
+Create connections with Connect-Jira; resolve names with Get-JiraConnection -Name.
 
 ```yaml
-Type: PSCredential
-DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
+Type: AtlassianPS.Connection
+DefaultValue: None
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
@@ -70,10 +62,10 @@ HelpMessage: ''
 
 ### -Issue
 
-Issue id or key of the reference issue.
+Issue keys, numeric ID strings or typed issue objects.
 
 ```yaml
-Type: String
+Type: AtlassianPS.JiraPS.Issue
 DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
@@ -81,7 +73,7 @@ ParameterSets:
 - Name: (All)
   Position: 0
   IsRequired: true
-  ValueFromPipeline: false
+  ValueFromPipeline: true
   ValueFromPipelineByPropertyName: false
   ValueFromRemainingArguments: false
 DontShow: false
@@ -98,17 +90,21 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## INPUTS
 
+### AtlassianPS.JiraPS.Issue
+
 ## OUTPUTS
 
 ### JiraPS.Field
 
 ## NOTES
 
-This function requires either the `-Credential` parameter to be passed or a persistent JIRA session.
-See `New-JiraSession` for more details.
-If neither are supplied, this function will run with anonymous access to JIRA.
+This function uses the selected Jira connection unless you pass another connection through `-Connection`.
+Use `Connect-Jira` to create a connection.
+For anonymous access, create the connection with `Connect-Jira -Anonymous`.
 
 ## RELATED LINKS
+
+[about_JiraPS_Authentication](../../about/authentication.html)
 
 [about_JiraPS_UpdatingIssues](../../about/updating-issues.html)
 

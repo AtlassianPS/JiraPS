@@ -1,4 +1,8 @@
 ﻿function ConvertTo-JiraCreateMetaField {
+    <#
+    .SYNOPSIS
+        Convert Jira response data to AtlassianPS.JiraPS.CreateMetaField objects.
+    #>
     [CmdletBinding()]
     [OutputType([AtlassianPS.JiraPS.CreateMetaField])]
     param(
@@ -10,7 +14,7 @@
     process {
         foreach ($item in $InputObject) {
             if ($null -eq $item) { continue }
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to AtlassianPS.JiraPS.CreateMetaField"
+            Write-DebugMessage "Converting `$InputObject to AtlassianPS.JiraPS.CreateMetaField"
 
             $props = @{
                 'Id'              = $item.fieldId

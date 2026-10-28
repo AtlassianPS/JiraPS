@@ -15,15 +15,17 @@
         $PageSize = $script:DefaultPageSize,
 
         [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        [AtlassianPS.Connection]
+        $Connection
     )
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
 
-        $isCloud = Test-JiraCloudServer -Credential $Credential
+        $requestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
+
+        $isCloud = Test-JiraCloudServer -RequestContext $RequestContext
 
         $resourceURi = "/rest/api/2/group/member"
 
@@ -33,12 +35,12 @@
     }
 
     process {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+        Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
 
         foreach ($_group in $Group) {
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_group]"
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_group [$_group]"
+            Write-DebugMessage "Processing `$_group [$_group]"
 
             $getParameter = @{ maxResults = $PageSize }
             if ($isCloud -and $_group.Id) { $getParameter['groupId'] = $_group.Id }
@@ -52,7 +54,6 @@
                 GetParameter = $getParameter
                 OutputType   = "JiraUser"
                 Paging       = $true
-                Credential   = $Credential
             }
 
             # Paging
@@ -60,8 +61,8 @@
                 $parameter[$_] = $PSCmdlet.PagingParameters.$_
             }
 
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-            Invoke-JiraMethod @parameter
+            Write-DebugMessage "Invoking JiraMethod with `$parameter"
+            Invoke-JiraRequest -RequestContext $RequestContext @parameter
         }
     }
 

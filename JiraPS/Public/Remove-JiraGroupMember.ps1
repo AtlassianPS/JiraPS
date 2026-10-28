@@ -17,45 +17,41 @@
         $User,
 
         [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty,
-
         [Switch]
         $PassThru,
 
-        [Switch]
-        $Force
+        [AtlassianPS.Connection]
+        $Connection
     )
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $isCloud = Test-JiraCloudServer -Credential $Credential
+        $RequestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
+
+        $isCloud = Test-JiraCloudServer -RequestContext $RequestContext
 
         $resourceURi = "/rest/api/2/group/user"
-
-        if ($Force) {
-            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] -Force was passed. Backing up current ConfirmPreference [$ConfirmPreference] and setting to None"
-            $oldConfirmPreference = $ConfirmPreference
-            $ConfirmPreference = 'None'
-        }
     }
 
     process {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+        Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
 
         foreach ($_group in $Group) {
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_group]"
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_group [$_group]"
+            Write-DebugMessage "Processing `$_group [$_group]"
 
             foreach ($_user in $User) {
                 Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_user]"
-                Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_user [$_user]"
+                Write-DebugMessage "Processing `$_user [$_user]"
 
-                $userObj = Resolve-JiraUser -InputObject $_user -Exact -Credential $Credential -ErrorAction Stop
-                $userIdentifier = if ($isCloud -and $userObj.AccountId) { $userObj.AccountId } else { $userObj.Name }
+                $userObj = Resolve-JiraUser -InputObject $_user -RequestContext $RequestContext -ErrorAction Stop
+                if (($isCloud -and -not $userObj.AccountId) -or (-not $isCloud -and -not $userObj.Name)) {
+                    throw 'User requires an accountId on Cloud or a username on Data Center.'
+                }
+                $userIdentifier = if ($isCloud -and $userObj.AccountId) { $userObj.AccountId }
+                else { $userObj.Name }
 
                 $getParameter = if ($isCloud -and $_group.Id) { @{ groupId = $_group.Id } }
                 else { @{ groupname = $_group.Name } }
@@ -67,10 +63,9 @@
                     URI          = $resourceURi
                     Method       = "DELETE"
                     GetParameter = $getParameter
-                    Credential   = $Credential
                 }
-                Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-                if ($PSCmdlet.ShouldProcess($target, "Remove $($userObj.DisplayName) from group")) { Invoke-JiraMethod @parameter }
+                Write-DebugMessage "Invoking JiraMethod with `$parameter"
+                if ($PSCmdlet.ShouldProcess($target, "Remove $($userObj.DisplayName) from group")) { Invoke-JiraRequest -RequestContext $RequestContext @parameter }
             }
 
             if ($PassThru) { Write-Output $_group }
@@ -78,11 +73,6 @@
     }
 
     end {
-        if ($Force) {
-            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Restoring ConfirmPreference to [$oldConfirmPreference]"
-            $ConfirmPreference = $oldConfirmPreference
-        }
-
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

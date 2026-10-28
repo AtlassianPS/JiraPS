@@ -39,19 +39,19 @@
 
     # 1. Scoped by exact ID
     if ($ScopedById.ContainsKey($Name)) {
-        Write-Debug "[$CallerName] [$Name] resolved via scoped metadata by field ID"
+        Write-DebugMessage "[$CallerName] [$Name] resolved via scoped metadata by field ID"
         return $ScopedById[$Name][0]
     }
 
     # 2. Scoped by numeric custom field ID
     if ($ScopedById.ContainsKey("customfield_$Name")) {
-        Write-Debug "[$CallerName] [$Name] resolved via scoped metadata as numerical custom field ID (customfield_$Name)"
+        Write-DebugMessage "[$CallerName] [$Name] resolved via scoped metadata as numerical custom field ID (customfield_$Name)"
         return $ScopedById["customfield_$Name"][0]
     }
 
     # 3. Scoped by name (unambiguous)
     if ($ScopedByName.ContainsKey($Name) -and $ScopedByName[$Name].Count -eq 1) {
-        Write-Debug "[$CallerName] [$Name] resolved via scoped metadata by field name ($($ScopedByName[$Name][0].Id))"
+        Write-DebugMessage "[$CallerName] [$Name] resolved via scoped metadata by field name ($($ScopedByName[$Name][0].Id))"
         return $ScopedByName[$Name][0]
     }
 
@@ -68,19 +68,19 @@
 
     # 5. Fallback by exact ID
     if ($FallbackById.ContainsKey($Name)) {
-        Write-Debug "[$CallerName] [$Name] resolved via global field list by field ID"
+        Write-DebugMessage "[$CallerName] [$Name] resolved via global field list by field ID"
         return $FallbackById[$Name][0]
     }
 
     # 6. Fallback by numeric custom field ID
     if ($FallbackById.ContainsKey("customfield_$Name")) {
-        Write-Debug "[$CallerName] [$Name] resolved via global field list as numerical custom field ID (customfield_$Name)"
+        Write-DebugMessage "[$CallerName] [$Name] resolved via global field list as numerical custom field ID (customfield_$Name)"
         return $FallbackById["customfield_$Name"][0]
     }
 
     # 7. Fallback by name (unambiguous)
     if ($FallbackByName.ContainsKey($Name) -and $FallbackByName[$Name].Count -eq 1) {
-        Write-Debug "[$CallerName] [$Name] resolved via global field list by field name ($($FallbackByName[$Name][0].Id))"
+        Write-DebugMessage "[$CallerName] [$Name] resolved via global field list by field name ($($FallbackByName[$Name][0].Id))"
         return $FallbackByName[$Name][0]
     }
 

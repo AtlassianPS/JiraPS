@@ -3,42 +3,38 @@
     [CmdletBinding()]
     param(
         [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty,
-
         [Switch]
-        $Force
+        $Refresh,
+
+        [AtlassianPS.Connection]
+        $Connection
     )
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
+
+        $requestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
 
         $resourceURi = "/rest/api/2/serverInfo"
     }
 
     process {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+        Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
 
         $parameter = @{
             URI         = $resourceURi
             Method      = "GET"
-            Credential  = $Credential
+
             CacheKey    = 'ServerInfo'
             CacheExpiry = [TimeSpan]::FromMinutes(5)
-            BypassCache = $Force
+            BypassCache = $Refresh
         }
-        Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+        Write-DebugMessage "Invoking JiraMethod with `$parameter"
 
-        try {
-            $result = Invoke-JiraMethod @parameter
-            Write-Output (ConvertTo-JiraServerInfo -InputObject $result)
-        }
-        catch {
-            Write-Warning "[$($MyInvocation.MyCommand.Name)] Could not retrieve server information: $_"
-            [AtlassianPS.JiraPS.ServerInfo]@{ DeploymentType = 'Server' }
-        }
+        $result = Invoke-JiraRequest -RequestContext $RequestContext @parameter
+        Write-Output (ConvertTo-JiraServerInfo -InputObject $result)
     }
 
     end {

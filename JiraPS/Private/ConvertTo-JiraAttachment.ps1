@@ -1,4 +1,8 @@
 ﻿function ConvertTo-JiraAttachment {
+    <#
+    .SYNOPSIS
+        Convert Jira response data to AtlassianPS.JiraPS.Attachment objects.
+    #>
     [CmdletBinding()]
     [OutputType([AtlassianPS.JiraPS.Attachment])]
     param(
@@ -12,7 +16,7 @@
             if ($null -eq $i) { continue }
             if ($i -is [AtlassianPS.JiraPS.Attachment]) { $i; continue }
 
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to AtlassianPS.JiraPS.Attachment"
+            Write-DebugMessage "Converting `$InputObject to AtlassianPS.JiraPS.Attachment"
 
             $props = @{
                 'ID'        = $i.id

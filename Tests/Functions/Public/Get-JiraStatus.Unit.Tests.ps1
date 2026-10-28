@@ -38,43 +38,38 @@ InModuleScope JiraPS {
             #endregion Definitions
 
             #region Mocks
-            Mock Get-JiraConfigServer -ModuleName JiraPS {
-                Write-MockDebugInfo 'Get-JiraConfigServer'
-                Write-Output $jiraServer
-            }
-
             Mock ConvertTo-JiraStatus -ModuleName JiraPS {
                 Write-MockDebugInfo 'ConvertTo-JiraStatus'
                 $InputObject
             }
 
-            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
+            Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter {
                 $Method -eq 'GET' -and
-                $URI -eq "$jiraServer/rest/api/latest/status"
+                $URI -eq "/rest/api/latest/status"
             } {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
                 ConvertFrom-Json $restResultAll
             }
 
-            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
+            Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter {
                 $Method -eq 'GET' -and
-                $URI -eq "$jiraServer/rest/api/latest/status/1"
+                $URI -eq "/rest/api/latest/status/1"
             } {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
                 ConvertFrom-Json $restResultOne
             }
 
-            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
+            Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter {
                 $Method -eq 'GET' -and
-                $URI -eq "$jiraServer/rest/api/latest/status/Open"
+                $URI -eq "/rest/api/latest/status/Open"
             } {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
                 ConvertFrom-Json $restResultOne
             }
 
-            Mock Invoke-JiraMethod -ModuleName JiraPS {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-                throw "Unidentified call to Invoke-JiraMethod"
+            Mock Invoke-JiraRequest -ModuleName JiraPS {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
+                throw "Unidentified call to Invoke-JiraRequest"
             }
             #endregion Mocks
         }
@@ -86,9 +81,9 @@ InModuleScope JiraPS {
                 $result | Should -Not -BeNullOrEmpty
                 @($result) | Should -HaveCount 1
 
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
+                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
                     $Method -eq 'GET' -and
-                    $URI -eq "$jiraServer/rest/api/latest/status"
+                    $URI -eq "/rest/api/latest/status"
                 }
             }
 
@@ -98,25 +93,25 @@ InModuleScope JiraPS {
                 $result | Should -Not -BeNullOrEmpty
                 @($result) | Should -HaveCount 1
 
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
+                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
                     $Method -eq 'GET' -and
-                    $URI -eq "$jiraServer/rest/api/latest/status/1"
+                    $URI -eq "/rest/api/latest/status/1"
                 }
             }
 
             It "escapes a status name as one URI path segment" {
-                Mock Invoke-JiraMethod -ModuleName JiraPS {
+                Mock Invoke-JiraRequest -ModuleName JiraPS {
                     ConvertFrom-Json $restResultOne
                 } -ParameterFilter {
                     $Method -eq 'GET' -and
-                    $URI -eq "$jiraServer/rest/api/latest/status/In%20Progress%2FQA%3F%23"
+                    $URI -eq "/rest/api/latest/status/In%20Progress%2FQA%3F%23"
                 }
 
                 Get-JiraStatus -Status 'In Progress/QA?#' | Should -Not -BeNullOrEmpty
 
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
+                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
                     $Method -eq 'GET' -and
-                    $URI -eq "$jiraServer/rest/api/latest/status/In%20Progress%2FQA%3F%23"
+                    $URI -eq "/rest/api/latest/status/In%20Progress%2FQA%3F%23"
                 }
             }
 
@@ -125,8 +120,8 @@ InModuleScope JiraPS {
 
                 Get-JiraStatus -Status $status | Should -Not -BeNullOrEmpty
 
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
-                    $URI -eq "$jiraServer/rest/api/latest/status/1"
+                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
+                    $URI -eq "/rest/api/latest/status/1"
                 }
             }
 
@@ -136,23 +131,23 @@ InModuleScope JiraPS {
                 $result | Should -Not -BeNullOrEmpty
                 @($result) | Should -HaveCount 2
 
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
+                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
                     $Method -eq 'GET' -and
-                    $URI -eq "$jiraServer/rest/api/latest/status/1"
+                    $URI -eq "/rest/api/latest/status/1"
                 }
 
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
+                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
                     $Method -eq 'GET' -and
-                    $URI -eq "$jiraServer/rest/api/latest/status/Open"
+                    $URI -eq "/rest/api/latest/status/Open"
                 }
             }
 
             It "accepts pipeline input for -Status" {
                 { '1' | Get-JiraStatus } | Should -Not -Throw
 
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
+                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
                     $Method -eq 'GET' -and
-                    $URI -eq "$jiraServer/rest/api/latest/status/1"
+                    $URI -eq "/rest/api/latest/status/1"
                 }
             }
 
@@ -162,9 +157,9 @@ InModuleScope JiraPS {
                 $result | Should -Not -BeNullOrEmpty
                 @($result) | Should -HaveCount 1
 
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
+                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1 -Scope It -ParameterFilter {
                     $Method -eq 'GET' -and
-                    $URI -eq "$jiraServer/rest/api/latest/status/Open"
+                    $URI -eq "/rest/api/latest/status/Open"
                 }
             }
         }

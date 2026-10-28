@@ -16,7 +16,7 @@ Create a new Jira filter.
 
 ```powershell
 New-JiraFilter [-Name] <string> [[-Description] <string>] [-JQL] <string>
- [[-Credential] <pscredential>] [-Favorite] [-WhatIf] [-Confirm] [<CommonParameters>]
+ [[-Connection] <AtlassianPS.Connection>] [-Favorite] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -79,14 +79,15 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
-### -Credential
+### -Connection
 
-Credentials to use to connect to JIRA.
-If not specified, this function will use anonymous access.
+Active Jira connection for this operation.
+When omitted, the command uses the selected Jira default.
+Create connections with Connect-Jira; resolve names with Get-JiraConnection -Name.
 
 ```yaml
-Type: PSCredential
-DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
+Type: AtlassianPS.Connection
+DefaultValue: None
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
@@ -220,8 +221,7 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## INPUTS
 
-### System.String
-
+None.
 
 ## OUTPUTS
 
@@ -229,11 +229,13 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## NOTES
 
-This function requires either the `-Credential` parameter to be passed or a persistent JIRA session.
-See `New-JiraSession` for more details.
-If neither are supplied, this function will run with anonymous access to JIRA.
+This function uses the selected Jira connection unless you pass another connection through `-Connection`.
+Use `Connect-Jira` to create a connection.
+For anonymous access, create the connection with `Connect-Jira -Anonymous`.
 
 ## RELATED LINKS
+
+[about_JiraPS_Authentication](../../about/authentication.html)
 
 [Get-JiraFilter](../Get-JiraFilter/)
 

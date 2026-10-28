@@ -1,6 +1,6 @@
 ﻿function Get-JiraIssueLinkType {
     # .ExternalHelp ..\JiraPS-help.xml
-    [CmdletBinding(DefaultParameterSetName = '_All')]
+    [CmdletBinding( DefaultParameterSetName = '_All' )]
     param(
         [Parameter( Position = 0, Mandatory, ParameterSetName = '_Search' )]
         [ValidateNotNullOrEmpty()]
@@ -9,40 +9,39 @@
         $LinkType,
 
         [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        [Switch]
+        $Refresh,
+
+        [Parameter()]
+        [AtlassianPS.Connection]
+        $Connection
     )
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $resourceURi = "/rest/api/2/issueLinkType{0}"
+        $RequestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
+
+        $resourceUri = "/rest/api/2/issueLinkType"
     }
 
     process {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+        Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
 
-        if ($LinkType -and $LinkType.Id) {
-            $parameter = @{
-                URI        = $resourceURi -f "/$($LinkType.Id)"
-                Method     = "GET"
-                Credential = $Credential
-            }
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-            $result = Invoke-JiraMethod @parameter
-
-            Write-Output (ConvertTo-JiraIssueLinkType -InputObject $result)
+        $byId = $LinkType -and $null -ne $LinkType.Id
+        $parameter = @{
+            URI         = if ($byId) { "$resourceUri/$($LinkType.Id)" } else { $resourceUri }
+            Method      = "GET"
+            CacheKey    = 'IssueLinkTypes'
+            CacheExpiry = [TimeSpan]::FromHours(1)
+            BypassCache = $Refresh
         }
+        Write-DebugMessage "Invoking JiraMethod with `$parameter"
+        $result = Invoke-JiraRequest -RequestContext $RequestContext @parameter
+
+        if ($byId) { Write-Output (ConvertTo-JiraIssueLinkType -InputObject $result) }
         else {
-            $parameter = @{
-                URI        = $resourceURi -f ""
-                Method     = "GET"
-                Credential = $Credential
-            }
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-            $result = Invoke-JiraMethod @parameter
             $allLinkTypes = ConvertTo-JiraIssueLinkType -InputObject $result.issueLinkTypes
 
             if ($LinkType) { Write-Output ($allLinkTypes | Where-Object { $_.Name -like $LinkType.Name }) }

@@ -34,7 +34,7 @@ InModuleScope JiraPS {
             if ($script:createdIssues -and $script:createdIssues.Count -gt 0) {
                 foreach ($issueKey in $script:createdIssues) {
                     try {
-                        Remove-JiraIssue -IssueId $issueKey -Force -ErrorAction SilentlyContinue
+                        Remove-JiraIssue -Issue $issueKey -Confirm:$false -ErrorAction SilentlyContinue
                         Write-Verbose "Cleaned up test issue: $issueKey"
                     }
                     catch {
@@ -42,7 +42,7 @@ InModuleScope JiraPS {
                     }
                 }
             }
-            Remove-JiraSession -ErrorAction SilentlyContinue
+            Disconnect-Jira -ErrorAction SilentlyContinue
         }
 
         Context "Basic Issue Creation" -Skip:$SkipWrite {

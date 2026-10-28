@@ -40,6 +40,7 @@ Describe "Help tests" -Tag "Documentation", "Build" {
             'Confirm'
         )
     }
+
     BeforeAll {
         $script:module = Get-Module JiraPS
     }
@@ -47,16 +48,9 @@ Describe "Help tests" -Tag "Documentation", "Build" {
     Describe "Public Functions" {
         Context "Command <_.CommandName>" -ForEach $commands {
             BeforeDiscovery {
-                # Exclude default params and any parameter marked [Parameter(DontShow)],
-                # which is the principled signal for "internal, not part of the public surface".
-                $cmd = $_.Command
-                $isDontShow = {
-                    param($name)
-                    $paramAttr = $cmd.Parameters[$name].Attributes | Where-Object { $_ -is [System.Management.Automation.ParameterAttribute] }
-                    return ($paramAttr.DontShow -contains $true)
-                }
-                $script:parameters = $cmd.Parameters.Keys | Where-Object { $_ -notin $DefaultParams -and -not (& $isDontShow $_) }
+                $script:parameters = $_.Command.Parameters.Keys | Where-Object { $_ -notin $DefaultParams }
             }
+
             BeforeAll {
                 $script:command = $_.Command
                 # The first call per cmdlet parses the MAML; sibling contexts below
@@ -78,11 +72,47 @@ Describe "Help tests" -Tag "Documentation", "Build" {
                     $markdown = Get-Content -LiteralPath $markdownFile -Raw
                     $syntax = [regex]::Match($markdown, '(?ms)^## SYNTAX\r?\n(.*?)(?=^## |\z)').Groups[1].Value
                     $actual = @([regex]::Matches($syntax, '(?m)^### (.+?)\r?$') | ForEach-Object { $_.Groups[1].Value })
-                    $expected = @($command.ParameterSets | Where-Object Name -NE '__AllParameterSets' | ForEach-Object {
+                    $expected = @(
+                        $command.ParameterSets | Where-Object Name -NE '__AllParameterSets' | ForEach-Object {
                             $_.Name + $(if ($_.IsDefault) { ' (Default)' })
-                        })
+                        }
+                    )
                     $actual.Count | Should -Be $expected.Count
                     if ($expected.Count -gt 0) { @($actual | Sort-Object) | Should -Be @($expected | Sort-Object) }
+                }
+
+                It "preserves positional binding and ShouldProcess switches in syntax" {
+                    $markdown = Get-Content -LiteralPath $markdownFile -Raw
+                    $syntax = [regex]::Match($markdown, '(?ms)^## SYNTAX\r?\n(.*?)(?=^## |\z)').Groups[1].Value
+                    foreach ($parameterSet in $command.ParameterSets) {
+                        $setSyntax = if ($parameterSet.Name -eq '__AllParameterSets') { $syntax }
+                        else {
+                            $pattern = '(?ms)^### ' + [regex]::Escape($parameterSet.Name) + '(?: \(Default\))?\r?\n(.*?)(?=^### |\z)'
+                            [regex]::Match($syntax, $pattern).Groups[1].Value
+                        }
+                        foreach ($parameter in $parameterSet.Parameters) {
+                            if ($parameter.Position -ge 0 -or $parameter.Name -in @('WhatIf', 'Confirm')) {
+                                $setSyntax | Should -Match ('\[-' + [regex]::Escape($parameter.Name) + '\]')
+                            }
+                        }
+                    }
+                }
+
+                It "uses resolved positions in parameter metadata" {
+                    $markdown = Get-Content -LiteralPath $markdownFile -Raw
+                    $sections = [regex]::Matches($markdown, '(?ms)^### -(\S+)\r?\n(.*?)(?=^### |^## |\z)')
+                    foreach ($section in $sections) {
+                        if ($section.Groups[2].Value -notmatch '(?m)^Parameter Sets:') { continue }
+                        $name = $section.Groups[1].Value
+                        $positions = @(
+                            $command.ParameterSets.Parameters | Where-Object Name -EQ $name | ForEach-Object {
+                                if ($_.Position -ge 0) { [String]$_.Position } else { 'Named' }
+                            } | Sort-Object -Unique
+                        )
+                        $positions.Count | Should -Be 1
+                        $documented = [regex]::Match($section.Groups[2].Value, '(?m)^Position: (.+?)\r?$').Groups[1].Value
+                        $documented | Should -Be $positions[0]
+                    }
                 }
 
                 It "does not have Comment-Based Help" {
@@ -220,7 +250,7 @@ Describe "Help tests" -Tag "Documentation", "Build" {
                         $codeType = $parameterCode.ParameterType.Name
                         $elementType = if ($parameterCode.ParameterType.IsArray) { $parameterCode.ParameterType.GetElementType() }
                         else { $parameterCode.ParameterType }
-                        if ($elementType.Namespace -eq 'AtlassianPS.JiraPS') {
+                        if ($elementType.Namespace -in @('AtlassianPS.JiraPS', 'AtlassianPS')) {
                             $codeType = $parameterCode.ParameterType.FullName
                             $markdown = Get-Content -LiteralPath "$projectRoot/docs/en-US/commands/$($command.Name).md" -Raw
                             $sectionPattern = '(?ms)^### -' + [regex]::Escape($parameterName) + '\r?\n(.*?)(?=^### |^## |\z)'
@@ -307,10 +337,7 @@ Describe "Help tests" -Tag "Documentation", "Build" {
 
                     foreach ($paramName in $command.Parameters.Keys) {
                         if ($paramName -in $DefaultParams) { continue }
-                        $paramAttr = $command.Parameters[$paramName].Attributes | Where-Object { $_ -is [System.Management.Automation.ParameterAttribute] }
-                        if ($paramAttr.DontShow -contains $true) { continue }
-
-                        $documented | Should -Contain $paramName -Because "every public parameter must be documented in docs/en-US/commands/$($command.Name).md (or marked [Parameter(DontShow)] if it is internal)"
+                        $documented | Should -Contain $paramName -Because "every public parameter must be documented in docs/en-US/commands/$($command.Name).md"
                     }
                 }
             }
@@ -339,7 +366,6 @@ Describe "Help tests" -Tag "Documentation", "Build" {
             }
         }
     }
-
 
     Context "Missing classes" {
         It "has a documentation file for every class" {
@@ -381,4 +407,68 @@ Describe "Help tests" -Tag "Documentation", "Build" {
         }
     } #>
     #endregion Enumerations
+}
+
+Describe 'Domain parameter documentation' -Tag Documentation, Build {
+    It 'keeps common parameters available in command and setup completion' {
+        $commandNames = @($commands.Command.Name) + "& '$projectRoot/Tools/setup.ps1'"
+        foreach ($commandName in $commandNames) {
+            $inputScript = "$commandName -"
+            $completion = TabExpansion2 -InputScript $inputScript -CursorColumn $inputScript.Length
+            $completion.CompletionMatches.CompletionText | Should -Contain '-Verbose' -Because "$commandName should expose diagnostic parameters in completion"
+            $completion.CompletionMatches.CompletionText | Should -Contain '-Debug'
+        }
+    }
+
+    It 'omits empty command aliases sections from markdown' {
+        foreach ($command in $commands.Command) {
+            $markdown = Get-Content -LiteralPath "$projectRoot/docs/en-US/commands/$($command.Name).md" -Raw
+            $markdown | Should -Not -Match '(?m)^## ALIASES\r?\n\s*(?=^## |\z)' -Because "$($command.Name) should omit an aliases section when it has no content"
+        }
+    }
+
+    It 'preserves accepted parameter values in generated help' {
+        foreach ($command in $commands.Command) {
+            foreach ($parameter in $command.Parameters.Values) {
+                if ($parameter.Name -in $DefaultParams) { continue }
+                $expected = @($parameter.Attributes | Where-Object { $_ -is [System.Management.Automation.ValidateSetAttribute] } | ForEach-Object ValidValues)
+                $parameterType = if ($parameter.ParameterType.IsArray) { $parameter.ParameterType.GetElementType() } else { $parameter.ParameterType }
+                if ($expected.Count -eq 0 -and $parameterType.IsEnum) { $expected = @([Enum]::GetNames($parameterType)) }
+                if ($expected.Count -eq 0) { continue }
+
+                $parameterHelp = Get-Help $command.Name -Parameter $parameter.Name
+                $actual = @($parameterHelp.parameterValueGroup.parameterValue | Where-Object { $_ })
+                $actual.Count | Should -Be $expected.Count -Because "$($command.Name) -$($parameter.Name) must list every accepted value"
+                @($actual | Sort-Object) | Should -Be @($expected | Sort-Object)
+            }
+        }
+    }
+
+    It 'describes <CommandName> -<ParameterName> as a domain field' -ForEach @(
+        @{ CommandName = 'Find-JiraFilter'; ParameterName = 'Name'; Entity = 'filter' }
+        @{ CommandName = 'New-JiraFilter'; ParameterName = 'Name'; Entity = 'filter' }
+        @{ CommandName = 'Set-JiraFilter'; ParameterName = 'Name'; Entity = 'filter' }
+        @{ CommandName = 'Get-JiraVersion'; ParameterName = 'Name'; Entity = 'version' }
+        @{ CommandName = 'New-JiraVersion'; ParameterName = 'Name'; Entity = 'version' }
+        @{ CommandName = 'Set-JiraVersion'; ParameterName = 'Name'; Entity = 'version' }
+        @{ CommandName = 'Get-JiraVersion'; ParameterName = 'Version'; Entity = 'version' }
+        @{ CommandName = 'Get-JiraPriority'; ParameterName = 'Id'; Entity = 'priority' }
+        @{ CommandName = 'Get-JiraIssueLink'; ParameterName = 'IssueLink'; Entity = 'IssueLink' }
+    ) {
+        $description = ((Get-Help $CommandName -Parameter $ParameterName).Description.Text -join ' ')
+
+        $description | Should -Not -Match '\bconnection\b'
+        if ($CommandName -ne 'Find-JiraFilter') { $description | Should -Match $Entity }
+        else {
+            $description | Should -Match 'case-insensitive partial match'
+            $description | Should -Match 'exact match'
+        }
+    }
+
+    It 'lists every exported command in the command index' {
+        $index = Get-Content -LiteralPath "$projectRoot/docs/en-US/commands/index.md" -Raw
+        foreach ($command in (Get-Command -Module JiraPS -CommandType Function)) {
+            $index | Should -Match ([regex]::Escape('`' + $command.Name + '`'))
+        }
+    }
 }

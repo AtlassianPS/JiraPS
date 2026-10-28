@@ -3,7 +3,7 @@
     [CmdletBinding()]
     param(
         [Parameter()]
-        [ValidateSet('All', 'Fields', 'IssueTypes', 'Priorities', 'Statuses', 'ServerInfo')]
+        [ValidateSet('All', 'Fields', 'IssueTypes', 'IssueLinkTypes', 'Priorities', 'Statuses', 'ServerInfo')]
         [string]$Type = 'All'
     )
 
@@ -12,7 +12,7 @@
     }
 
     process {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
 
         if (-not $script:JiraCache) {
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] No cache to clear"
@@ -25,7 +25,7 @@
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] Cleared all $count cached items"
         }
         else {
-            $keysToRemove = $script:JiraCache.Keys | Where-Object { $_ -like "${Type}:*" }
+            $keysToRemove = @($script:JiraCache.Keys | Where-Object { $_ -like "*:${Type}" })
             foreach ($key in $keysToRemove) {
                 $script:JiraCache.Remove($key)
             }

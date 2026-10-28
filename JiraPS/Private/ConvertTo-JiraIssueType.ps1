@@ -1,4 +1,8 @@
 ﻿function ConvertTo-JiraIssueType {
+    <#
+    .SYNOPSIS
+        Convert Jira response data to AtlassianPS.JiraPS.IssueType objects.
+    #>
     [CmdletBinding()]
     [OutputType([AtlassianPS.JiraPS.IssueType])]
     param(
@@ -10,7 +14,7 @@
     process {
         foreach ($i in $InputObject) {
             if ($null -eq $i) { continue }
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to AtlassianPS.JiraPS.IssueType"
+            Write-DebugMessage "Converting `$InputObject to AtlassianPS.JiraPS.IssueType"
 
             $props = @{
                 'Id'          = ConvertTo-JiraNullableInt64 $i.id

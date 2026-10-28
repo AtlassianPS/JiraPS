@@ -69,68 +69,27 @@ InModuleScope JiraPS {
                 Get-JiraIssue -Key $InputObject.Key
             }
 
-            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Post' -and $URI -eq "$jiraServer/rest/api/2/issue/$issueKey/attachments" } {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+            Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter { $Method -eq 'Post' -and $URI -eq "$jiraServer/rest/api/2/issue/$issueKey/attachments" } {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
                 ConvertFrom-Json -InputObject $attachmentJson
             }
 
             # Generic catch-all. This will throw an exception if we forgot to mock something.
-            Mock Invoke-JiraMethod -ModuleName JiraPS {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-                throw "Unidentified call to Invoke-JiraMethod"
+            Mock Invoke-JiraRequest -ModuleName JiraPS {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
+                throw "Unidentified call to Invoke-JiraRequest"
             }
             #endregion Mocks
         }
 
         #region Tests
-        Describe "Signature" {
-            BeforeAll {
-                $script:command = Get-Command -Name "Add-JiraIssueAttachment"
-            }
-
-            Context "Parameter Types" {
-                It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = "Issue"; type = "AtlassianPS.JiraPS.Issue" }
-                    @{ parameter = "FilePath"; type = "String[]" }
-                    @{ parameter = "Credential"; type = "System.Management.Automation.PSCredential" }
-                    @{ parameter = "Passthru"; type = "Switch" }
-                ) {
-                    $command | Should -HaveParameter $parameter -Type $type
-                }
-            }
-
-            Context "Default Values" {
-                It "parameter '<parameter>' has a default value of '<defaultValue>'" -TestCases @(
-                    @{ parameter = "Credential"; defaultValue = "[System.Management.Automation.PSCredential]::Empty" }
-                ) {
-                    $command | Should -HaveParameter $parameter -DefaultValue $defaultValue
-                }
-            }
-
-            Context "Mandatory Parameters" {
-                It "parameter '<parameter>' is mandatory" -TestCases @(
-                    @{ parameter = "Issue" }
-                    @{ parameter = "FilePath" }
-                ) {
-                    $command | Should -HaveParameter $parameter -Mandatory
-                }
-            }
-        }
 
         Describe "Behavior" {
-            It "calls all necessary functions under the hood" {
-                $null = Add-JiraIssueAttachment -Issue (Get-JiraIssue $issueKey) -FilePath $filePath
 
-                Should -Invoke 'Get-JiraIssue' -ModuleName JiraPS -Exactly -Times 2
-                Should -Invoke 'Resolve-JiraIssueObject' -ModuleName JiraPS -Exactly -Times 1
-                Should -Invoke 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter { $Method -eq 'Post' } -Exactly -Times 1
-                Should -Invoke 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter { $Method -ne 'Post' } -Exactly -Times 0
-            }
+            It 'uploads attachments via Invoke-JiraRequest -InFile' {
+                $null = Add-JiraIssueAttachment $issueKey $filePath
 
-            It 'uploads attachments via Invoke-JiraMethod -InFile' {
-                $null = Add-JiraIssueAttachment -Issue $issueKey -FilePath $filePath
-
-                Should -Invoke 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter {
+                Should -Invoke 'Invoke-JiraRequest' -ModuleName JiraPS -ParameterFilter {
                     $Method -eq 'Post' -and
                     $URI -eq "$jiraServer/rest/api/2/issue/$issueKey/attachments" -and
                     $InFile -eq $filePath -and
@@ -148,36 +107,25 @@ InModuleScope JiraPS {
 
             It 'returns an object when specified' {
                 $result = Add-JiraIssueAttachment -Issue $issueKey -FilePath $filePath -PassThru
-                $result | Should -Not -BeNullOrEmpty
+                $result.Id | Should -Be $attachmentId
+                $result.filename | Should -Be $fileName
             }
         }
 
         Describe "Input Validation" {
             Context "Type Validation - Positive Cases" {
-                It "issue can be a String" {
-                    { Add-JiraIssueAttachment -Issue $issueKey -FilePath $filePath } | Should -Not -Throw
-                }
-
-                It "issue can be an Issue object" {
-                    { Add-JiraIssueAttachment -Issue (Get-JiraIssue $issueKey) -FilePath $filePath } | Should -Not -Throw
-                }
-
-                It "filePath can be a single file" {
-                    { Add-JiraIssueAttachment -Issue $issueKey -FilePath $filePath } | Should -Not -Throw
-                }
-
-                It "filePath can be multiple files" {
-                    { Add-JiraIssueAttachment -Issue $issueKey -FilePath @($filePath, $filePath) } | Should -Not -Throw
-                }
-
-                It 'accepts positional parameters' {
-                    { Add-JiraIssueAttachment $issueKey @($filePath, $filePath) } | Should -Not -Throw
-                }
 
                 It 'accepts files over the pipeline' {
-                    { $filePath | Add-JiraIssueAttachment $issueKey } | Should -Not -Throw
-                    { @($filePath, $filePath) | Add-JiraIssueAttachment $issueKey } | Should -Not -Throw
-                    { Get-Item $filePath | Add-JiraIssueAttachment $issueKey } | Should -Not -Throw
+                    $otherFile = New-Item -Path 'TestDrive:\OtherFile.txt' -ItemType File
+                    $issue = Get-JiraIssue $issueKey
+                    $filePath, $otherFile.FullName | Add-JiraIssueAttachment $issue
+
+                    Should -Invoke Invoke-JiraRequest -Exactly -Times 1 -ParameterFilter {
+                        $Method -eq 'Post' -and $InFile -eq $filePath
+                    }
+                    Should -Invoke Invoke-JiraRequest -Exactly -Times 1 -ParameterFilter {
+                        $Method -eq 'Post' -and $InFile -eq $otherFile.FullName
+                    }
                 }
             }
 

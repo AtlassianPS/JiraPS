@@ -3,7 +3,9 @@
     [CmdletBinding( SupportsShouldProcess )]
     param(
         [Parameter( Mandatory )]
-        [string[]]
+        [ValidateNotNull()]
+        [AtlassianPS.JiraPS.UserTransformation()]
+        [AtlassianPS.JiraPS.User[]]
         $Watcher,
 
         [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
@@ -14,37 +16,40 @@
         $Issue,
 
         [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        [AtlassianPS.Connection]
+        $Connection
     )
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $isCloud = Test-JiraCloudServer -Credential $Credential
+        $RequestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
+
+        $isCloud = Test-JiraCloudServer -RequestContext $RequestContext
     }
 
     process {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+        Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
 
         # Find the proper object for the Issue
-        $issueObj = Resolve-JiraIssueObject -InputObject $Issue -Credential $Credential
+        $issueObj = Resolve-JiraIssueObject -InputObject $Issue -RequestContext $RequestContext
 
         foreach ($watcherValue in $Watcher) {
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$watcherValue]"
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$watcherValue [$watcherValue]"
+            Write-DebugMessage "Processing `$watcherValue [$watcherValue]"
 
-            $watcherUri = if ($isCloud) { "{0}/watchers?accountId={1}" -f $issueObj.RestURL, $watcherValue }
-            else { "{0}/watchers?username={1}" -f $issueObj.RestURL, $watcherValue }
+            $user = Resolve-JiraUser -InputObject $watcherValue -RequestContext $RequestContext -ErrorAction Stop
+            $identifier = if ($isCloud) { $user.AccountId } else { $user.Name }
+            if (-not $identifier) { throw 'Watcher requires an accountId on Cloud or a username on Data Center.' }
+            $queryParameters = if ($isCloud) { @{ accountId = $identifier } } else { @{ username = $identifier } }
             $parameter = @{
-                URI        = $watcherUri
-                Method     = "DELETE"
-                Credential = $Credential
+                URI          = "{0}/watchers" -f $issueObj.RestURL
+                Method       = "DELETE"
+                GetParameter = $queryParameters
             }
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-            if ($PSCmdlet.ShouldProcess($IssueObj.Key, "Removing watcher '$($watcherValue)'")) { Invoke-JiraMethod @parameter }
+            Write-DebugMessage "Invoking JiraMethod with `$parameter"
+            if ($PSCmdlet.ShouldProcess($IssueObj.Key, "Removing watcher '$($watcherValue)'")) { Invoke-JiraRequest -RequestContext $RequestContext @parameter }
         }
     }
 

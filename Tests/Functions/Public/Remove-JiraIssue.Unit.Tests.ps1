@@ -196,12 +196,8 @@ InModuleScope JiraPS {
             #endregion Definitions
 
             #region Mocks
-            Mock Get-JiraConfigServer -ModuleName JiraPS {
-                Write-MockDebugInfo 'Get-JiraConfigServer'
-                $jiraServer
-            }
-
             Mock Get-JiraIssue {
+                $Key = $Issue.Key
                 Write-MockDebugInfo 'Get-JiraIssue' 'Key'
                 $raw = $TestIssueJSONs[$Key] | ConvertFrom-Json
 
@@ -217,13 +213,13 @@ InModuleScope JiraPS {
                 return $obj
             }
 
-            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $URI -like "/rest/api/*/issue/TEST-1?*" -and $Method -eq "Delete" } {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+            Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter { $URI -like "*/rest/api/*/issue/58159" -and $Method -eq "Delete" } {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
                 return $null
             }
 
-            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $URI -like "/rest/api/*/issue/TEST-2?deleteSubTasks=False" -and $Method -eq "Delete" } {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+            Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter { $URI -like "*/rest/api/*/issue/58160" -and $GetParameter.deleteSubtasks -eq "false" -and $Method -eq "Delete" } {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
                 $MockedResponse = @"
             {
                 "errorMessages": [
@@ -244,40 +240,17 @@ InModuleScope JiraPS {
                 $PSCmdlet.WriteError($errorItem)
             }
 
-            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $URI -like "/rest/api/*/issue/TEST-2?deleteSubTasks=True" -and $Method -eq "Delete" } {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+            Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter { $URI -like "*/rest/api/*/issue/58160" -and $GetParameter.deleteSubtasks -eq "true" -and $Method -eq "Delete" } {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
                 return $null
             }
 
             # Generic catch-all. This will throw an exception if we forgot to mock something.
-            Mock Invoke-JiraMethod -ModuleName JiraPS {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-                throw "Unidentified call to Invoke-JiraMethod"
+            Mock Invoke-JiraRequest -ModuleName JiraPS {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
+                throw "Unidentified call to Invoke-JiraRequest"
             }
             #endregion Mocks
-        }
-
-        Describe "Signature" {
-            BeforeAll {
-                $script:command = Get-Command -Name Remove-JiraIssue
-            }
-
-            Context "Parameter Types" {
-                It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = 'IssueId'; type = 'String[]' }
-                    @{ parameter = 'InputObject'; type = 'AtlassianPS.JiraPS.Issue' }
-                    @{ parameter = 'IncludeSubTasks'; type = 'Switch' }
-                    @{ parameter = 'Credential'; type = 'PSCredential' }
-                    @{ parameter = 'Force'; type = 'Switch' }
-                ) {
-                    param($parameter, $type)
-                    $command | Should -HaveParameter $parameter -Type $type
-                }
-            }
-
-            Context "Mandatory Parameters" {}
-
-            Context "Default Values" {}
         }
 
         Describe "Behavior" {
@@ -285,46 +258,104 @@ InModuleScope JiraPS {
                 It "Accepts generic object with the correct properties" {
                     {
                         $issue = Get-JiraIssue -Key TEST-1
-                        Remove-JiraIssue -Issue $issue -Force
+                        Remove-JiraIssue -Issue $issue -Confirm:$false
                     } | Should -Not -Throw
-                    Should -Invoke -CommandName Invoke-JiraMethod -Exactly -Times 1
+                    Should -Invoke -CommandName Invoke-JiraRequest -Exactly -Times 1
                 }
 
                 It "Accepts string-based input as a non-pipelined parameter" {
-                    { Remove-JiraIssue -IssueId TEST-1 -Force } | Should -Not -Throw
-                    Should -Invoke -CommandName Invoke-JiraMethod -Exactly -Times 1
+                    { Remove-JiraIssue -Issue TEST-1 -Confirm:$false } | Should -Not -Throw
+                    Should -Invoke -CommandName Invoke-JiraRequest -Exactly -Times 1
                 }
 
                 It "Accepts a AtlassianPS.JiraPS.Issue object over the pipeline" {
-                    { Get-JiraIssue -Key TEST-1 | Remove-JiraIssue -Force } | Should -Not -Throw
-                    Should -Invoke -CommandName Invoke-JiraMethod -Exactly -Times 1
+                    { Get-JiraIssue -Key TEST-1 | Remove-JiraIssue -Confirm:$false } | Should -Not -Throw
+                    Should -Invoke -CommandName Invoke-JiraRequest -Exactly -Times 1
                 }
 
                 It "Writes an error on issues with subtasks" {
-                    Get-JiraIssue -Key TEST-2 | Remove-JiraIssue -Force -ErrorVariable removeError -ErrorAction SilentlyContinue
+                    Get-JiraIssue -Key TEST-2 | Remove-JiraIssue -Confirm:$false -ErrorVariable removeError -ErrorAction SilentlyContinue
 
                     $removeError | Should -Not -BeNullOrEmpty
                     $removeError[0].FullyQualifiedErrorId | Should -BeLike "ServerResponse*"
                     $removeError[0].ErrorDetails.Message | Should -BeLike "*has subtasks*"
-                    Should -Invoke -CommandName Invoke-JiraMethod -Exactly -Times 1
+                    Should -Invoke -CommandName Invoke-JiraRequest -Exactly -Times 1
                 }
 
                 It "Passes on issues with subtasks and -DeleteSubTasks" {
-                    { Get-JiraIssue -Key TEST-2 | Remove-JiraIssue -IncludeSubTasks -Force } | Should -Not -Throw
-                    Should -Invoke -CommandName Invoke-JiraMethod -Exactly -Times 1
+                    { Get-JiraIssue -Key TEST-2 | Remove-JiraIssue -IncludeSubTasks -Confirm:$false } | Should -Not -Throw
+                    Should -Invoke -CommandName Invoke-JiraRequest -Exactly -Times 1
                 }
             }
         }
 
         Describe "Input Validation" {
-            Context "Positive cases" {
-                # TODO: Add positive input validation tests
-            }
 
             Context "Negative cases" {
                 It "Validates pipeline input" {
                     { @{id = 1 } | Remove-JiraIssue -ErrorAction Stop } | Should -Throw -ExpectedMessage "*to AtlassianPS.JiraPS.Issue*"
                 }
+            }
+        }
+    }
+
+    Describe 'Remove-JiraIssue endpoint isolation' -Tag Unit {
+        BeforeEach {
+            $script:deletionConnection = $null
+            Mock Invoke-WebRequest {
+                [PSCustomObject]@{ StatusCode = 204; Content = ''; Headers = @{} }
+            }
+        }
+
+        AfterEach {
+            if ($deletionConnection -and $deletionConnection.State -eq 'Active') {
+                AtlassianPS.Configuration\Disconnect-AtlassianConnection -Connection $deletionConnection -Confirm:$false
+            }
+        }
+
+        It 'rejects an issue from a different Data Center endpoint before any request' {
+            $script:deletionConnection = AtlassianPS.Configuration\New-AtlassianConnectionContext `
+                -Name deletion-other-server -Product Jira -BaseUri https://other.example.com/jira -Anonymous
+            $deletionConnection.SetValidationResult('Server', $null)
+            $null = AtlassianPS.Configuration\Register-AtlassianConnection -Connection $deletionConnection
+            $issue = [AtlassianPS.JiraPS.Issue]@{
+                Key     = 'TEST-1'
+                RestUrl = 'https://jira.example.com/jira/rest/api/2/issue/41701'
+            }
+
+            { $issue | Remove-JiraIssue -Connection $deletionConnection -Confirm:$false -ErrorAction Stop } |
+                Should -Throw '*does not belong to the selected connection endpoint*'
+            Should -Invoke Invoke-WebRequest -Exactly 0
+        }
+
+        It 'deletes the original issue URI on <Deployment> while preserving the connection prefix' -ForEach @(
+            @{
+                Deployment = 'Server'
+                Endpoint   = 'https://jira.example.com/jira'
+                Resource   = 'https://jira.example.com/jira/rest/api/2/issue/41701'
+                RequestUri = 'https://jira.example.com/jira/rest/api/2/issue/41701'
+            }
+            @{
+                Deployment = 'Cloud'
+                Endpoint   = 'https://api.atlassian.com/ex/jira/11111111-1111-1111-1111-111111111111'
+                Resource   = 'https://site.atlassian.net/rest/api/2/issue/41701'
+                RequestUri = 'https://api.atlassian.com/ex/jira/11111111-1111-1111-1111-111111111111/rest/api/2/issue/41701'
+            }
+        ) {
+            $connectionParameters = @{ Name = 'deletion-original-uri'; Product = 'Jira'; BaseUri = $Endpoint; Anonymous = $true }
+            if ($Deployment -eq 'Cloud') {
+                $connectionParameters.SiteUri = 'https://site.atlassian.net'
+                $connectionParameters.CloudId = '11111111-1111-1111-1111-111111111111'
+            }
+            $script:deletionConnection = AtlassianPS.Configuration\New-AtlassianConnectionContext @connectionParameters
+            $deletionConnection.SetValidationResult($Deployment, $null)
+            $null = AtlassianPS.Configuration\Register-AtlassianConnection -Connection $deletionConnection
+            $issue = [AtlassianPS.JiraPS.Issue]@{ Key = 'TEST-1'; RestUrl = $Resource }
+
+            $issue | Remove-JiraIssue -Connection $deletionConnection -IncludeSubTasks -Confirm:$false
+
+            Should -Invoke Invoke-WebRequest -Exactly 1 -ParameterFilter {
+                $Method -eq 'Delete' -and $Uri.GetLeftPart('Path') -eq $RequestUri -and $Uri.Query -match 'deleteSubtasks=true'
             }
         }
     }

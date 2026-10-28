@@ -34,7 +34,7 @@ InModuleScope JiraPS {
                 throw 'Transition field integration tests require time tracking and unassigned issues on the dedicated test site.'
             }
 
-            $script:user = Get-JiraUser -InputObject $fixtures.TestUser -ErrorAction Stop
+            $script:user = Get-JiraUser -User $fixtures.TestUser -ErrorAction Stop
             $script:identity = $fixtures.UserIdProperty
             $user.$identity | Should -Not -BeNullOrEmpty
         }
@@ -43,7 +43,7 @@ InModuleScope JiraPS {
             $script:issue = New-TemporaryTestIssue -Fixtures $fixtures -Summary (New-TestResourceName -Type 'TransitionFields')
             $createdIssues.Add($issue.Key)
 
-            $metadata = Invoke-JiraMethod -URI "$apiRoot/issue/$($issue.Key)/transitions" -GetParameter @{ expand = 'transitions.fields' } -ErrorAction Stop
+            $metadata = Invoke-JiraMethod -URI "$apiRoot/issue/$($issue.Key)/transitions" -QueryParameter @{ expand = 'transitions.fields' } -ErrorAction Stop
 
             # Data Center omits Cloud's hasScreen flag; expanded fields identify the screen.
             $compatible = @(foreach ($candidate in $metadata.transitions) {
@@ -84,10 +84,10 @@ InModuleScope JiraPS {
 
         AfterAll {
             try {
-                foreach ($key in $createdIssues) { Remove-JiraIssue -IssueId $key -Force -ErrorAction Stop }
+                foreach ($key in $createdIssues) { Remove-JiraIssue -Issue $key -Confirm:$false -ErrorAction Stop }
             }
             finally {
-                Remove-JiraSession -ErrorAction SilentlyContinue
+                Disconnect-Jira -ErrorAction SilentlyContinue
             }
         }
 
@@ -131,7 +131,7 @@ InModuleScope JiraPS {
             $worklogs.Count | Should -Be 1
             $worklogs[0].TimeSpentSeconds | Should -Be 60
 
-            $raw = Invoke-JiraMethod -URI "$apiRoot/issue/$($issue.Key)" -GetParameter @{ fields = 'description' } -ErrorAction Stop
+            $raw = Invoke-JiraMethod -URI "$apiRoot/issue/$($issue.Key)" -QueryParameter @{ fields = 'description' } -ErrorAction Stop
             if ($fixtures.IsCloud) { $raw.fields.description.type | Should -Be 'doc' }
             else { $raw.fields.description | Should -Be $description }
         }

@@ -17,23 +17,21 @@ Returns information about the available priorities in JIRA.
 ### _All (Default)
 
 ```powershell
-Get-JiraPriority [-Force] [-Credential <pscredential>] [<CommonParameters>]
+Get-JiraPriority [-Refresh] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 
 ### _Search
 
 ```powershell
-Get-JiraPriority [-Id] <int[]> [-Force] [-Credential <pscredential>] [<CommonParameters>]
+Get-JiraPriority [-Id] <int[]> [-Refresh] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
 
-This function retrieves all the available Priorities on the JIRA server an returns them as `JiraPS.Priority`.
+Retrieves available priorities, or specific priorities by ID, as `AtlassianPS.JiraPS.Priority` objects.
 
-This function can restrict the output to a subset of the available IssueTypes if told so.
-
-Results are cached for 60 minutes to improve performance.
-Use `-Force` to bypass the cache and fetch fresh data.
+Catalogue and ID responses are cached for one hour per connection and resource.
+Use `-Refresh` to fetch fresh data and replace the cached response for the requested resource.
 
 ## EXAMPLES
 
@@ -43,7 +41,7 @@ Use `-Force` to bypass the cache and fetch fresh data.
 Get-JiraPriority
 ```
 
-This example returns all the IssueTypes on the JIRA server.
+This example returns all priorities on the Jira server.
 
 ### EXAMPLE 2
 
@@ -55,35 +53,15 @@ This example returns only the Priority with ID 1.
 
 ## PARAMETERS
 
-### -Credential
+### -Connection
 
-Credentials to use to connect to JIRA.
-If not specified, this function will use anonymous access.
-
-```yaml
-Type: PSCredential
-DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
-SupportsWildcards: false
-Aliases: []
-ParameterSets:
-- Name: (All)
-  Position: Named
-  IsRequired: false
-  ValueFromPipeline: false
-  ValueFromPipelineByPropertyName: false
-  ValueFromRemainingArguments: false
-DontShow: false
-AcceptedValues: []
-HelpMessage: ''
-```
-
-### -Force
-
-Bypass the cache and fetch fresh data from the server.
+Active Jira connection for this operation.
+When omitted, the command uses the selected Jira default.
+Create connections with Connect-Jira; resolve names with Get-JiraConnection -Name.
 
 ```yaml
-Type: SwitchParameter
-DefaultValue: False
+Type: AtlassianPS.Connection
+DefaultValue: None
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
@@ -119,6 +97,27 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
+### -Refresh
+
+Fetch fresh data and replace the selected connection's cached response.
+
+```yaml
+Type: SwitchParameter
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
 ### CommonParameters
 
 This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
@@ -128,16 +127,20 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## INPUTS
 
+### System.Int32[]
+
 ## OUTPUTS
 
-### JiraPS.Priority
+### AtlassianPS.JiraPS.Priority
 
 ## NOTES
 
-This function requires either the `-Credential` parameter to be passed or a persistent JIRA session.
-See `New-JiraSession` for more details.
-If neither are supplied, this function will run with anonymous access to JIRA.
+This function uses the selected Jira connection unless you pass another connection through `-Connection`.
+Use `Connect-Jira` to create a connection.
+For anonymous access, create the connection with `Connect-Jira -Anonymous`.
 
 Remaining operations for `priority` have not yet been implemented in the module.
 
 ## RELATED LINKS
+
+[about_JiraPS_Authentication](../../about/authentication.html)

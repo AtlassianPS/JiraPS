@@ -1,4 +1,8 @@
 ﻿function ConvertTo-JiraUriMap {
+    <#
+    .SYNOPSIS
+        Convert named Jira URL properties to a dictionary of URI values.
+    #>
     [CmdletBinding()]
     [OutputType([System.Collections.Generic.IDictionary[string, uri]])]
     param(
@@ -10,7 +14,7 @@
     process {
         foreach ($i in $InputObject) {
             if ($null -eq $i) { continue }
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to URI map"
+            Write-DebugMessage "Converting `$InputObject to URI map"
 
             $result = [System.Collections.Generic.Dictionary[string, uri]]::new()
             if ($i -is [System.Collections.IDictionary]) {

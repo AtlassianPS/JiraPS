@@ -46,7 +46,7 @@ InModuleScope JiraPS {
         AfterAll {
             try {
                 if ($issue -and $issue.Key) {
-                    Remove-JiraIssue -IssueId $issue.Key -Force -ErrorAction Stop
+                    Remove-JiraIssue -Issue $issue.Key -Confirm:$false -ErrorAction Stop
                 }
             }
             finally {
@@ -57,10 +57,10 @@ InModuleScope JiraPS {
                 }
                 finally {
                     try {
-                        if ($group) { Remove-JiraGroup -Group $group -Force -ErrorAction Stop }
+                        if ($group) { Remove-JiraGroup -Group $group -Confirm:$false -ErrorAction Stop }
                     }
                     finally {
-                        Remove-JiraSession -ErrorAction SilentlyContinue
+                        Disconnect-Jira -ErrorAction SilentlyContinue
                     }
                 }
             }

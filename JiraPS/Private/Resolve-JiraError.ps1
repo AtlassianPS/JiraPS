@@ -1,4 +1,8 @@
 ﻿function Resolve-JiraError {
+    <#
+    .SYNOPSIS
+        Convert Jira error payloads to error records or structured error output.
+    #>
     [CmdletBinding()]
     param(
         [Parameter( ValueFromPipeline )]
@@ -16,6 +20,10 @@
 
     begin {
         function Write-JiraError {
+            <#
+            .SYNOPSIS
+                Emit one Jira error through the calling command or as structured output.
+            #>
             param([string]$Message, [string]$Key, [object]$Target)
 
             if ($WriteError) {
@@ -47,7 +55,7 @@
 
     process {
         foreach ($i in $InputObject) {
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to custom object"
+            Write-DebugMessage "Converting `$InputObject to custom object"
 
             $hasErrors = $false
 

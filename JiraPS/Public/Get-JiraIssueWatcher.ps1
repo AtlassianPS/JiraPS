@@ -10,30 +10,30 @@
         $Issue,
 
         [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        [AtlassianPS.Connection]
+        $Connection
     )
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+
+        $RequestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
     }
 
     process {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+        Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
 
         # Find the proper object for the Issue
-        $issueObj = Resolve-JiraIssueObject -InputObject $Issue -Credential $Credential
+        $issueObj = Resolve-JiraIssueObject -InputObject $Issue -RequestContext $RequestContext
 
         foreach ($issue in $issueObj) {
             $parameter = @{
-                URI        = "{0}/watchers" -f $issue.RestURL
-                Method     = "GET"
-                Credential = $Credential
+                URI    = "{0}/watchers" -f $issue.RestURL
+                Method = "GET"
             }
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-            if ($result = Invoke-JiraMethod @parameter) { $result.watchers | ConvertTo-JiraUser }
+            Write-DebugMessage "Invoking JiraMethod with `$parameter"
+            if ($result = Invoke-JiraRequest -RequestContext $RequestContext @parameter) { $result.watchers | ConvertTo-JiraUser }
         }
     }
 

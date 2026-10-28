@@ -1,4 +1,8 @@
 ﻿function ConvertTo-JiraIssue {
+    <#
+    .SYNOPSIS
+        Convert Jira response data to AtlassianPS.JiraPS.Issue objects.
+    #>
     [CmdletBinding()]
     [OutputType([AtlassianPS.JiraPS.Issue])]
     param(
@@ -13,7 +17,7 @@
     process {
         foreach ($i in $InputObject) {
             if ($null -eq $i) { continue }
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to AtlassianPS.JiraPS.Issue"
+            Write-DebugMessage "Converting `$InputObject to AtlassianPS.JiraPS.Issue"
 
             $http = "{0}browse/$($i.key)" -f ($i.self -split 'rest')[0]
             $hash = @{

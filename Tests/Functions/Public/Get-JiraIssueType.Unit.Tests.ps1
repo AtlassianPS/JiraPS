@@ -87,25 +87,20 @@ InModuleScope JiraPS {
             #endregion Definitions
 
             #region Mocks
-            Mock Get-JiraConfigServer -ModuleName JiraPS {
-                Write-MockDebugInfo 'Get-JiraConfigServer'
-                Write-Output $jiraServer
-            }
-
             Mock ConvertTo-JiraIssueType {
                 Write-MockDebugInfo 'ConvertTo-JiraIssueType'
                 $inputObject
             }
 
-            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $Uri -eq "/rest/api/2/issuetype" } {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+            Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $Uri -eq "/rest/api/2/issuetype" } {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
                 ConvertFrom-Json $restResult
             }
 
             # Generic catch-all. This will throw an exception if we forgot to mock something.
-            Mock Invoke-JiraMethod -ModuleName JiraPS {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-                throw "Unidentified call to Invoke-JiraMethod"
+            Mock Invoke-JiraRequest -ModuleName JiraPS {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
+                throw "Unidentified call to Invoke-JiraRequest"
             }
             #endregion Mocks
         }
@@ -121,11 +116,23 @@ InModuleScope JiraPS {
         }
 
         Describe "Behavior" {
+            It 'refreshes one catalogue for <InputMode> selectors' -ForEach @(
+                @{ InputMode = 'array' }
+                @{ InputMode = 'pipeline' }
+            ) {
+                $result = if ($InputMode -eq 'array') { @(Get-JiraIssueType -IssueType 2, 1 -Refresh) }
+                else { @(2, 1 | Get-JiraIssueType -Refresh) }
+
+                $result.Id | Should -Be @(2, 1)
+                Should -Invoke Invoke-JiraRequest -Exactly -Times 1 -ParameterFilter { $BypassCache }
+            }
+
+
             It "Gets all issue types in Jira if called with no parameters" {
                 $allResults = Get-JiraIssueType
                 $allResults | Should -Not -BeNullOrEmpty
                 @($allResults) | Should -HaveCount 8
-                Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly 1
+                Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly 1
             }
 
             It "Gets a specified issue type if an issue type ID is provided" {

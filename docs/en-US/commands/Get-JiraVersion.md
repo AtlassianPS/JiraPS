@@ -14,84 +14,63 @@ Returns versions in a Jira project.
 
 ## SYNTAX
 
-### byId
+### Version (Default)
 
 ```powershell
-Get-JiraVersion -Id <int[]> [-PageSize <uint>] [-Credential <pscredential>] [-IncludeTotalCount] [-Skip <ulong>]
- [-First <ulong>] [<CommonParameters>]
-```
-
-### byInputVersion (Default)
-
-```powershell
-Get-JiraVersion [-InputVersion] <AtlassianPS.JiraPS.Version> [-PageSize <uint>] [-Credential <pscredential>]
+Get-JiraVersion [-Version] <AtlassianPS.JiraPS.Version[]> [-PageSize <int>] [-Connection <AtlassianPS.Connection>]
  [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```
 
-### byProject
+### Project
 
 ```powershell
-Get-JiraVersion [-Project] <string[]> [-Name <string[]>] [-Sort <string>] [-PageSize <uint>]
- [-Credential <pscredential>] [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
-```
-
-### byInputProject
-
-```powershell
-Get-JiraVersion [-InputProject] <AtlassianPS.JiraPS.Project[]> [-Name <string[]>] [-Sort <string>]
- [-PageSize <uint>] [-Credential <pscredential>] [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>]
- [<CommonParameters>]
+Get-JiraVersion -Project <AtlassianPS.JiraPS.Project[]> [-Name <string[]>] [-Sort <string>] [-PageSize <int>]
+ [-Connection <AtlassianPS.Connection>] [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
 
-Returns versions visible to the current user in the selected project.
+Retrieves exact versions or lists versions belonging to projects.
+Name patterns match any requested pattern without duplicate output.
+First and Skip apply after filtering across the input projects.
 
 ## EXAMPLES
 
 ### Example 1
 
 ```powershell
-Get-JiraVersion -Project $ProjectKey
+Get-JiraVersion -Version 10001
 ```
 
-Returns all versions visible to the current user in the project.
+Look up a version by its numeric ID.
 
 ### Example 2
 
 ```powershell
-Get-JiraVersion -Project $ProjectKey -Name '1.0.0.0'
+Get-JiraVersion -Project PROJ -Name 'v3*', 'v4*' -Skip 1 -First 5
 ```
 
-Returns the version named 1.0.0.0 in the project.
+Return matching project versions after applying name patterns and output limits.
 
 ### Example 3
 
 ```powershell
-Get-JiraProject 'FOO', 'BAR' | Get-JiraVersion -Name 'v1.0', 'v2.0'
+Get-JiraProject -Project PROJ | Get-JiraVersion
 ```
 
-Returns versions named v1.0 and v2.0 from projects FOO and BAR.
-
-### Example 4
-
-```powershell
-Get-JiraVersion -Id '66596'
-```
-
-Returns the version with ID 66596.
-The command uses anonymous access when no credentials or JiraPS session are available.
+List versions for a typed project passed through the pipeline.
 
 ## PARAMETERS
 
-### -Credential
+### -Connection
 
-Credentials to use to connect to Jira.
-If not specified, this function will use anonymous access.
+Active Jira connection for this operation.
+When omitted, the command uses the selected Jira default.
+Create connections with Connect-Jira; resolve names with Get-JiraConnection -Name.
 
 ```yaml
-Type: PSCredential
-DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
+Type: AtlassianPS.Connection
+DefaultValue: None
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
@@ -108,7 +87,7 @@ HelpMessage: ''
 
 ### -First
 
-Indicates how many items to return.
+Maximum number of matching records to return.
 
 ```yaml
 Type: UInt64
@@ -127,32 +106,10 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
-### -Id
-
-The version ID.
-
-```yaml
-Type: Int32[]
-DefaultValue: ''
-SupportsWildcards: false
-Aliases: []
-ParameterSets:
-- Name: byId
-  Position: Named
-  IsRequired: true
-  ValueFromPipeline: false
-  ValueFromPipelineByPropertyName: false
-  ValueFromRemainingArguments: false
-DontShow: false
-AcceptedValues: []
-HelpMessage: ''
-```
-
 ### -IncludeTotalCount
 
-Causes an extra output of the total count at the beginning.
-
-Note this is actually a uInt64, but with a custom string representation.
+Return total-count information before the records.
+Accuracy is unknown when Jira does not provide a total.
 
 ```yaml
 Type: SwitchParameter
@@ -171,66 +128,19 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
-### -InputProject
-
-A project object to search.
-
-```yaml
-Type: AtlassianPS.JiraPS.Project[]
-DefaultValue: ''
-SupportsWildcards: false
-Aliases: []
-ParameterSets:
-- Name: byInputProject
-  Position: 0
-  IsRequired: true
-  ValueFromPipeline: true
-  ValueFromPipelineByPropertyName: false
-  ValueFromRemainingArguments: false
-DontShow: false
-AcceptedValues: []
-HelpMessage: ''
-```
-
-### -InputVersion
-
-A version object to search for.
-
-```yaml
-Type: AtlassianPS.JiraPS.Version
-DefaultValue: ''
-SupportsWildcards: false
-Aliases: []
-ParameterSets:
-- Name: byInputVersion
-  Position: 0
-  IsRequired: true
-  ValueFromPipeline: true
-  ValueFromPipelineByPropertyName: false
-  ValueFromRemainingArguments: false
-DontShow: false
-AcceptedValues: []
-HelpMessage: ''
-```
-
 ### -Name
 
-The version name.
+Wildcard name patterns for project versions.
+A version matching any pattern is returned once.
+First and Skip apply after matching.
 
 ```yaml
 Type: String[]
 DefaultValue: '"*"'
 SupportsWildcards: false
-Aliases:
-- Versions
+Aliases: []
 ParameterSets:
-- Name: byInputProject
-  Position: Named
-  IsRequired: false
-  ValueFromPipeline: false
-  ValueFromPipelineByPropertyName: false
-  ValueFromRemainingArguments: false
-- Name: byProject
+- Name: Project
   Position: Named
   IsRequired: false
   ValueFromPipeline: false
@@ -243,14 +153,11 @@ HelpMessage: ''
 
 ### -PageSize
 
-Maximum number of results to fetch per call.
-
-This setting can be tuned to get better performance according to the load on the server.
-
-> Warning: too high of a PageSize can cause a timeout on the request.
+Number of records requested per page.
+Use First to limit output and Skip to skip records.
 
 ```yaml
-Type: UInt32
+Type: Int32
 DefaultValue: 25
 SupportsWildcards: false
 Aliases: []
@@ -268,19 +175,19 @@ HelpMessage: ''
 
 ### -Project
 
-Project key of a project to search.
+Project keys, IDs or typed project objects whose versions to list.
 
 ```yaml
-Type: String[]
+Type: AtlassianPS.JiraPS.Project[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
 - Key
 ParameterSets:
-- Name: byProject
-  Position: 0
+- Name: Project
+  Position: Named
   IsRequired: true
-  ValueFromPipeline: false
+  ValueFromPipeline: true
   ValueFromPipelineByPropertyName: false
   ValueFromRemainingArguments: false
 DontShow: false
@@ -290,9 +197,7 @@ HelpMessage: ''
 
 ### -Skip
 
-Controls how many things will be skipped before starting output.
-
-Defaults to 0.
+Number of matching records to skip before returning output.
 
 ```yaml
 Type: UInt64
@@ -328,13 +233,7 @@ DefaultValue: '"name"'
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
-- Name: byInputProject
-  Position: Named
-  IsRequired: false
-  ValueFromPipeline: false
-  ValueFromPipelineByPropertyName: false
-  ValueFromRemainingArguments: false
-- Name: byProject
+- Name: Project
   Position: Named
   IsRequired: false
   ValueFromPipeline: false
@@ -349,17 +248,40 @@ AcceptedValues:
 HelpMessage: ''
 ```
 
+### -Version
+
+Numeric version IDs or typed version objects for exact lookup.
+
+```yaml
+Type: AtlassianPS.JiraPS.Version[]
+DefaultValue: ''
+SupportsWildcards: false
+Aliases:
+- Id
+ParameterSets:
+- Name: Version
+  Position: 0
+  IsRequired: true
+  ValueFromPipeline: true
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable, -ProgressAction, -Verbose, -WarningAction, and -WarningVariable.
-For more information, see [about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
+-InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
+-ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
+[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
-### AtlassianPS.JiraPS.Version
+### AtlassianPS.JiraPS.Version[]
 
-
-### AtlassianPS.JiraPS.Project
+### AtlassianPS.JiraPS.Project[]
 
 ## OUTPUTS
 
@@ -367,11 +289,13 @@ For more information, see [about_CommonParameters](https://go.microsoft.com/fwli
 
 ## NOTES
 
-This function requires either the `-Credential` parameter to be passed or a persistent Jira session.
-See `New-JiraSession` for more details.
-If neither are supplied, this function will run with anonymous access to Jira.
+This function uses the selected Jira connection unless you pass another connection through `-Connection`.
+Use `Connect-Jira` to create a connection.
+For anonymous access, create the connection with `Connect-Jira -Anonymous`.
 
 ## RELATED LINKS
+
+[about_JiraPS_Authentication](../../about/authentication.html)
 
 [Get-JiraProject](../Get-JiraProject/)
 

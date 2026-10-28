@@ -23,17 +23,19 @@ InModuleScope JiraPS {
 
                     [ValidateRange(1, [int]::MaxValue)]
                     [int]
-                    $DefaultPageSize = 25
+                    $DefaultPageSize = 25,
+
+                    [Switch]
+                    $Paging
                 )
 
-                Resolve-JiraRequestContext -Uri $Uri -GetParameter $GetParameter -DefaultPageSize $DefaultPageSize -Cmdlet $PSCmdlet
+                Resolve-JiraRequestContext -RequestContext (AtlassianPS.Configuration\Get-AtlassianConnection -Product Jira -Default) -Uri $Uri -GetParameter $GetParameter -DefaultPageSize $DefaultPageSize -Paging:$Paging -Cmdlet $PSCmdlet
             }
         }
 
         It "resolves a relative URI against the configured Jira server and applies default page size" {
-            Mock Get-JiraConfigServer -ModuleName 'JiraPS' { 'https://jira.example.com' }
 
-            $result = Invoke-ResolveJiraRequestContext -Uri '/rest/api/2/search'
+            $result = Invoke-ResolveJiraRequestContext -Uri '/rest/api/2/search' -Paging
 
             $result.Uri.AbsoluteUri | Should -Be 'https://jira.example.com/rest/api/2/search'
             $result.PaginatedUri.AbsoluteUri | Should -Match '\?maxResults=25$'
@@ -44,15 +46,15 @@ InModuleScope JiraPS {
 
             $result.Uri.Query | Should -BeNullOrEmpty
             $query = ConvertTo-ParameterHash -Uri $result.PaginatedUri
-            $query.Count | Should -Be 4
+            $query.Count | Should -Be 3
             $query.jql | Should -Be 'fromArg'
             $query.fields | Should -Be 'summary'
             $result.PaginatedUri.AbsoluteUri | Should -Match 'expand=names'
-            $result.PaginatedUri.AbsoluteUri | Should -Match 'maxResults=25'
+            $query.ContainsKey('maxResults') | Should -BeFalse
         }
 
         It "applies paging overrides from the caller cmdlet" {
-            $result = Invoke-ResolveJiraRequestContext -Uri 'https://jira.example.com/rest/api/2/search' -First 5 -Skip 2
+            $result = Invoke-ResolveJiraRequestContext -Uri 'https://jira.example.com/rest/api/2/search' -Paging -First 5 -Skip 2
 
             $result.PaginatedUri.AbsoluteUri | Should -Match 'maxResults=5'
             $result.PaginatedUri.AbsoluteUri | Should -Match 'startAt=2'
@@ -65,19 +67,11 @@ InModuleScope JiraPS {
         }
 
         It "throws for relative URIs that do not start with '/'" {
-            { Invoke-ResolveJiraRequestContext -Uri 'hello' } | Should -Throw -ExpectedMessage "*must start with '/'*"
+            { Invoke-ResolveJiraRequestContext -Uri 'hello' } | Should -Throw -ExpectedMessage "*must start with one slash*"
         }
 
-        It "throws when a relative URI is used without a configured Jira server" {
-            Mock Get-JiraConfigServer -ModuleName 'JiraPS' { $null }
-
-            { Invoke-ResolveJiraRequestContext -Uri '/rest/api/2/search' } | Should -Throw -ExpectedMessage "*no Jira server is configured*"
-        }
-
-        It "throws when resolving a relative URI still results in a non-absolute URI" {
-            Mock Get-JiraConfigServer -ModuleName 'JiraPS' { 'jira.example.com' }
-
-            { Invoke-ResolveJiraRequestContext -Uri '/rest/api/2/search' } | Should -Throw -ExpectedMessage "*must be an absolute URI*"
+        It 'rejects absolute resources from another origin' {
+            { Invoke-ResolveJiraRequestContext -Uri https://another.example.com/rest/api/2/field } | Should -Throw '*selected connection endpoint*'
         }
     }
 }

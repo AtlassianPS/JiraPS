@@ -39,16 +39,16 @@ InModuleScope JiraPS {
         AfterAll {
             try {
                 if ($issue -and $issue.Key) {
-                    Remove-JiraIssue -IssueId $issue.Key -Force -ErrorAction Stop
+                    Remove-JiraIssue -Issue $issue.Key -Confirm:$false -ErrorAction Stop
                 }
             }
             finally {
-                Remove-JiraSession -ErrorAction SilentlyContinue
+                Disconnect-Jira -ErrorAction SilentlyContinue
             }
         }
 
         It 'persists typed reporter and assignee through creation, unassignment, project default and reassignment' {
-            $user = Get-JiraUser -InputObject $fixtures.TestUser -ErrorAction Stop
+            $user = Get-JiraUser -User $fixtures.TestUser -ErrorAction Stop
             $identity = $fixtures.UserIdProperty
             $user.$identity | Should -Not -BeNullOrEmpty
             $extras = Get-MinimumValidIssueParameter -Fixtures $fixtures -SkipFieldId @('reporter', 'assignee')

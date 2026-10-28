@@ -10,27 +10,30 @@
         values; do NOT pre-encode them at the call site.
     #>
     [CmdletBinding()]
-    [OutputType([string])]
+    [OutputType( [string] )]
     param (
         [Parameter( Position = 0, Mandatory = $true, ValueFromPipeline = $true )]
-        [hashtable]$InputObject
+        [hashtable]
+        $InputObject
     )
 
     process {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Making HTTP get parameter string out of a hashtable"
-        Write-Verbose ($InputObject | Out-String)
         if ($InputObject.Count -eq 0) { return '' }
 
-        $pairs = $InputObject.Keys.ForEach(
-            {
-                $encodedKey = ConvertTo-URLEncoded "$_"
-                $value = $InputObject[$_]
-
-                if ($null -eq $value -or "$value" -eq '') { "$encodedKey=" }
-                else { "{0}={1}" -f $encodedKey, (ConvertTo-URLEncoded "$value") }
+        $pairs = foreach ($key in $InputObject.Keys) {
+            $encodedKey = ConvertTo-URLEncoded "$key"
+            $values = $InputObject[$key]
+            if ($null -eq $values) { "$encodedKey=" }
+            else {
+                foreach ($value in @($values)) {
+                    if ($null -eq $value -or "$value" -eq '') { "$encodedKey=" }
+                    else { "{0}={1}" -f $encodedKey, (ConvertTo-URLEncoded "$value") }
+                }
             }
-        )
+        }
 
+        if (-not $pairs) { return '' }
         "?" + ($pairs -join "&")
     }
 }

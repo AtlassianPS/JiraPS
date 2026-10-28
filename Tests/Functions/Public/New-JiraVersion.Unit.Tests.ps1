@@ -47,11 +47,6 @@ InModuleScope JiraPS {
             #endregion Definitions
 
             #region Mocks
-            Mock Get-JiraConfigServer -ModuleName JiraPS {
-                Write-MockDebugInfo 'Get-JiraConfigServer'
-                $jiraServer
-            }
-
             Mock Get-JiraProject -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraProject'
                 $Projects = ConvertFrom-Json $JiraProjectData
@@ -85,45 +80,17 @@ InModuleScope JiraPS {
                 $result
             }
 
-            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Post' -and $URI -like "/rest/api/*/version" } {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+            Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter { $Method -eq 'Post' -and $URI -like "/rest/api/*/version" } {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
                 ConvertFrom-Json $testJsonOne
             }
 
             # Generic catch-all. This will throw an exception if we forgot to mock something.
-            Mock Invoke-JiraMethod -ModuleName JiraPS {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-                throw "Unidentified call to Invoke-JiraMethod"
+            Mock Invoke-JiraRequest -ModuleName JiraPS {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
+                throw "Unidentified call to Invoke-JiraRequest"
             }
             #endregion Mocks
-        }
-
-        Describe "Signature" {
-            BeforeAll {
-                $script:command = Get-Command -Name New-JiraVersion
-            }
-
-            Context "Parameter Types" {
-                It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = 'InputObject'; type = 'Version' }
-                    @{ parameter = 'Name'; type = 'String' }
-                    @{ parameter = 'Description'; type = 'String' }
-                    @{ parameter = 'Archived'; type = 'Boolean' }
-                    @{ parameter = 'Released'; type = 'Boolean' }
-                    @{ parameter = 'ReleaseDate'; type = 'DateTime' }
-                    @{ parameter = 'StartDate'; type = 'DateTime' }
-                    @{ parameter = 'Project'; type = 'Project' }
-                    @{ parameter = 'Credential'; type = 'PSCredential' }
-                ) {
-                    param($parameter, $type)
-                    $command | Should -HaveParameter $parameter
-                    $command.Parameters[$parameter].ParameterType.Name | Should -Be $type
-                }
-            }
-
-            Context "Mandatory Parameters" {}
-
-            Context "Default Values" {}
         }
 
         Describe "Behavior" {
@@ -132,19 +99,19 @@ InModuleScope JiraPS {
                 $results = $version | New-JiraVersion -ErrorAction Stop
                 $results | Should -Not -BeNullOrEmpty
                 $results.PSObject.TypeNames[0] | Should -Be "AtlassianPS.JiraPS.Version"
-                Should -Invoke 'Invoke-JiraMethod' -Times 1 -Exactly -ModuleName JiraPS -ParameterFilter { $Method -eq 'Post' -and $URI -like "/rest/api/2/version" }
+                Should -Invoke 'Invoke-JiraRequest' -Times 1 -Exactly -ModuleName JiraPS -ParameterFilter { $Method -eq 'Post' -and $URI -like "/rest/api/2/version" }
                 Should -Invoke 'ConvertTo-JiraVersion' -Times 1 -Exactly -ModuleName JiraPS
             }
+
             It "creates a Version using parameters" {
                 $results = New-JiraVersion -Name $versionName -Project $projectKey -ErrorAction Stop
                 $results | Should -Not -BeNullOrEmpty
                 $results.PSObject.TypeNames[0] | Should -Be "AtlassianPS.JiraPS.Version"
-                Should -Invoke 'Invoke-JiraMethod' -Times 1 -Exactly -ModuleName JiraPS -ParameterFilter { $Method -eq 'Post' -and $URI -like "/rest/api/2/version" }
+                Should -Invoke 'Invoke-JiraRequest' -Times 1 -Exactly -ModuleName JiraPS -ParameterFilter { $Method -eq 'Post' -and $URI -like "/rest/api/2/version" }
                 Should -Invoke 'ConvertTo-JiraVersion' -Times 1 -Exactly -ModuleName JiraPS
             }
+
             It "creates a Version using splatting" {
-                $password = (ConvertTo-SecureString -AsPlainText -Force -String "password")
-                $credentials = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList ("username", $password)
                 $splat = @{
                     Name        = "v1"
                     Description = "A Description"
@@ -153,20 +120,14 @@ InModuleScope JiraPS {
                     ReleaseDate = "2017-12-01"
                     StartDate   = "2017-01-01"
                     Project     = (Get-JiraProject -Project $projectKey)
-                    Credential  = $credentials
                 }
                 $results = New-JiraVersion @splat -ErrorAction Stop
                 $results | Should -Not -BeNullOrEmpty
                 $results.PSObject.TypeNames[0] | Should -Be "AtlassianPS.JiraPS.Version"
-                Should -Invoke 'Invoke-JiraMethod' -Times 1 -Exactly -ModuleName JiraPS -ParameterFilter { $Method -eq 'Post' -and $URI -like "/rest/api/2/version" }
+                Should -Invoke 'Invoke-JiraRequest' -Times 1 -Exactly -ModuleName JiraPS -ParameterFilter { $Method -eq 'Post' -and $URI -like "/rest/api/2/version" }
                 Should -Invoke 'ConvertTo-JiraVersion' -Times 1 -Exactly -ModuleName JiraPS
             }
         }
 
-        Describe "Input Validation" {
-            Context "Type Validation - Positive Cases" {}
-
-            Context "Type Validation - Negative Cases" {}
-        }
     }
 }

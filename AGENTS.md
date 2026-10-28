@@ -10,8 +10,8 @@ Load deeper context only when the task needs it.
 - All behavior changes must work for Jira Cloud and Jira Data Center unless the task explicitly scopes one deployment.
 - User identity differs by deployment: Cloud uses `accountId`; Data Center uses `username` or `name`.
 - Cloud rich-text payloads use Atlassian Document Format; Data Center text fields generally use plain strings.
-- All REST calls go through `Invoke-JiraMethod`; do not call `Invoke-RestMethod` or `Invoke-WebRequest` directly from cmdlets.
-- Keep runtime dependencies at zero unless a task explicitly accepts adding one.
+- Route Jira REST calls through private `Invoke-JiraRequest`; do not call `Invoke-RestMethod` or `Invoke-WebRequest` directly from cmdlets.
+- AtlassianPS.Configuration is the sole authorized runtime dependency; adding another requires explicit task authorization.
 - Public functions use generated external help only; do not add comment-based help to files in `JiraPS/Public/`.
 - Out-of-scope ideas go to the backlog, not into the current PR.
 
@@ -75,13 +75,13 @@ Server tests use Dockerized Jira Data Center and can be slow.
 ## Coding Rules
 
 - Follow [compact conditional block rules](.github/ai-context/powershell-rules.md#compact-conditional-blocks) for PowerShell branch layout.
-- Follow existing cmdlet patterns: public cmdlet -> `Invoke-JiraMethod` -> private converter or resolver.
+- Follow existing cmdlet patterns: public cmdlet resolves a connection -> `Invoke-JiraRequest` -> private converter or resolver; pass the resolved connection explicitly to nested public cmdlets.
 - Prefer small, focused changes that preserve backward compatibility.
 - Use approved PowerShell verbs, PascalCase function/parameter names, and descriptive variable names.
 - Parameter validation and transformation belong at binding boundaries; business invariants belong in cmdlet bodies.
 - For argument transformers, return input unchanged only when competing pipeline parameter sets need binder fallthrough.
 - Throw actionable `ArgumentTransformationMetadataException` errors when no alternate parameter set should bind.
-- Do not hardcode server URLs; use the configured Jira server state.
+- Use relative resource URIs and the resolved connection context; do not hardcode server URLs.
 - Use Pester 6 syntax in new and heavily edited tests; do not introduce legacy Pester 4 or Pester 5-only syntax.
 - Do not commit generated `Release/` content.
 
@@ -92,7 +92,7 @@ Server tests use Dockerized Jira Data Center and can be slow.
 - Use `#ToDo:Category` with a specific reason; common categories are `CustomClass`, `Deprecate`, `Implement`, and `Refactor`.
 - Remove dead code instead of commenting it out.
 - Public cmdlet help lives in `docs/en-US/commands/*.md`; public function files should only contain the external-help directive.
-- Private functions may use minimal comment-based help when it adds clarity.
+- Private functions require minimal comment-based help describing their responsibility.
 
 ## Documentation Style
 

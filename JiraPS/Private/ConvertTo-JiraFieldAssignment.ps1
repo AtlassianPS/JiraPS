@@ -34,7 +34,7 @@
     $fallbackFieldsById = $null
     $fallbackFieldsByName = $null
 
-    Write-Debug "[$CallerName] Resolving `$Fields"
+    Write-DebugMessage "[$CallerName] Resolving `$Fields"
 
     foreach ($_key in $Fields.Keys) {
         $name = $_key
@@ -47,7 +47,7 @@
             -not $scopedFieldsByName.ContainsKey($name) -and
             $null -eq $fallbackFieldsById
         ) {
-            Write-Debug "[$CallerName] [$name] not in $ScopedContext; fetching global field list as fallback"
+            Write-DebugMessage "[$CallerName] [$name] not in $ScopedContext; fetching global field list as fallback"
             $fb = if ($FallbackFieldFetcher) { & $FallbackFieldFetcher } else { @() }
             $fallbackFieldsById = if ($fb) { $fb | Group-Object -Property Id -AsHashTable -AsString } else { @{} }
             $fallbackFieldsByName = if ($fb) { $fb | Group-Object -Property Name -AsHashTable -AsString } else { @{} }

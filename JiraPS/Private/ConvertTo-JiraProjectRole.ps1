@@ -1,4 +1,8 @@
 ﻿function ConvertTo-JiraProjectRole {
+    <#
+    .SYNOPSIS
+        Convert Jira response data to AtlassianPS.JiraPS.ProjectRole objects.
+    #>
     [CmdletBinding()]
     [OutputType([AtlassianPS.JiraPS.ProjectRole])]
     param(
@@ -10,7 +14,7 @@
     process {
         foreach ($i in $InputObject) {
             if ($null -eq $i) { continue }
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to AtlassianPS.JiraPS.ProjectRole"
+            Write-DebugMessage "Converting `$InputObject to AtlassianPS.JiraPS.ProjectRole"
 
             $props = @{
                 'ID'          = ConvertTo-JiraNullableInt64 $i.id

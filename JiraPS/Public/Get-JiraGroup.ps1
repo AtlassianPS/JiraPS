@@ -9,27 +9,28 @@
         $GroupName,
 
         [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        [AtlassianPS.Connection]
+        $Connection
     )
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $isCloud = Test-JiraCloudServer -Credential $Credential
+        $RequestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
+
+        $isCloud = Test-JiraCloudServer -RequestContext $RequestContext
 
         $cloudResourceUri = "/rest/api/2/group/bulk"
         $serverResourceUri = "/rest/api/2/group/member"
     }
 
     process {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+        Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
 
         foreach ($group in $GroupName) {
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$group]"
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$group [$group]"
+            Write-DebugMessage "Processing `$group [$group]"
 
             if ($isCloud) {
                 $parameter = @{
@@ -37,11 +38,10 @@
                     Method       = "GET"
                     GetParameter = @{ groupName = $group }
                     Paging       = $true
-                    Credential   = $Credential
                 }
 
-                Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-                $result = Invoke-JiraMethod @parameter
+                Write-DebugMessage "Invoking JiraMethod with `$parameter"
+                $result = Invoke-JiraRequest -RequestContext $RequestContext @parameter
 
                 $result = @($result | Where-Object { $_.name -eq $group })
 
@@ -61,11 +61,10 @@
                         groupname  = $group
                         maxResults = 1
                     }
-                    Credential   = $Credential
                 }
 
-                Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-                $result = Invoke-JiraMethod @parameter
+                Write-DebugMessage "Invoking JiraMethod with `$parameter"
+                $result = Invoke-JiraRequest -RequestContext $RequestContext @parameter
 
                 if (-not $result) {
                     $message = "Jira did not return a canonical group payload for '$group'."

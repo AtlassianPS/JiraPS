@@ -1,4 +1,8 @@
 ﻿function ConvertTo-JiraIssueTimeTracking {
+    <#
+    .SYNOPSIS
+        Convert Jira response data to AtlassianPS.JiraPS.IssueTimeTracking objects.
+    #>
     [CmdletBinding()]
     [OutputType([AtlassianPS.JiraPS.IssueTimeTracking])]
     param(
@@ -10,7 +14,7 @@
     process {
         foreach ($i in $InputObject) {
             if ($null -eq $i) { continue }
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to AtlassianPS.JiraPS.IssueTimeTracking"
+            Write-DebugMessage "Converting `$InputObject to AtlassianPS.JiraPS.IssueTimeTracking"
 
             [AtlassianPS.JiraPS.IssueTimeTracking]@{
                 OriginalEstimate         = $i.originalEstimate

@@ -1,4 +1,8 @@
 ﻿function ConvertTo-JiraGroup {
+    <#
+    .SYNOPSIS
+        Convert Jira response data to AtlassianPS.JiraPS.Group objects.
+    #>
     [CmdletBinding()]
     [OutputType([AtlassianPS.JiraPS.Group])]
     param(
@@ -10,7 +14,7 @@
     process {
         foreach ($i in $InputObject) {
             if ($null -eq $i) { continue }
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to AtlassianPS.JiraPS.Group"
+            Write-DebugMessage "Converting `$InputObject to AtlassianPS.JiraPS.Group"
 
             $hash = @{
                 Name    = $i.name

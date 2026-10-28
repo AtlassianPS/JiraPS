@@ -18,19 +18,20 @@ Modifies user properties in Jira.
 
 ```powershell
 Set-JiraUser [-User] <AtlassianPS.JiraPS.User> [-DisplayName <string>] [-EmailAddress <string>] [-Active <bool>]
- [-Credential <pscredential>] [-PassThru] [-WhatIf] [-Confirm] [<CommonParameters>]
+ [-PassThru] [-Connection <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ### ByHashtable
 
 ```powershell
-Set-JiraUser [-User] <AtlassianPS.JiraPS.User> [-Property] <hashtable> [-Credential <pscredential>] [-PassThru]
- [-WhatIf] [-Confirm] [<CommonParameters>]
+Set-JiraUser [-User] <AtlassianPS.JiraPS.User> [-Property] <hashtable> [-PassThru] [-Connection <AtlassianPS.Connection>] [-WhatIf]
+ [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
 
-This function modifies user properties in Jira, allowing you to change a user's e-mail address, display name, and any other properties supported by Jira's API.
+Updates supported Data Center user account fields.
+Jira Cloud does not expose this update operation; manage Cloud account fields through Atlassian account administration.
 
 ## EXAMPLES
 
@@ -97,14 +98,15 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
-### -Credential
+### -Connection
 
-Credentials to use to connect to Jira.
-If not specified, this function will use anonymous access.
+Active Jira connection for this operation.
+When omitted, the command uses the selected Jira default.
+Create connections with Connect-Jira; resolve names with Get-JiraConnection -Name.
 
 ```yaml
-Type: PSCredential
-DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
+Type: AtlassianPS.Connection
+DefaultValue: None
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
@@ -208,7 +210,8 @@ HelpMessage: ''
 
 ### -User
 
-Username or user object obtained from `Get-JiraUser`.
+Exact user identifiers or typed user objects.
+Cloud strings are literal account IDs; Data Center strings are literal usernames.
 
 ```yaml
 Type: AtlassianPS.JiraPS.User
@@ -253,13 +256,14 @@ HelpMessage: ''
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable, -ProgressAction, -Verbose, -WarningAction, and -WarningVariable.
-For more information, see [about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
+-InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
+-ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
+[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
 ### AtlassianPS.JiraPS.User
-
 
 ## OUTPUTS
 
@@ -272,11 +276,13 @@ Otherwise, this function does not provide output.
 
 The `-Active` parameter is supported only in Jira Server version 8.3.0 and above.
 
-This function requires either the `-Credential` parameter to be passed or a persistent Jira session.
-See `New-JiraSession` for more details.
-If neither are supplied, this function will run with anonymous access to Jira.
+This function uses the selected Jira connection unless you pass another connection through `-Connection`.
+Use `Connect-Jira` to create a connection.
+For anonymous access, create the connection with `Connect-Jira -Anonymous`.
 
 ## RELATED LINKS
+
+[about_JiraPS_Authentication](../../about/authentication.html)
 
 [New-JiraUser](../New-JiraUser/)
 

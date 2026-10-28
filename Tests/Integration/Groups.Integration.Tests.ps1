@@ -27,7 +27,7 @@ InModuleScope JiraPS {
         }
 
         AfterAll {
-            Remove-JiraSession -ErrorAction SilentlyContinue
+            Disconnect-Jira -ErrorAction SilentlyContinue
         }
 
         Describe "Get-JiraGroup" {
@@ -67,28 +67,15 @@ InModuleScope JiraPS {
 
         Describe "Get-JiraGroupMember" {
             Context "Group Members" {
-                It "retrieves members of a group" {
-                    $members = Get-JiraGroupMember -Group $fixtures.TestGroup
+                It 'retrieves the same typed members by group name and resolved group' {
+                    $members = @(Get-JiraGroupMember -Group $fixtures.TestGroup -ErrorAction Stop)
+                    $group = Get-JiraGroup -GroupName $fixtures.TestGroup -ErrorAction Stop
+                    $resolvedMembers = @(Get-JiraGroupMember -Group $group -ErrorAction Stop)
+                    $identity = $fixtures.UserIdProperty
 
-                    $members | Should -BeOfType [PSCustomObject]
-                }
-
-                It "returns user objects" {
-                    $members = Get-JiraGroupMember -Group $fixtures.TestGroup
-
-                    if ($members) { @($members)[0].PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.User' }
-                }
-
-                It "retrieves members for a resolved group object on Jira Cloud" -Skip:(-not $IsCloud) {
-                    $group = Get-JiraGroup -GroupName $fixtures.TestGroup
-
-                    { Get-JiraGroupMember -Group $group } | Should -Not -Throw
-                }
-
-                It "retrieves members for a resolved group object on Server" -Skip:$IsCloud {
-                    $group = Get-JiraGroup -GroupName $fixtures.TestGroup
-
-                    { Get-JiraGroupMember -Group $group } | Should -Not -Throw
+                    $members | Should -Not -BeNullOrEmpty
+                    foreach ($member in $resolvedMembers) { $member | Should -BeOfType ([AtlassianPS.JiraPS.User]) }
+                    @($resolvedMembers.$identity | Sort-Object) | Should -Be @($members.$identity | Sort-Object)
                 }
             }
         }

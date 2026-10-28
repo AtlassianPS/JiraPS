@@ -1,4 +1,8 @@
 ﻿function ConvertTo-JiraPriority {
+    <#
+    .SYNOPSIS
+        Convert Jira response data to AtlassianPS.JiraPS.Priority objects.
+    #>
     [CmdletBinding()]
     [OutputType([AtlassianPS.JiraPS.Priority])]
     param(
@@ -10,7 +14,7 @@
     process {
         foreach ($i in $InputObject) {
             if ($null -eq $i) { continue }
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to AtlassianPS.JiraPS.Priority"
+            Write-DebugMessage "Converting `$InputObject to AtlassianPS.JiraPS.Priority"
 
             $props = @{
                 'ID'          = ConvertTo-JiraNullableInt64 $i.id

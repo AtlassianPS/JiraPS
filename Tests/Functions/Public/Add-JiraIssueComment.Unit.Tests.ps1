@@ -28,11 +28,6 @@ InModuleScope JiraPS {
             #endregion Definitions
 
             #region Mocks
-            Mock Get-JiraConfigServer -ModuleName JiraPS {
-                Write-MockDebugInfo 'Get-JiraConfigServer'
-                Write-Output $jiraServer
-            }
-
             Mock ConvertTo-JiraComment -ModuleName JiraPS {
                 Write-MockDebugInfo 'ConvertTo-JiraComment' 'InputObject'
                 return $InputObject
@@ -53,62 +48,27 @@ InModuleScope JiraPS {
                 Get-JiraIssue -Key $InputObject.Key
             }
 
-            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'POST' -and $URI -eq "$jiraServer/rest/api/2/issue/$issueID/comment" } {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+            Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter { $Method -eq 'POST' -and $URI -eq "$jiraServer/rest/api/2/issue/$issueID/comment" } {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
                 ConvertFrom-Json $restResponse
             }
 
             # Cloud equivalent: when Test-JiraCloudServer returns $true the
             # cmdlet hits the v3 endpoint (so the API accepts ADF). The
             # mocked response is the same — only the URI changes.
-            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'POST' -and $URI -eq "$jiraServer/rest/api/3/issue/$issueID/comment" } {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+            Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter { $Method -eq 'POST' -and $URI -eq "$jiraServer/rest/api/3/issue/$issueID/comment" } {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
                 ConvertFrom-Json $restResponse
             }
 
             # Generic catch-all. This will throw an exception if we forgot to mock something.
-            Mock Invoke-JiraMethod -ModuleName JiraPS {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-                throw "Unidentified call to Invoke-JiraMethod"
+            Mock Invoke-JiraRequest -ModuleName JiraPS {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
+                throw "Unidentified call to Invoke-JiraRequest"
             }
 
             Mock Test-JiraCloudServer -ModuleName JiraPS { return $false }
             #endregion Mocks
-        }
-
-        Describe "Signature" {
-            BeforeAll {
-                $script:command = Get-Command -Name "Add-JiraIssueComment"
-            }
-
-            Context "Parameter Types" {
-                It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = 'Comment'; type = 'String' }
-                    @{ parameter = 'Issue'; type = 'AtlassianPS.JiraPS.Issue' }
-                    @{ parameter = 'Visibility'; type = 'AtlassianPS.JiraPS.Visibility' }
-                    @{ parameter = 'Credential'; type = 'System.Management.Automation.PSCredential' }
-                ) {
-                    $command | Should -HaveParameter $parameter -Type $type
-                }
-            }
-
-            Context "Default Values" {
-                It "parameter '<parameter>' has a default value of '<defaultValue>'" -TestCases @(
-                    @{ parameter = "Visibility"; defaultValue = $null }
-                    @{ parameter = "Credential"; defaultValue = "[System.Management.Automation.PSCredential]::Empty" }
-                ) {
-                    $command | Should -HaveParameter $parameter -DefaultValue $defaultValue
-                }
-            }
-
-            Context "Mandatory Parameters" {
-                It "parameter '<parameter>' is mandatory" -TestCases @(
-                    @{ parameter = "Comment" }
-                    @{ parameter = "Issue" }
-                ) {
-                    $command | Should -HaveParameter $parameter -Mandatory
-                }
-            }
         }
 
         Describe "Behavior" {
@@ -118,7 +78,7 @@ InModuleScope JiraPS {
 
                 Should -Invoke 'Get-JiraIssue' -ModuleName JiraPS -Exactly -Times 1
                 Should -Invoke 'Resolve-JiraIssueObject' -ModuleName JiraPS -Exactly -Times 1
-                Should -Invoke 'Invoke-JiraMethod' -ModuleName JiraPS -Exactly -Times 1
+                Should -Invoke 'Invoke-JiraRequest' -ModuleName JiraPS -Exactly -Times 1
             }
 
             It "returns a Jira.Comment object" {
@@ -173,7 +133,7 @@ InModuleScope JiraPS {
                 ) {
                     Mock Test-JiraCloudServer -ModuleName JiraPS { $cloud }
                     Add-JiraIssueComment -Issue $issueKey -Comment 'Visibility test' @parameters | Out-Null
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
+                    Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                         $payload = $Body | ConvertFrom-Json
                         $payload.PSObject.Properties.Name -notcontains 'visibility'
                     }
@@ -222,7 +182,7 @@ InModuleScope JiraPS {
                 ) {
                     Mock Test-JiraCloudServer -ModuleName JiraPS { $cloud }
                     Add-JiraIssueComment -Issue $issueKey -Comment 'Visibility test' -Visibility $value | Out-Null
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
+                    Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                         $payload = $Body | ConvertFrom-Json
                         $payload.visibility.type -eq $expectedType -and
                         $payload.visibility.value -eq $expectedValue -and
@@ -236,7 +196,7 @@ InModuleScope JiraPS {
                         Type       = 'group'
                         Identifier = 'group-123'
                     } | Out-Null
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
+                    Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                         $payload = $Body | ConvertFrom-Json
                         $payload.visibility.type -eq 'group' -and $payload.visibility.identifier -eq 'group-123' -and
                         $payload.visibility.PSObject.Properties.Name -notcontains 'value'
@@ -270,7 +230,7 @@ InModuleScope JiraPS {
                     { Add-JiraIssueComment -Issue $issueKey -Comment 'Visibility test' -Visibility $value -ErrorAction Stop } |
                         Should -Throw -ExceptionType ([System.Management.Automation.ParameterBindingException])
                     Should -Invoke Resolve-JiraIssueObject -ModuleName JiraPS -Exactly -Times 0
-                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 0
+                    Should -Invoke Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 0
                 }
             }
 
@@ -280,7 +240,7 @@ InModuleScope JiraPS {
 
                     Add-JiraIssueComment -Comment 'Hello *world*' -Issue $issueKey | Out-Null
 
-                    Should -Invoke 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter {
+                    Should -Invoke 'Invoke-JiraRequest' -ModuleName JiraPS -ParameterFilter {
                         $payload = $Body | ConvertFrom-Json
                         $payload.body -is [string] -and $payload.body -eq 'Hello *world*'
                     }
@@ -291,7 +251,7 @@ InModuleScope JiraPS {
 
                     Add-JiraIssueComment -Comment 'Hello world' -Issue $issueKey | Out-Null
 
-                    Should -Invoke 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter {
+                    Should -Invoke 'Invoke-JiraRequest' -ModuleName JiraPS -ParameterFilter {
                         $payload = $Body | ConvertFrom-Json
                         $payload.body.type -eq 'doc' -and
                         $payload.body.version -eq 1 -and
@@ -305,7 +265,7 @@ InModuleScope JiraPS {
 
                     Add-JiraIssueComment -Comment 'Restricted note' -VisibleRole 'Developers' -Issue $issueKey | Out-Null
 
-                    Should -Invoke 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter {
+                    Should -Invoke 'Invoke-JiraRequest' -ModuleName JiraPS -ParameterFilter {
                         $payload = $Body | ConvertFrom-Json
                         $payload.body.type -eq 'doc' -and
                         $payload.visibility.type -eq 'role' -and
@@ -318,7 +278,7 @@ InModuleScope JiraPS {
 
                     Add-JiraIssueComment -Comment 'Hello world' -Issue $issueKey | Out-Null
 
-                    Should -Invoke 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter {
+                    Should -Invoke 'Invoke-JiraRequest' -ModuleName JiraPS -ParameterFilter {
                         $Method -eq 'POST' -and $URI -eq "$jiraServer/rest/api/3/issue/$issueID/comment"
                     }
                 }
@@ -328,7 +288,7 @@ InModuleScope JiraPS {
 
                     Add-JiraIssueComment -Comment 'Hello world' -Issue $issueKey | Out-Null
 
-                    Should -Invoke 'Invoke-JiraMethod' -ModuleName JiraPS -ParameterFilter {
+                    Should -Invoke 'Invoke-JiraRequest' -ModuleName JiraPS -ParameterFilter {
                         $Method -eq 'POST' -and $URI -eq "$jiraServer/rest/api/2/issue/$issueID/comment"
                     }
                 }
@@ -344,7 +304,6 @@ InModuleScope JiraPS {
                 }
             }
 
-            Context "Type Validation - Negative Cases" {}
         }
     }
 }

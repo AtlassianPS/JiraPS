@@ -17,13 +17,13 @@ Returns a component from Jira.
 ### ByID (Default)
 
 ```powershell
-Get-JiraComponent [-ComponentId] <int[]> [-Credential <pscredential>] [<CommonParameters>]
+Get-JiraComponent [-ComponentId] <int[]> [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 
 ### ByProject
 
 ```powershell
-Get-JiraComponent [-Project] <AtlassianPS.JiraPS.Project[]> [-Credential <pscredential>] [<CommonParameters>]
+Get-JiraComponent [-Project] <AtlassianPS.JiraPS.Project[]> [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -46,7 +46,7 @@ Returns information about the component with ID 10000
 ### Example 2
 
 ```powershell
-Get-JiraComponent 20000 -Credential $cred
+Get-JiraComponent 20000
 ```
 
 Returns information about the component with ID 20000
@@ -91,14 +91,15 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
-### -Credential
+### -Connection
 
-Credentials to use to connect to Jira.
-If not specified, this function will use anonymous access.
+Active Jira connection for this operation.
+When omitted, the command uses the selected Jira default.
+Create connections with Connect-Jira; resolve names with Get-JiraConnection -Name.
 
 ```yaml
-Type: PSCredential
-DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
+Type: AtlassianPS.Connection
+DefaultValue: None
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
@@ -136,22 +137,14 @@ HelpMessage: ''
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable, -ProgressAction, -Verbose, -WarningAction, and -WarningVariable.
-For more information, see [about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
+-InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
+-ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
+[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
-### AtlassianPS.JiraPS.Project
-
-Pipe a project object to retrieve its components.
-
-### System.String
-
-Pipe a project key or numeric project ID to retrieve its components.
-
-### System.Int64
-
-Pipe a numeric project ID to retrieve its components.
+### AtlassianPS.JiraPS.Project[]
 
 ## OUTPUTS
 
@@ -159,10 +152,12 @@ Pipe a numeric project ID to retrieve its components.
 
 ## NOTES
 
-This function requires either the `-Credential` parameter to be passed or a persistent Jira session.
-See `New-JiraSession` for more details.
-If neither are supplied, this function will run with anonymous access to Jira.
+This function uses the selected Jira connection unless you pass another connection through `-Connection`.
+Use `Connect-Jira` to create a connection.
+For anonymous access, create the connection with `Connect-Jira -Anonymous`.
 
 Remaining operations for `component` have not yet been implemented in the module.
 
 ## RELATED LINKS
+
+[about_JiraPS_Authentication](../../about/authentication.html)

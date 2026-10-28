@@ -1,4 +1,8 @@
 ﻿function ConvertTo-JiraProject {
+    <#
+    .SYNOPSIS
+        Convert Jira response data to AtlassianPS.JiraPS.Project objects.
+    #>
     [CmdletBinding()]
     [OutputType([AtlassianPS.JiraPS.Project])]
     param(
@@ -10,7 +14,7 @@
     process {
         foreach ($i in $InputObject) {
             if ($null -eq $i) { continue }
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to AtlassianPS.JiraPS.Project"
+            Write-DebugMessage "Converting `$InputObject to AtlassianPS.JiraPS.Project"
 
             $hash = @{
                 ID             = $i.id

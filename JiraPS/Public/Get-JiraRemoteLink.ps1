@@ -13,34 +13,34 @@
         $LinkId,
 
         [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        [AtlassianPS.Connection]
+        $Connection
     )
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+
+        $RequestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
     }
 
     process {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+        Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
 
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$Issue]"
-        Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$Issue [$Issue]"
+        Write-DebugMessage "Processing `$Issue [$Issue]"
 
         # Find the proper object for the Issue
-        $issueObj = Resolve-JiraIssueObject -InputObject $Issue -Credential $Credential
+        $issueObj = Resolve-JiraIssueObject -InputObject $Issue -RequestContext $RequestContext
 
         $urlAppendix = if ($LinkId) { "/$LinkId" } else { "" }
 
         $parameter = @{
-            URI        = "{0}/remotelink{1}" -f $issueObj.RestUrl, $urlAppendix
-            Method     = "GET"
-            Credential = $Credential
+            URI    = "{0}/remotelink{1}" -f $issueObj.RestUrl, $urlAppendix
+            Method = "GET"
         }
-        Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-        $result = Invoke-JiraMethod @parameter
+        Write-DebugMessage "Invoking JiraMethod with `$parameter"
+        $result = Invoke-JiraRequest -RequestContext $RequestContext @parameter
 
         Write-Output (ConvertTo-JiraLink -InputObject $result)
     }

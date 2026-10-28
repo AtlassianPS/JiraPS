@@ -1,4 +1,8 @@
 ﻿function Resolve-ErrorWebResponse {
+    <#
+    .SYNOPSIS
+        Read an HTTP failure response and report Jira errors through the calling command.
+    #>
     [CmdletBinding()]
     param (
         $Exception,
@@ -13,8 +17,8 @@
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+        Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
 
         $responseBody = $null
         if ($PSVersionTable.PSEdition -eq 'Core') { $responseBody = $Exception.ErrorDetails.Message }
@@ -38,12 +42,12 @@
         if ($responseBody) {
             # Clear the body in case it is not a JSON (but rather html)
             if ($responseBody -match "^[\s\t]*\<html\>") {
-                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Content is HTML - replacing it with a generic json"
+                Write-DebugMessage "Content is HTML - replacing it with a generic json"
                 $responseBody = '{"errorMessages": "Invalid server response. HTML returned."}'
             }
 
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] Retrieved body of HTTP response for more information about the error (`$responseBody)"
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Got the following error as `$responseBody"
+            Write-DebugMessage "Got the following error as `$responseBody"
 
             try {
                 $responseObject = ConvertFrom-Json -InputObject $responseBody -ErrorAction Stop
@@ -93,7 +97,7 @@
                 }
             }
             catch [ArgumentException] {
-                Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] `$responseBody could not be converted from JSON"
+                Write-DebugMessage "`$responseBody could not be converted from JSON"
                 $writeErrorSplat = @{
                     Exception    = $exception
                     ErrorId      = $errorId
@@ -117,7 +121,7 @@
             }
         }
         else {
-            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Response had no Body. Using `$StatusCode for generic error"
+            Write-DebugMessage "Response had no Body. Using `$StatusCode for generic error"
             $writeErrorSplat = @{
                 Exception = $exception
                 ErrorId   = $errorId

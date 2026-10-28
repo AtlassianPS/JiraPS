@@ -52,14 +52,14 @@ InModuleScope JiraPS {
             if ($script:createdIssues -and $script:createdIssues.Count -gt 0) {
                 foreach ($key in $script:createdIssues) {
                     try {
-                        Remove-JiraIssue -IssueId $key -Force -ErrorAction SilentlyContinue
+                        Remove-JiraIssue -Issue $key -Confirm:$false -ErrorAction SilentlyContinue
                     }
                     catch {
                         Write-Verbose "Cleanup: Failed to remove issue $key - $_"
                     }
                 }
             }
-            Remove-JiraSession -ErrorAction SilentlyContinue
+            Disconnect-Jira -ErrorAction SilentlyContinue
         }
 
         Describe "Get-JiraIssueLinkType" {
@@ -149,7 +149,7 @@ InModuleScope JiraPS {
                         outwardIssue = @{ key = $targetIssue.Key }
                     }
 
-                    { Add-JiraIssueLink -IssueLink $issueLink } |
+                    { Add-JiraIssueLink -IssueLink $issueLink -ErrorAction Stop } |
                         Should -Not -Throw
                 }
 
@@ -169,7 +169,7 @@ InModuleScope JiraPS {
                         outwardIssue = @{ key = $targetIssue.Key }
                     }
 
-                    { Add-JiraIssueLink -IssueLink $issueLink } |
+                    { Add-JiraIssueLink -IssueLink $issueLink -ErrorAction Stop } |
                         Should -Not -Throw
 
                     $sourceAfterCreate = Get-JiraIssue -Key $sourceIssue.Key
@@ -202,7 +202,7 @@ InModuleScope JiraPS {
                     $linkTypes = Get-JiraIssueLinkType
                     $issueLink = New-JiraIssueLinkRequest -LinkType $linkTypes[0].Name -FromIssue $sourceIssue.Key -ToIssue $targetIssue.Key
 
-                    { Add-JiraIssueLink -IssueLink $issueLink } |
+                    { Add-JiraIssueLink -IssueLink $issueLink -ErrorAction Stop } |
                         Should -Not -Throw
                 }
 
@@ -219,7 +219,7 @@ InModuleScope JiraPS {
                         outwardIssue = [AtlassianPS.JiraPS.LinkedIssueRef]@{ key = $targetIssue.Key }
                     }
 
-                    { Add-JiraIssueLink -IssueLink $issueLink } |
+                    { Add-JiraIssueLink -IssueLink $issueLink -ErrorAction Stop } |
                         Should -Not -Throw
                 }
 
@@ -245,7 +245,7 @@ InModuleScope JiraPS {
                         outwardIssue = [AtlassianPS.JiraPS.LinkedIssueRef]@{ id = $targetIssueFull.Id }
                     }
 
-                    { Add-JiraIssueLink -IssueLink $issueLink } |
+                    { Add-JiraIssueLink -IssueLink $issueLink -ErrorAction Stop } |
                         Should -Not -Throw
                 }
             }
@@ -356,7 +356,7 @@ InModuleScope JiraPS {
                     $issue = Get-JiraIssue -Key $removeSource.Key
                     $linkToRemove = $issue.issueLinks[0]
 
-                    { Remove-JiraIssueLink -IssueLink $linkToRemove -Confirm:$false } |
+                    { Remove-JiraIssueLink -IssueLink $linkToRemove -Confirm:$false -ErrorAction Stop } |
                         Should -Not -Throw
 
                     $afterRemoval = Get-JiraIssue -Key $removeSource.Key
@@ -385,7 +385,7 @@ InModuleScope JiraPS {
 
                     $issue = Get-JiraIssue -Key $pipeSource.Key
 
-                    { $issue | Remove-JiraIssueLink -Confirm:$false } |
+                    { $issue | Remove-JiraIssueLink -Confirm:$false -ErrorAction Stop } |
                         Should -Not -Throw
 
                     $afterRemoval = Get-JiraIssue -Key $pipeSource.Key

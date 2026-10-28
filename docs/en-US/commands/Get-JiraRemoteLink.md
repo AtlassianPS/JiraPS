@@ -15,8 +15,7 @@ Returns a remote link from a Jira issue.
 ## SYNTAX
 
 ```powershell
-Get-JiraRemoteLink [-Issue] <AtlassianPS.JiraPS.Issue> [[-LinkId] <int>] [[-Credential] <pscredential>]
- [<CommonParameters>]
+Get-JiraRemoteLink [-Issue] <AtlassianPS.JiraPS.Issue> [[-LinkId] <int>] [[-Connection] <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -28,7 +27,7 @@ This function returns information on remote links from a  Jira issue.
 ### Example 1
 
 ```powershell
-Get-JiraRemoteLink -Issue TEST-001 -Credential $cred
+Get-JiraRemoteLink -Issue TEST-001
 ```
 
 Returns information about all remote links from the issue "TEST-001"
@@ -36,21 +35,22 @@ Returns information about all remote links from the issue "TEST-001"
 ### Example 2
 
 ```powershell
-Get-JiraRemoteLink -Issue TEST-001 -LinkId 100000 -Credential $cred
+Get-JiraRemoteLink -Issue TEST-001 -LinkId 100000
 ```
 
 Returns information about a specific remote link from the issue "TEST-001"
 
 ## PARAMETERS
 
-### -Credential
+### -Connection
 
-Credentials to use to connect to Jira.
-If not specified, this function will use anonymous access.
+Active Jira connection for this operation.
+When omitted, the command uses the selected Jira default.
+Create connections with Connect-Jira; resolve names with Get-JiraConnection -Name.
 
 ```yaml
-Type: PSCredential
-DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
+Type: AtlassianPS.Connection
+DefaultValue: None
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
@@ -67,9 +67,7 @@ HelpMessage: ''
 
 ### -Issue
 
-The issue to search for link.
-
-Can be an `AtlassianPS.JiraPS.Issue` object, issue key, or internal issue ID.
+Issue keys, numeric ID strings or typed issue objects.
 
 ```yaml
 Type: AtlassianPS.JiraPS.Issue
@@ -112,12 +110,14 @@ HelpMessage: ''
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable, -ProgressAction, -Verbose, -WarningAction, and -WarningVariable.
-For more information, see [about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
+-InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
+-ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
+[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
-### AtlassianPS.JiraPS.Issue / String
+### AtlassianPS.JiraPS.Issue
 
 ## OUTPUTS
 
@@ -125,10 +125,12 @@ For more information, see [about_CommonParameters](https://go.microsoft.com/fwli
 
 ## NOTES
 
-This function requires either the `-Credential` parameter to be passed or a persistent Jira session.
-See `New-JiraSession` for more details.
-If neither are supplied, this function will run with anonymous access to Jira.
+This function uses the selected Jira connection unless you pass another connection through `-Connection`.
+Use `Connect-Jira` to create a connection.
+For anonymous access, create the connection with `Connect-Jira -Anonymous`.
 
 ## RELATED LINKS
+
+[about_JiraPS_Authentication](../../about/authentication.html)
 
 [Remove-JiraRemoteLink](../Remove-JiraRemoteLink/)

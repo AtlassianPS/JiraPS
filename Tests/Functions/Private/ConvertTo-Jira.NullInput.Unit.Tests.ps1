@@ -28,59 +28,40 @@ InModuleScope JiraPS {
         }
 
         It 'accounts for every ConvertTo-Jira function' {
-            $converters = @(Get-Command -Name 'ConvertTo-Jira*' -CommandType Function |
-                    Where-Object -FilterScript { $_.ModuleName -eq 'JiraPS' })
+            $converters = @(
+                Get-Command -Name 'ConvertTo-Jira*' -CommandType Function |
+                    Where-Object -FilterScript { $_.ModuleName -eq 'JiraPS' }
+            )
             $converters.Count | Should -BeGreaterThan 0
             $specialConverters = @(
                 'ConvertTo-JiraEnum'
                 'ConvertTo-JiraFieldAssignment'
                 'ConvertTo-JiraRestApiV3Url'
-                'ConvertTo-JiraSession'
                 'ConvertTo-JiraTable'
             )
-            $uncovered = @($converters | Where-Object -FilterScript {
+            $uncovered = @(
+                $converters | Where-Object -FilterScript {
                     -not $_.Parameters.ContainsKey('InputObject') -and $_.Name -notin $specialConverters
-                })
+                }
+            )
             $uncovered.Count | Should -Be 0 -Because "every converter needs a null contract: $($uncovered.Name -join ', ')"
         }
 
         Context 'Optional object input' {
-            It '<converter> returns null for explicit null input' -TestCases $script:nullInputConverterCases {
+            It '<converter> emits no object for absent direct or pipeline input' -TestCases $script:nullInputConverterCases {
                 param($converter)
-                $result = & $converter -InputObject $null
-                ($null -eq $result) | Should -BeTrue
-            }
-
-            It '<converter> returns null when input is omitted' -TestCases $script:nullInputConverterCases {
-                param($converter)
-                $result = & $converter
-                ($null -eq $result) | Should -BeTrue
-            }
-
-            It '<converter> returns null for piped null input' -TestCases $script:nullInputConverterCases {
-                param($converter)
-                $result = $null | & $converter
-                ($null -eq $result) | Should -BeTrue
+                ($null -eq (& $converter -InputObject $null)) | Should -BeTrue -Because 'explicit null must remain absent'
+                ($null -eq (& $converter)) | Should -BeTrue -Because 'omitted input must remain absent'
+                ($null -eq ($null | & $converter)) | Should -BeTrue -Because 'piped null must remain absent'
             }
         }
 
         Context 'Array input' {
-            It '<converter> emits no objects for an empty array' -TestCases $script:arrayInputConverterCases {
+            It '<converter> emits no objects for empty or null-only collections' -TestCases $script:arrayInputConverterCases {
                 param($converter)
-                $result = @(& $converter -InputObject @())
-                $result.Count | Should -Be 0
-            }
-
-            It '<converter> emits no objects for null array entries' -TestCases $script:arrayInputConverterCases {
-                param($converter)
-                $result = @(& $converter -InputObject @($null, $null))
-                $result.Count | Should -Be 0
-            }
-
-            It '<converter> emits no objects for piped null array entries' -TestCases $script:arrayInputConverterCases {
-                param($converter)
-                $result = @(@($null, $null) | & $converter)
-                $result.Count | Should -Be 0
+                @(& $converter -InputObject @()) | Should -HaveCount 0
+                @(& $converter -InputObject @($null, $null)) | Should -HaveCount 0
+                @(@($null, $null) | & $converter) | Should -HaveCount 0
             }
 
             It '<converter> skips null entries without dropping adjacent objects' -TestCases $script:arrayInputConverterCases {
@@ -99,10 +80,6 @@ InModuleScope JiraPS {
             It 'ConvertTo-JiraEnum returns null for a missing enum value' {
                 $result = ConvertTo-JiraEnum -Type ([AtlassianPS.JiraPS.AccountType]) -Value $null
                 ($null -eq $result) | Should -BeTrue
-            }
-
-            It 'ConvertTo-JiraSession rejects a null required session' {
-                { ConvertTo-JiraSession -Session $null } | Should -Throw -ExpectedMessage '*Session*null*'
             }
 
             It 'ConvertTo-JiraTable rejects null input' {

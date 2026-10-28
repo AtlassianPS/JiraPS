@@ -17,21 +17,21 @@ Modifies labels on an existing Jira issue.
 ### ReplaceLabels (Default)
 
 ```powershell
-Set-JiraIssueLabel [-Issue] <AtlassianPS.JiraPS.Issue> -Set <string[]> [-Credential <pscredential>] [-PassThru]
- [-WhatIf] [-Confirm] [<CommonParameters>]
+Set-JiraIssueLabel [-Issue] <AtlassianPS.JiraPS.Issue> -Set <string[]> [-PassThru] [-Connection <AtlassianPS.Connection>] [-WhatIf]
+ [-Confirm] [<CommonParameters>]
 ```
 
 ### ModifyLabels
 
 ```powershell
-Set-JiraIssueLabel [-Issue] <AtlassianPS.JiraPS.Issue> [-Add <string[]>] [-Remove <string[]>]
- [-Credential <pscredential>] [-PassThru] [-WhatIf] [-Confirm] [<CommonParameters>]
+Set-JiraIssueLabel [-Issue] <AtlassianPS.JiraPS.Issue> [-Add <string[]>] [-Remove <string[]>] [-PassThru]
+ [-Connection <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ### ClearLabels
 
 ```powershell
-Set-JiraIssueLabel [-Issue] <AtlassianPS.JiraPS.Issue> -Clear [-Credential <pscredential>] [-PassThru] [-WhatIf]
+Set-JiraIssueLabel [-Issue] <AtlassianPS.JiraPS.Issue> -Clear [-PassThru] [-Connection <AtlassianPS.Connection>] [-WhatIf]
  [-Confirm] [<CommonParameters>]
 ```
 
@@ -137,14 +137,15 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
-### -Credential
+### -Connection
 
-Credentials to use to connect to Jira.
-If not specified, this function will use anonymous access.
+Active Jira connection for this operation.
+When omitted, the command uses the selected Jira default.
+Create connections with Connect-Jira; resolve names with Get-JiraConnection -Name.
 
 ```yaml
-Type: PSCredential
-DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
+Type: AtlassianPS.Connection
+DefaultValue: None
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
@@ -161,9 +162,7 @@ HelpMessage: ''
 
 ### -Issue
 
-Issue of which the labels should be manipulated.
-
-Can be an `AtlassianPS.JiraPS.Issue` object, issue key, or internal issue ID.
+Issue keys, numeric ID strings or typed issue objects.
 
 ```yaml
 Type: AtlassianPS.JiraPS.Issue
@@ -275,13 +274,14 @@ HelpMessage: ''
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable, -ProgressAction, -Verbose, -WarningAction, and -WarningVariable.
-For more information, see [about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
+-InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
+-ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
+[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
 ### AtlassianPS.JiraPS.Issue
-
 
 ## OUTPUTS
 
@@ -292,10 +292,12 @@ Otherwise, this function does not provide output.
 
 ## NOTES
 
-This function requires either the `-Credential` parameter to be passed or a persistent Jira session.
-See `New-JiraSession` for more details.
-If neither are supplied, this function will run with anonymous access to Jira.
+This function uses the selected Jira connection unless you pass another connection through `-Connection`.
+Use `Connect-Jira` to create a connection.
+For anonymous access, create the connection with `Connect-Jira -Anonymous`.
 
 ## RELATED LINKS
+
+[about_JiraPS_Authentication](../../about/authentication.html)
 
 [Get-JiraIssue](../Get-JiraIssue/)

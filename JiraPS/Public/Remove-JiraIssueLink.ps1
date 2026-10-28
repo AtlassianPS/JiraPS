@@ -15,27 +15,28 @@
         $Issue,
 
         [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        [AtlassianPS.Connection]
+        $Connection
     )
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
+        $RequestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
+
         $resourceURi = "/rest/api/2/issueLink/{0}"
     }
 
     process {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+        Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
 
         $linksToRemove = switch ($PSCmdlet.ParameterSetName) {
             'ByIssue' {
                 foreach ($currentIssue in $Issue) {
                     $resolvedIssue = if ($currentIssue.IssueLinks) { $currentIssue }
                     else {
-                        Resolve-JiraIssueObject -InputObject $currentIssue -Credential $Credential -ErrorAction Stop
+                        Resolve-JiraIssueObject -InputObject $currentIssue -RequestContext $RequestContext -ErrorAction Stop
                     }
 
                     foreach ($link in @($resolvedIssue.IssueLinks)) {
@@ -48,15 +49,14 @@
 
         foreach ($link in $linksToRemove) {
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$link]"
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$link [$link]"
+            Write-DebugMessage "Processing `$link [$link]"
 
             $parameter = @{
-                URI        = $resourceURi -f $link.id
-                Method     = "DELETE"
-                Credential = $Credential
+                URI    = $resourceURi -f $link.id
+                Method = "DELETE"
             }
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-            if ($PSCmdlet.ShouldProcess($link.id, "Remove IssueLink")) { Invoke-JiraMethod @parameter }
+            Write-DebugMessage "Invoking JiraMethod with `$parameter"
+            if ($PSCmdlet.ShouldProcess($link.id, "Remove IssueLink")) { Invoke-JiraRequest -RequestContext $RequestContext @parameter }
         }
     }
 

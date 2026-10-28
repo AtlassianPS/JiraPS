@@ -25,9 +25,9 @@ InModuleScope JiraPS {
 
         AfterAll {
             if ($tempIssue -and $tempIssue.Key) {
-                Remove-JiraIssue -IssueId $tempIssue.Key -Force -ErrorAction SilentlyContinue
+                Remove-JiraIssue -Issue $tempIssue.Key -Confirm:$false -ErrorAction SilentlyContinue
             }
-            Remove-JiraSession -ErrorAction SilentlyContinue
+            Disconnect-Jira -ErrorAction SilentlyContinue
         }
 
         Describe "Get-JiraIssueAttachment" {
@@ -42,7 +42,7 @@ InModuleScope JiraPS {
                     # on Data Center). Assert the call succeeds and only type-check when
                     # there is data; the "returns attachment objects with correct type"
                     # test below already covers the populated case via Add+Get.
-                    { Get-JiraIssueAttachment -Issue $fixtures.TestIssue } | Should -Not -Throw
+                    { Get-JiraIssueAttachment -Issue $fixtures.TestIssue -ErrorAction Stop } | Should -Not -Throw
 
                     $attachments = Get-JiraIssueAttachment -Issue $fixtures.TestIssue
                     if ($attachments) { @($attachments)[0] | Should -BeOfType [AtlassianPS.JiraPS.Attachment] }
@@ -65,7 +65,7 @@ InModuleScope JiraPS {
                     }
                     $issue = Get-JiraIssue -Key $fixtures.TestIssue
 
-                    { $issue | Get-JiraIssueAttachment } | Should -Not -Throw
+                    { $issue | Get-JiraIssueAttachment -ErrorAction Stop } | Should -Not -Throw
                 }
             }
         }
@@ -143,8 +143,8 @@ InModuleScope JiraPS {
                     $attachment | Should -Not -BeNullOrEmpty
                     $attachment.Filename | Should -Be ([System.IO.Path]::GetFileName($testBinaryFilePath))
 
-                    $result = Get-JiraIssueAttachmentFile -Attachment $attachment -Path $downloadDir
-                    $result | Should -BeTrue
+                    $result = Save-JiraIssueAttachment -Attachment $attachment -Path $downloadDir
+                    $result | Should -BeOfType ([System.IO.FileInfo])
 
                     $downloadedFilePath = Join-Path $downloadDir $attachment.Filename
                     (Test-Path $downloadedFilePath) | Should -BeTrue
@@ -194,7 +194,7 @@ InModuleScope JiraPS {
 
             AfterAll {
                 if ($deleteTestIssue -and $deleteTestIssue.Key) {
-                    Remove-JiraIssue -IssueId $deleteTestIssue.Key -Force -ErrorAction SilentlyContinue
+                    Remove-JiraIssue -Issue $deleteTestIssue.Key -Confirm:$false -ErrorAction SilentlyContinue
                 }
                 if ($deleteTestFile -and (Test-Path $deleteTestFile)) { Remove-Item $deleteTestFile -Force }
             }
@@ -211,7 +211,7 @@ InModuleScope JiraPS {
                         return
                     }
 
-                    { Remove-JiraIssueAttachment -AttachmentId $attachment.Id -Force } | Should -Not -Throw
+                    { Remove-JiraIssueAttachment -AttachmentId $attachment.Id -Confirm:$false -ErrorAction Stop } | Should -Not -Throw
 
                     $remaining = Get-JiraIssueAttachment -Issue $deleteTestIssue.Key
                     $matchingAttachment = $remaining | Where-Object { $_.Id -eq $attachment.Id }

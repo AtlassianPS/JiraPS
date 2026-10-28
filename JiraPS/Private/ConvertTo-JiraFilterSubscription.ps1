@@ -1,4 +1,8 @@
 ﻿function ConvertTo-JiraFilterSubscription {
+    <#
+    .SYNOPSIS
+        Convert Jira response data to AtlassianPS.JiraPS.FilterSubscription objects.
+    #>
     [CmdletBinding()]
     [OutputType([AtlassianPS.JiraPS.FilterSubscription])]
     param(
@@ -10,7 +14,7 @@
     process {
         foreach ($i in $InputObject) {
             if ($null -eq $i) { continue }
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to AtlassianPS.JiraPS.FilterSubscription"
+            Write-DebugMessage "Converting `$InputObject to AtlassianPS.JiraPS.FilterSubscription"
 
             [AtlassianPS.JiraPS.FilterSubscription]@{
                 Id    = ConvertTo-JiraNullableInt64 $i.id

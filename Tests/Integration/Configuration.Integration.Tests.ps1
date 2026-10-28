@@ -31,26 +31,31 @@ Describe "Integration Test Configuration" -Tag 'Integration', 'Smoke', 'Cloud' {
 
         It "JIRA_CLOUD_URL is configured" {
             $value = [Environment]::GetEnvironmentVariable('JIRA_CLOUD_URL')
+
             $value | Should -Not -BeNullOrEmpty -Because "JIRA_CLOUD_URL secret must be configured in repository settings"
         }
 
         It "JIRA_CLOUD_USERNAME is configured" {
             $value = [Environment]::GetEnvironmentVariable('JIRA_CLOUD_USERNAME')
+
             $value | Should -Not -BeNullOrEmpty -Because "JIRA_CLOUD_USERNAME secret must be configured in repository settings"
         }
 
         It "JIRA_CLOUD_PASSWORD is configured" {
             $value = [Environment]::GetEnvironmentVariable('JIRA_CLOUD_PASSWORD')
+
             $value | Should -Not -BeNullOrEmpty -Because "JIRA_CLOUD_PASSWORD secret must be configured in repository settings"
         }
 
         It "JIRA_TEST_PROJECT is configured" {
             $value = [Environment]::GetEnvironmentVariable('JIRA_TEST_PROJECT')
+
             $value | Should -Not -BeNullOrEmpty -Because "JIRA_TEST_PROJECT secret must be configured in repository settings"
         }
 
         It "JIRA_TEST_ISSUE is configured" {
             $value = [Environment]::GetEnvironmentVariable('JIRA_TEST_ISSUE')
+
             $value | Should -Not -BeNullOrEmpty -Because "JIRA_TEST_ISSUE secret must be configured in repository settings"
         }
     }
@@ -64,9 +69,10 @@ Describe "Integration Test Configuration" -Tag 'Integration', 'Smoke', 'Cloud' {
                 return
             }
 
-            Set-JiraConfigServer -Server $env.CloudUrl
+            $null = Connect-JiraTestServer -Environment $env
 
             $serverInfo = Get-JiraServerInformation -ErrorAction Stop
+
             $serverInfo | Should -Not -BeNullOrEmpty -Because "Should be able to reach Jira server"
         }
 
@@ -80,10 +86,16 @@ Describe "Integration Test Configuration" -Tag 'Integration', 'Smoke', 'Cloud' {
             # Use -ApiToken/-EmailAddress which is the documented happy path for Jira Cloud
             $secureToken = ConvertTo-SecureString -String $env.Password -AsPlainText -Force
 
-            $session = New-JiraSession -ApiToken $secureToken -EmailAddress $env.Username -ErrorAction Stop
+            $existing = Get-JiraConnection -Name configuration-auth
+            if ($existing) { $existing | Disconnect-Jira }
+            try {
+                $session = Connect-Jira -Name configuration-auth -Uri $env.CloudUrl -ApiToken $secureToken -EmailAddress $env.Username -ErrorAction Stop
+            }
+            finally { $secureToken.Dispose() }
+
             $session | Should -Not -BeNullOrEmpty -Because "Should be able to authenticate with API token"
 
-            Remove-JiraSession -ErrorAction SilentlyContinue
+            Disconnect-Jira -Connection $session
         }
     }
 }

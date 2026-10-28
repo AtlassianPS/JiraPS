@@ -1,4 +1,8 @@
 ﻿function ConvertTo-JiraWorklogItem {
+    <#
+    .SYNOPSIS
+        Convert Jira response data to AtlassianPS.JiraPS.Worklogitem objects.
+    #>
     [CmdletBinding()]
     [OutputType([AtlassianPS.JiraPS.Worklogitem])]
     param(
@@ -10,7 +14,7 @@
     process {
         foreach ($i in $InputObject) {
             if ($null -eq $i) { continue }
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to AtlassianPS.JiraPS.Worklogitem"
+            Write-DebugMessage "Converting `$InputObject to AtlassianPS.JiraPS.Worklogitem"
 
             $props = @{
                 'ID'         = ConvertTo-JiraNullableInt64 $i.id

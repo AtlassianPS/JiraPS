@@ -12,59 +12,45 @@
         [Parameter( Mandatory )]
         [AtlassianPS.JiraPS.LinkTransformation()]
         [AtlassianPS.JiraPS.Link[]]
-        $LinkId,
+        $Link,
 
         [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty,
-
-        [Switch]
-        $Force
+        [AtlassianPS.Connection]
+        $Connection
     )
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $resourceURi = "/rest/api/2/issue/{0}/remotelink/{1}"
+        $RequestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
 
-        if ($Force) {
-            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] -Force was passed. Backing up current ConfirmPreference [$ConfirmPreference] and setting to None"
-            $oldConfirmPreference = $ConfirmPreference
-            $ConfirmPreference = 'None'
-        }
+        $resourceURi = "/rest/api/2/issue/{0}/remotelink/{1}"
     }
 
     process {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+        Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
 
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$Issue]"
-        Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$Issue [$Issue]"
+        Write-DebugMessage "Processing `$Issue [$Issue]"
 
         # Find the proper object for the Issue
-        $issueObj = Resolve-JiraIssueObject -InputObject $Issue -Credential $Credential
+        $issueObj = Resolve-JiraIssueObject -InputObject $Issue -RequestContext $RequestContext
 
-        foreach ($_link in $LinkId) {
+        foreach ($_link in $Link) {
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_link]"
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_link [$_link]"
+            Write-DebugMessage "Processing `$_link [$_link]"
 
             $parameter = @{
-                URI        = $resourceURi -f $issueObj.Key, $_link.Id
-                Method     = "DELETE"
-                Credential = $Credential
+                URI    = $resourceURi -f $issueObj.Key, $_link.Id
+                Method = "DELETE"
             }
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-            if ($PSCmdlet.ShouldProcess($issueObj.Key, "Remove RemoteLink '$_link'")) { Invoke-JiraMethod @parameter }
+            Write-DebugMessage "Invoking JiraMethod with `$parameter"
+            if ($PSCmdlet.ShouldProcess($issueObj.Key, "Remove RemoteLink '$_link'")) { Invoke-JiraRequest -RequestContext $RequestContext @parameter }
         }
     }
 
     end {
-        if ($Force) {
-            Write-DebugMessage "[Remove-JiraGroupMember] Restoring ConfirmPreference to [$oldConfirmPreference]"
-            $ConfirmPreference = $oldConfirmPreference
-        }
-
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

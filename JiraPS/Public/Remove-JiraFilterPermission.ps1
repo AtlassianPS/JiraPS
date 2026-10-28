@@ -1,6 +1,6 @@
 ﻿function Remove-JiraFilterPermission {
     # .ExternalHelp ..\JiraPS-help.xml
-    [CmdletBinding( ConfirmImpact = 'Medium', SupportsShouldProcess )]
+    [CmdletBinding( ConfirmImpact = 'Medium', SupportsShouldProcess, DefaultParameterSetName = 'Permission' )]
     param(
         [Parameter( Position = 0, Mandatory, ValueFromPipeline )]
         [ValidateNotNull()]
@@ -9,44 +9,53 @@
         [AtlassianPS.JiraPS.Filter]
         $Filter,
 
-        [Parameter( Position = 1 )]
+        [Parameter( Mandatory, Position = 1, ParameterSetName = 'Permission' )]
         [ValidateNotNullOrEmpty()]
         [Alias('PermissionId')]
         [AtlassianPS.JiraPS.FilterPermissionTransformation()]
         [AtlassianPS.JiraPS.FilterPermission[]]
         $Permission,
 
+        [Parameter( Mandatory, ParameterSetName = 'All' )]
+        [Switch]
+        $All,
+
         [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        [AtlassianPS.Connection]
+        $Connection
     )
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+
+        $RequestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
     }
 
     process {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+        Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
 
         $filterObject = if ($Filter.RestUrl) { $Filter }
         else {
-            Get-JiraFilter -Id $Filter.Id -Credential $Credential -ErrorAction Stop
+            Get-JiraFilter -Id $Filter.Id -Connection $RequestContext -ErrorAction Stop
         }
 
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$filterObject]"
-        Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$filterObject [$filterObject]"
+        Write-DebugMessage "Processing `$filterObject [$filterObject]"
 
-        $permissions = if ($PSBoundParameters.ContainsKey('Permission')) { $Permission }
-        else { $filterObject.FilterPermissions }
+        if ($PSCmdlet.ParameterSetName -eq 'All' -and -not $All) { throw 'Supply -All to remove every filter permission.' }
+        $permissions = if ($PSCmdlet.ParameterSetName -eq 'Permission') { $Permission }
+        else {
+            $permissionResponse = Invoke-JiraRequest -RequestContext $RequestContext -Uri "$($filterObject.RestUrl)/permission" -Method Get -ErrorAction Stop
+            @(ConvertTo-JiraFilterPermission -InputObject $permissionResponse)
+        }
 
         if (-not $permissions) {
             ThrowError -ExceptionType 'System.ArgumentException' `
                 -ErrorId 'ParameterValue.FilterWithoutPermission' `
                 -Category InvalidArgument `
                 -TargetObject $Filter `
-                -Message 'The Filter has no permissions to remove. Supply Permission or retrieve it with Get-JiraFilterPermission first.'
+                -Message 'The filter has no permissions to remove.'
         }
 
         foreach ($permissionToRemove in $permissions) {
@@ -61,16 +70,15 @@
 
         foreach ($permissionToRemove in $permissions) {
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing permission [$($permissionToRemove.Id)]"
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$permissionToRemove [$permissionToRemove]"
+            Write-DebugMessage "Processing `$permissionToRemove [$permissionToRemove]"
 
             $parameter = @{
-                URI        = "{0}/permission/{1}" -f $filterObject.RestUrl, $permissionToRemove.Id
-                Method     = 'DELETE'
-                Credential = $Credential
+                URI    = "{0}/permission/{1}" -f $filterObject.RestUrl, $permissionToRemove.Id
+                Method = 'DELETE'
             }
 
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-            if ($PSCmdlet.ShouldProcess($filterObject.Name, "Remove permission $($permissionToRemove.Id)")) { Invoke-JiraMethod @parameter }
+            Write-DebugMessage "Invoking JiraMethod with `$parameter"
+            if ($PSCmdlet.ShouldProcess($filterObject.Name, "Remove permission $($permissionToRemove.Id)")) { Invoke-JiraRequest -RequestContext $RequestContext @parameter }
         }
     }
 

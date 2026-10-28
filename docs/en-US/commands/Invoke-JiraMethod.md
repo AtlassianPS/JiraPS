@@ -10,227 +10,195 @@ permalink: /docs/JiraPS/commands/Invoke-JiraMethod/
 
 ## SYNOPSIS
 
-Invoke a specific call to a Jira REST Api endpoint
+Send a request to a Jira REST endpoint.
 
 ## SYNTAX
 
+### Connection (Default)
+
 ```powershell
-Invoke-JiraMethod [-URI] <uri> [[-Method] <WebRequestMethod>] [[-Body] <string>]
- [[-Headers] <hashtable>] [[-GetParameter] <hashtable>] [[-InFile] <string>] [[-OutFile] <string>]
- [[-OutputType] <string>] [[-Credential] <pscredential>] [[-Cmdlet] <PSCmdlet>]
- [[-CacheKey] <string>] [[-CacheExpiry] <timespan>] [-RawBody] [-Paging]
- [-StoreSession] [-BypassCache] [-TimeoutSec <int>] [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>]
- [<CommonParameters>]
+Invoke-JiraMethod [-Uri] <uri> [-Method <WebRequestMethod>] [-Body <Object>] [-ContentType <string>]
+ [-Headers <hashtable>] [-QueryParameter <hashtable>] [-Paging] [-PageSize <int>]
+ [-OutFile <string>] [-RawResponse] [-TimeoutSec <int>] [-Connection <AtlassianPS.Connection>] [-WhatIf]
+ [-Confirm] [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>]
 ```
+
+### NamedConnection
+
+```powershell
+Invoke-JiraMethod [-Uri] <uri> -ConnectionName <string> [-Method <WebRequestMethod>]
+ [-Body <Object>] [-ContentType <string>] [-Headers <hashtable>] [-QueryParameter <hashtable>]
+ [-Paging] [-PageSize <int>] [-OutFile <string>] [-RawResponse] [-TimeoutSec <int>] [-WhatIf]
+ [-Confirm] [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>]
+```
+
+### Anonymous
+
+```powershell
+Invoke-JiraMethod [-Uri] <uri> -BaseUri <uri> -Anonymous [-Method <WebRequestMethod>]
+ [-Body <Object>] [-ContentType <string>] [-Headers <hashtable>] [-QueryParameter <hashtable>]
+ [-Paging] [-PageSize <int>] [-OutFile <string>] [-RawResponse] [-TimeoutSec <int>] [-WhatIf]
+ [-Confirm] [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>]
+```
+
+### PersonalAccessToken
+
+```powershell
+Invoke-JiraMethod [-Uri] <uri> -BaseUri <uri> -PersonalAccessToken <Object>
+ [-Method <WebRequestMethod>] [-Body <Object>] [-ContentType <string>] [-Headers <hashtable>]
+ [-QueryParameter <hashtable>] [-Paging] [-PageSize <int>] [-OutFile <string>] [-RawResponse]
+ [-TimeoutSec <int>] [-WhatIf] [-Confirm] [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>]
+```
+
+### CloudToken
+
+```powershell
+Invoke-JiraMethod [-Uri] <uri> -BaseUri <uri> -EmailAddress <string> -ApiToken <Object>
+ [-Method <WebRequestMethod>] [-Body <Object>] [-ContentType <string>] [-Headers <hashtable>]
+ [-QueryParameter <hashtable>] [-Paging] [-PageSize <int>] [-OutFile <string>] [-RawResponse]
+ [-TimeoutSec <int>] [-WhatIf] [-Confirm] [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>]
+```
+
+### Basic
+
+```powershell
+Invoke-JiraMethod [-Uri] <uri> -BaseUri <uri> -Credential <pscredential>
+ [-Method <WebRequestMethod>] [-Body <Object>] [-ContentType <string>] [-Headers <hashtable>]
+ [-QueryParameter <hashtable>] [-Paging] [-PageSize <int>] [-OutFile <string>] [-RawResponse]
+ [-TimeoutSec <int>] [-WhatIf] [-Confirm] [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>]
+```
+
+## ALIASES
+
+This cmdlet has the following aliases,
+None.
 
 ## DESCRIPTION
 
-Make a call to a REST Api endpoint with all the benefits of JiraPS.
+Use this command for Jira REST endpoints without a dedicated JiraPS command.
+Omitting a connection selector uses the selected default connection.
+Supply either Connection or ConnectionName to select another connection.
+An existing connection keeps its authenticated identity; authentication overrides are not supported.
 
-This cmdlet is what the other cmdlets call under the hood.
-It handles the authentication, parses the response, handles exceptions from Jira, returns specific objects and handles the differences between versions of Powershell and Operating Systems.
-When you pass a relative URI path, it must start with `/` and JiraPS resolves it against `Get-JiraConfigServer`.
-Absolute URIs are also accepted for compatibility with object properties like `RestURL`.
+For a standalone request, supply BaseUri and exactly one authentication method.
+Standalone authentication is validated through Jira's myself endpoint before the requested operation.
+The temporary connection is disposed after the request and does not change the default or register a named connection.
+Anonymous standalone access requires recognized Jira deployment metadata.
 
-Use `Set-JiraResponseHeaderLogConfiguration` to opt into response-header logging on the debug stream.
-This is useful when troubleshooting Jira Data Center diagnostic headers such as `X-AREQUESTID`, `X-ANODEID`, `X-ASESSIONID`, and `X-AUSERNAME`.
-Debug output can include diagnostic metadata such as Jira usernames, so review logs before sharing them.
+Relative resource paths must start with a single slash.
+JiraPS preserves the selected connection's context or Cloud gateway prefix.
+Absolute resource URLs must belong to the selected endpoint.
+Matching Jira Cloud site resource URLs are mapped to the connection's gateway.
+Choose the REST API version and deployment-specific payload explicitly.
 
-JiraPS does not support any third-party plugins on Jira.
-This cmdlet can be used to interact with REST Api enpoints which are not already coverted in JiraPS.
-It allows for anyone to use the same technics as JiraPS uses internally for creating their own functions or modules.
-When used by a module, the Manifest (.psd1) can define the dependency to JiraPS with the 'RequiredModules' property.
-This will import the module if not already loaded or even download it from the PSGallery.
+Responses are parsed as JSON by default.
+Paging emits individual records from supported Jira item arrays.
+RawResponse returns the native web response, and OutFile saves the response bytes and returns FileInfo.
+These three response modes are mutually exclusive.
+Successful responses without content produce no objects.
+HTTP and transport failures honor the standard ErrorAction preference.
+
+Potentially mutating methods and file output support WhatIf and Confirm.
+Automatic retries apply only to GET, HEAD and OPTIONS requests.
+POST, PUT, PATCH and DELETE requests are not retried automatically.
+Typed JiraPS commands share this transport and retain their own confirmation behavior.
 
 ## EXAMPLES
 
-### Example 1
+### Example 1: Use the selected connection
 
 ```powershell
-Invoke-JiraMethod -URI "/rest/api/latest/project"
+Invoke-JiraMethod '/rest/api/2/mypermissions'
 ```
 
-Sends a GET request which will return all the projects on the Jira server.
-This call would either be executed anonymously or require a session to be available.
+Returns the Jira permissions response through the selected connection.
 
-### Example 2
-
-```powershell
-Invoke-JiraMethod -URI "/rest/api/latest/project" -Credential (Get-Credential)
-```
-
-Prompts the user for his Jira credentials and send a GET request,
-which will return all the projects on the Jira server.
-
-### Example 3
+### Example 2: Supply query parameters
 
 ```powershell
-$parameter = @{
-    URI = "/rest/api/latest/project"
-    Method = "POST"
-    Credential = $cred
+Invoke-JiraMethod '/rest/api/2/issue/PROJ-123' -ConnectionName 'work' -QueryParameter @{
+    fields = 'summary,status'
+    expand = 'names'
 }
-Invoke-JiraMethod @parameter
 ```
 
-Sends a POST request to the server.
+Uses the named connection and requests selected issue fields.
+Supply unencoded values; JiraPS encodes them once.
+Arrays produce repeated query keys, so use a comma-separated string when an endpoint expects comma-separated values.
 
-> This will example doesn't really do anything on the server, as the content API needs requires a value for the BODY.
-
-See next example
-
-### Example 4
+### Example 3: Submit a structured JSON body
 
 ```powershell
-$body = '{"name": "NewGroup"}'
-$params = @{
-    Uri = "/rest/api/latest/group"
-    Method = "POST"
-    Body = $body
-    Credential = $cred
-}
-Invoke-JiraMethod @params
+Invoke-JiraMethod '/rest/api/2/group' -Method Post -Body @{
+    name = 'release-reviewers'
+} -Connection $connection
 ```
 
-Creates a new group named "NewGroup"
+Creates a group using the supplied connection.
+The nested body is serialized as JSON and encoded as UTF-8.
+An already serialized JSON string is sent without additional JSON serialization.
 
-### Example 5
+### Example 4: Authenticate a standalone Cloud request
 
 ```powershell
-$params = @{
-    Uri = "/rest/api/latest/mypermissions"
-    Method = "GET"
-    Body = $body
-    StoreSession = $true
-    Credential = $cred
-}
-Invoke-JiraMethod @params
+Invoke-JiraMethod '/rest/api/2/mypermissions' -BaseUri 'https://example.atlassian.net' -EmailAddress $email -ApiToken $token
 ```
 
-Executes the GET request but instead of returning the response,
-it returns a `[AtlassianPS.JiraPS.Session]` which contains the `[WebRequestSession]`.
+Validates the supplied Cloud identity and sends one request without registering a connection.
+The normal Cloud site URL resolves to the Cloud API gateway automatically.
 
-### Example 6
+### Example 5: Page a Data Center search
 
 ```powershell
-$params = @{
-    Uri = "/rest/api/latest/issue/10000"
-    Method = "POST"
-    InFile = "c:\temp\20001231_Connection.log"
-    Credential = $cred
-}
-Invoke-JiraMethod @params
+Invoke-JiraMethod '/rest/api/2/search' -Connection $dataCenter -QueryParameter @{
+    jql = 'project = PROJ ORDER BY key'
+} -Paging -PageSize 50 -Skip 10 -First 100
 ```
 
-Executes a POST request on the defined URI and uploads the InFile with a multipart/form-data request.
+Returns at most 100 issue records after skipping the first 10.
+PageSize controls the requested batch size; Jira may cap it.
+Cloud enhanced search uses the GET endpoint /rest/api/3/search/jql and token pagination.
+Skip is applied locally for enhanced-search tokens and as an offset for Data Center search.
 
-### Example 7
+### Example 6: Inspect the response
 
 ```powershell
-$parameter = @{
-    URI = "/rest/api/latest/project"
-    Method = "GET"
-    OutFile = "c:\temp\jira_projects.json"
-    Credential = $cred
-}
-Invoke-JiraMethod @parameter
+$response = Invoke-JiraMethod '/rest/api/2/mypermissions' -RawResponse
+$response.StatusCode
+$response.Headers
+$response.Content
 ```
 
-Executes a GET request on all available projects and stores the response json in the defined file.
+Returns the native web response for status, headers and content inspection.
+Use this mode for endpoints that return non-JSON content.
 
-### Example 8
+### Example 7: Save a response
 
 ```powershell
-$parameter = @{
-    URI = "/rest/api/latest/project"
-    Method = "GET"
-    Headers = @{"Accept" = "text/plain"}
-    OutFile = "c:\temp\jira_projects.json"
-    Credential = $cred
-}
-Invoke-JiraMethod @parameter
+$file = Invoke-JiraMethod '/rest/api/2/project' -OutFile './jira-projects.json'
+$file.FullName
 ```
 
-Executes a GET request on the defined URI and stores the output on the File System.
-It also uses the Headers to define what mimeTypes are expected in the response.
-
-### Example 9
-
-```powershell
-$parameter = @{
-    URI = "/rest/api/latest/field"
-    Method = "GET"
-    CacheKey = "Fields"
-    CacheExpiry = [TimeSpan]::FromHours(1)
-}
-Invoke-JiraMethod @parameter
-```
-
-Fetches all fields from Jira and caches the response for 1 hour.
-Subsequent calls with the same CacheKey will return the cached data without making an API call.
-
-### Example 10
-
-```powershell
-# 30 seconds — short-lived data
-Invoke-JiraMethod -URI $uri -CacheKey "Status" -CacheExpiry ([TimeSpan]::FromSeconds(30))
-
-# 15 minutes — moderately static data
-Invoke-JiraMethod -URI $uri -CacheKey "Priorities" -CacheExpiry ([TimeSpan]::FromMinutes(15))
-
-# 2 hours — rarely changing reference data
-Invoke-JiraMethod -URI $uri -CacheKey "IssueTypes" -CacheExpiry ([TimeSpan]::FromHours(2))
-
-# 1 day — essentially static configuration
-Invoke-JiraMethod -URI $uri -CacheKey "ServerInfo" -CacheExpiry ([TimeSpan]::FromDays(1))
-
-# Using New-TimeSpan cmdlet — combines multiple units
-Invoke-JiraMethod -URI $uri -CacheKey "Custom" -CacheExpiry (New-TimeSpan -Hours 1 -Minutes 30)
-
-# Using string literal — PowerShell auto-converts "hh:mm:ss" to TimeSpan
-Invoke-JiraMethod -URI $uri -CacheKey "Custom" -CacheExpiry "00:45:00"
-
-```
-
-Demonstrates various ways to construct a `[TimeSpan]` value for `-CacheExpiry`.
-Use the form that best communicates the intended duration.
-
-### Example 11
-
-```powershell
-$parameter = @{
-    URI = "/rest/api/latest/field"
-    CacheKey = "Fields"
-    BypassCache = $true
-}
-Invoke-JiraMethod @parameter
-```
-
-Forces a fresh API call, ignoring any cached data.
-The fresh response will be stored in the cache.
+Saves the response bytes and returns the resulting file.
+A POST body may also be combined with OutFile when an endpoint returns a downloadable response.
+Use Add-JiraIssueAttachment for Jira multipart attachment uploads.
 
 ## PARAMETERS
 
-### -Body
+### -Anonymous
 
-Body of the HTTP request.
-
-By default each character of the Body is encoded to a sequence of bytes.
-This enables the support of UTF8 characters.
-And was first reported here:
-https://stackoverflow.com/questions/15290185/invoke-webrequest-issue-with-special-characters-in-json
-
-This behavior can be changed with -RawBody.
+Request anonymous standalone access.
+Requires BaseUri and recognized deployment metadata from serverInfo.
 
 ```yaml
-Type: String
-DefaultValue: ''
+Type: SwitchParameter
+DefaultValue: None
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
-- Name: (All)
-  Position: 2
-  IsRequired: false
+- Name: Anonymous
+  Position: Named
+  IsRequired: true
   ValueFromPipeline: false
   ValueFromPipelineByPropertyName: false
   ValueFromRemainingArguments: false
@@ -239,15 +207,81 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
-### -BypassCache
+### -ApiToken
 
-When specified, ignores any cached response and makes a fresh API call.
-The fresh response will still be stored in the cache.
-Only applies when `-CacheKey` is specified.
+The Cloud API token as a nonempty string or SecureString.
+Supply BaseUri and EmailAddress in the same call.
+A normal Cloud site URL is resolved automatically.
 
 ```yaml
-Type: SwitchParameter
-DefaultValue: False
+Type: Object
+DefaultValue: None
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: CloudToken
+  Position: Named
+  IsRequired: true
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -BaseUri
+
+The product endpoint for a standalone request.
+Requires exactly one authentication method: Credential, EmailAddress with ApiToken, PersonalAccessToken, or Anonymous.
+Standalone requests validate authentication and do not change the selected default.
+
+```yaml
+Type: Uri
+DefaultValue: None
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: Anonymous
+  Position: Named
+  IsRequired: true
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+- Name: PersonalAccessToken
+  Position: Named
+  IsRequired: true
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+- Name: CloudToken
+  Position: Named
+  IsRequired: true
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+- Name: Basic
+  Position: Named
+  IsRequired: true
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -Body
+
+The request payload.
+Dictionaries, structured objects, arrays and scalar values are serialized as JSON.
+Strings are encoded as UTF-8 without additional JSON serialization.
+Byte arrays are sent unchanged.
+Structured values require a JSON ContentType; use strings or bytes for other formats.
+
+```yaml
+Type: Object
+DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
@@ -262,29 +296,19 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
-### -CacheExpiry
+### -Confirm
 
-Specifies how long cached responses should be valid, as a `[TimeSpan]`.
-Only applies when `-CacheKey` is specified.
-
-Common ways to construct a TimeSpan:
-
-| Duration    | Using static methods                | Using New-TimeSpan              | String literal |
-| ----------- | ----------------------------------- | ------------------------------- | -------------- |
-| 30 seconds  | `[TimeSpan]::FromSeconds(30)`       | `New-TimeSpan -Seconds 30`      | `"00:00:30"`   |
-| 5 minutes   | `[TimeSpan]::FromMinutes(5)`        | `New-TimeSpan -Minutes 5`       | `"00:05:00"`   |
-| 1 hour      | `[TimeSpan]::FromHours(1)`          | `New-TimeSpan -Hours 1`         | `"01:00:00"`   |
-| 1.5 hours   | `[TimeSpan]::FromMinutes(90)`       | `New-TimeSpan -Hours 1 -Minutes 30` | `"01:30:00"` |
-| 1 day       | `[TimeSpan]::FromDays(1)`           | `New-TimeSpan -Days 1`          | `"1.00:00:00"` |
+Prompt before a potentially mutating request or file write.
 
 ```yaml
-Type: TimeSpan
-DefaultValue: '[TimeSpan]::FromHours(1)'
+Type: SwitchParameter
+DefaultValue: ''
 SupportsWildcards: false
-Aliases: []
+Aliases:
+- cf
 ParameterSets:
 - Name: (All)
-  Position: 12
+  Position: Named
   IsRequired: false
   ValueFromPipeline: false
   ValueFromPipelineByPropertyName: false
@@ -294,13 +318,56 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
-### -CacheKey
+### -Connection
 
-When specified, enables caching for this GET request.
-The response will be stored in a module-level cache and returned on subsequent calls with the same CacheKey until the cache expires or is cleared.
+An active Jira connection.
+Omitting a selector uses the selected default connection.
+Cannot be combined with ConnectionName, BaseUri or authentication inputs.
 
-Only applies to GET requests.
-POST, PUT, DELETE requests are never cached.
+```yaml
+Type: AtlassianPS.Connection
+DefaultValue: None
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: Connection
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -ConnectionName
+
+The name of an active Jira connection.
+Cannot be combined with Connection, BaseUri or authentication inputs.
+
+```yaml
+Type: String
+DefaultValue: None
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: NamedConnection
+  Position: Named
+  IsRequired: true
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -ContentType
+
+The request media type.
+Defaults to application/json; charset=utf-8 when Body is supplied.
+Use this parameter or a Content-Type header, not both.
 
 ```yaml
 Type: String
@@ -309,28 +376,7 @@ SupportsWildcards: false
 Aliases: []
 ParameterSets:
 - Name: (All)
-  Position: 11
-  IsRequired: false
-  ValueFromPipeline: false
-  ValueFromPipelineByPropertyName: false
-  ValueFromRemainingArguments: false
-DontShow: false
-AcceptedValues: []
-HelpMessage: ''
-```
-
-### -Cmdlet
-
-Context which will be used for throwing errors.
-
-```yaml
-Type: PSCmdlet
-DefaultValue: 'PSCmdlet'
-SupportsWildcards: false
-Aliases: []
-ParameterSets:
-- Name: (All)
-  Position: 9
+  Position: Named
   IsRequired: false
   ValueFromPipeline: false
   ValueFromPipelineByPropertyName: false
@@ -342,20 +388,40 @@ HelpMessage: ''
 
 ### -Credential
 
-Credentials to use for the authentication with the REST Api.
-
-If none are provided, `Get-JiraSession` will be used for authentication.
-If no sessions is available, the request will be executed anonymously.
+The Basic authentication credential for a standalone request.
+Requires BaseUri and cannot be combined with other authentication methods or a selected connection.
 
 ```yaml
 Type: PSCredential
-DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
+DefaultValue: None
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
-- Name: (All)
-  Position: 8
-  IsRequired: false
+- Name: Basic
+  Position: Named
+  IsRequired: true
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -EmailAddress
+
+The authentication email for a standalone Cloud API token request.
+Requires BaseUri and ApiToken in the same call.
+
+```yaml
+Type: String
+DefaultValue: None
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: CloudToken
+  Position: Named
+  IsRequired: true
   ValueFromPipeline: false
   ValueFromPipelineByPropertyName: false
   ValueFromRemainingArguments: false
@@ -366,7 +432,9 @@ HelpMessage: ''
 
 ### -First
 
-Indicates how many items to return.
+The maximum number of records to emit when Paging is enabled.
+Defaults to all available records.
+First 0 makes no request unless IncludeTotalCount is also supplied.
 
 ```yaml
 Type: UInt64
@@ -385,39 +453,19 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
-### -GetParameter
-
-Key-Value pair of the Headers to be used.
-
-```yaml
-Type: Hashtable
-DefaultValue: '@{}'
-SupportsWildcards: false
-Aliases: []
-ParameterSets:
-- Name: (All)
-  Position: 4
-  IsRequired: false
-  ValueFromPipeline: false
-  ValueFromPipelineByPropertyName: false
-  ValueFromRemainingArguments: false
-DontShow: false
-AcceptedValues: []
-HelpMessage: ''
-```
-
 ### -Headers
 
-Define a key-value set of HTTP headers that should be used in the call.
+Ordinary request headers.
+Authorization, Proxy-Authorization and Cookie headers are rejected; use a connection or standalone authentication parameters.
 
 ```yaml
 Type: Hashtable
-DefaultValue: '@{}'
+DefaultValue: None
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
 - Name: (All)
-  Position: 3
+  Position: Named
   IsRequired: false
   ValueFromPipeline: false
   ValueFromPipelineByPropertyName: false
@@ -429,11 +477,9 @@ HelpMessage: ''
 
 ### -IncludeTotalCount
 
-Causes an extra output of the total count at the beginning.
-The count uses Jira's reported total before `-First` and `-Skip` are applied.
-If Jira does not report a total, the count is marked as unknown with `Accuracy` set to `0`.
-
-Note this is actually a uInt64, but with a custom string representation.
+Emit the server-reported total before the records when Paging is enabled.
+The total describes the result before First and Skip are applied.
+When Jira omits a total, the count is marked unknown with Accuracy 0.
 
 ```yaml
 Type: SwitchParameter
@@ -443,29 +489,6 @@ Aliases: []
 ParameterSets:
 - Name: (All)
   Position: Named
-  IsRequired: false
-  ValueFromPipeline: false
-  ValueFromPipelineByPropertyName: false
-  ValueFromRemainingArguments: false
-DontShow: false
-AcceptedValues: []
-HelpMessage: ''
-```
-
-### -InFile
-
-Path to a file that will be uploaded with a multipart/form-data request.
-
-This parameter does not validate the input in any way.
-
-```yaml
-Type: String
-DefaultValue: ''
-SupportsWildcards: false
-Aliases: []
-ParameterSets:
-- Name: (All)
-  Position: 5
   IsRequired: false
   ValueFromPipeline: false
   ValueFromPipelineByPropertyName: false
@@ -477,7 +500,9 @@ HelpMessage: ''
 
 ### -Method
 
-Method of the HTTP request.
+The HTTP method.
+Defaults to GET.
+Automatic paging supports GET requests only.
 
 ```yaml
 Type: WebRequestMethod
@@ -486,72 +511,82 @@ SupportsWildcards: false
 Aliases: []
 ParameterSets:
 - Name: (All)
-  Position: 1
-  IsRequired: false
-  ValueFromPipeline: false
-  ValueFromPipelineByPropertyName: false
-  ValueFromRemainingArguments: false
-DontShow: false
-AcceptedValues: []
-HelpMessage: ''
-```
-
-### -OutFile
-
-Path to the file where the response should be stored to.
-
-This parameter does not validate the input in any way
-
-```yaml
-Type: String
-DefaultValue: ''
-SupportsWildcards: false
-Aliases: []
-ParameterSets:
-- Name: (All)
-  Position: 6
-  IsRequired: false
-  ValueFromPipeline: false
-  ValueFromPipelineByPropertyName: false
-  ValueFromRemainingArguments: false
-DontShow: false
-AcceptedValues: []
-HelpMessage: ''
-```
-
-### -OutputType
-
-Name of the data type that is expected to be returned.
-
-Currently only used in combination with `-Paging`
-
-```yaml
-Type: String
-DefaultValue: ''
-SupportsWildcards: false
-Aliases: []
-ParameterSets:
-- Name: (All)
-  Position: 7
+  Position: Named
   IsRequired: false
   ValueFromPipeline: false
   ValueFromPipelineByPropertyName: false
   ValueFromRemainingArguments: false
 DontShow: false
 AcceptedValues:
-- JiraComment
-- JiraIssue
-- JiraUser
-- JiraVersion
-- JiraWorklogItem
+- Default
+- Get
+- Head
+- Post
+- Put
+- Delete
+- Trace
+- Options
+- Merge
+- Patch
+HelpMessage: ''
+```
+
+### -OutFile
+
+The file-system path where response bytes should be saved.
+Returns the resulting System.IO.FileInfo without parsing JSON.
+An existing file is overwritten after any requested confirmation.
+The parent directory must exist.
+Cannot be combined with Paging or RawResponse.
+
+```yaml
+Type: String
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -PageSize
+
+The requested batch size when Paging is enabled.
+Defaults to 25; Jira may cap the size.
+Use PageSize or QueryParameter.maxResults, not both.
+
+```yaml
+Type: Int32
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
 HelpMessage: ''
 ```
 
 ### -Paging
 
-Use paging on the results.
-
-More about paging: <https://docs.atlassian.com/software/jira/docs/api/REST/7.6.1/#pagination>
+Follow supported Jira GET pagination and emit individual records.
+Supported item arrays are comments, dashboards, fields, groups, issues, values and worklogs.
+Offset responses must include recognized paging metadata.
+Enhanced-search GET responses use nextPageToken.
+Unsupported, ambiguous or body-based pagination fails with an explanation.
+Cannot be combined with RawResponse or OutFile.
 
 ```yaml
 Type: SwitchParameter
@@ -570,9 +605,59 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
-### -RawBody
+### -PersonalAccessToken
 
-Keep the Body from being encoded.
+The Data Center personal access token as a nonempty string or SecureString.
+Requires BaseUri and cannot be combined with another authentication method or a selected connection.
+
+```yaml
+Type: Object
+DefaultValue: None
+SupportsWildcards: false
+Aliases:
+- PAT
+- BearerToken
+ParameterSets:
+- Name: PersonalAccessToken
+  Position: Named
+  IsRequired: true
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -QueryParameter
+
+Query keys and unencoded values to merge with the resource URL.
+Supplied keys override matching keys in the URL.
+Array values produce repeated query keys.
+Use explicit comma-separated strings for endpoints that require that format.
+
+```yaml
+Type: Hashtable
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -RawResponse
+
+Return the native web response with status, headers and content instead of parsing JSON.
+HTTP failures still report errors.
+Cannot be combined with Paging or OutFile.
 
 ```yaml
 Type: SwitchParameter
@@ -593,9 +678,9 @@ HelpMessage: ''
 
 ### -Skip
 
-Controls how many things will be skipped before starting output.
-
-Defaults to 0.
+The number of records to skip when Paging is enabled.
+Offset paging applies this value on the server.
+Enhanced-search token paging skips records locally across pages.
 
 ```yaml
 Type: UInt64
@@ -614,36 +699,11 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
-### -StoreSession
-
-Instead of returning the response, it returns a `[AtlassianPS.JiraPS.Session]` which contains the `[WebRequestSession]`.
-
-```yaml
-Type: SwitchParameter
-DefaultValue: ''
-SupportsWildcards: false
-Aliases: []
-ParameterSets:
-- Name: (All)
-  Position: Named
-  IsRequired: false
-  ValueFromPipeline: false
-  ValueFromPipelineByPropertyName: false
-  ValueFromRemainingArguments: false
-DontShow: false
-AcceptedValues: []
-HelpMessage: ''
-```
-
 ### -TimeoutSec
 
-Per-request HTTP timeout, in seconds.
-Defaults to `100` (matches the historical .NET `HttpClient` default).
-
-The previous behaviour was to omit the parameter entirely, which inherits `Invoke-WebRequest`'s per-host default — `Infinite` on PowerShell 7+ — and lets a hung Jira instance block the calling pipeline indefinitely.
-Bounding the request at 100 seconds surfaces a `WebException` that callers can retry or report instead of waiting forever.
-
-Set to `0` to disable the timeout (use sparingly; reserved for caller-driven long uploads such as large attachments).
+The request timeout in seconds.
+Defaults to 100; 0 disables the timeout.
+Standalone discovery and identity validation use their own bounded validation requests.
 
 ```yaml
 Type: Int32
@@ -662,12 +722,11 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
-### -URI
+### -Uri
 
-URI address of the REST API endpoint.
-Relative paths must start with `/`.
-When a relative path is used, JiraPS prefixes it with the configured Jira server URL.
-Absolute URLs are still supported.
+The Jira REST resource to request.
+Relative paths must start with a single slash and resolve against the selected connection.
+Absolute URLs must belong to that connection's endpoint.
 
 ```yaml
 Type: Uri
@@ -686,6 +745,28 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
+### -WhatIf
+
+Show the intended mutation or file write without sending the request or performing standalone discovery.
+
+```yaml
+Type: SwitchParameter
+DefaultValue: ''
+SupportsWildcards: false
+Aliases:
+- wi
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
 ### CommonParameters
 
 This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
@@ -695,17 +776,40 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## INPUTS
 
+### None
+
+This command does not accept pipeline input.
+
 ## OUTPUTS
 
-### System.Management.Automation.PSCustomObject
+### System.Object
 
-This command is designed to handle JSON responses only.
-The response is convert to PSCustomObject with `ConvertFrom-Json`
+Parsed JSON responses or individual records when Paging is enabled.
+
+### Microsoft.PowerShell.Commands.WebResponseObject
+
+The native web response when RawResponse is supplied.
+
+### System.IO.FileInfo
+
+The saved file when OutFile is supplied.
 
 ## NOTES
 
+This command leaves REST API versions and Cloud/Data Center payload differences to the caller.
+Connection selection and authentication are described in about_JiraPS_Authentication.
+Response-header logging can be enabled with Set-JiraResponseHeaderLogConfiguration.
+Inspect diagnostic output before sharing it.
+
+StoreSession, RawBody, InFile, OutputType and the public cache controls were removed in v3.
+Use Connect-Jira for reusable authentication and Add-JiraIssueAttachment for uploads.
+GetParameter was renamed to QueryParameter.
+Only Uri supports positional binding.
+
 ## RELATED LINKS
 
-[Jira Cloud API](https://developer.atlassian.com/cloud/jira/platform/rest/)
+[Connect-Jira](Connect-Jira.md)
 
-[Jira Server API](https://docs.atlassian.com/software/jira/docs/api/REST/7.6.1/)
+[Add-JiraIssueAttachment](Add-JiraIssueAttachment.md)
+
+[Authentication guide](../about_JiraPS_Authentication.md)

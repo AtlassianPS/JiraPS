@@ -1,4 +1,8 @@
 ﻿function Resolve-JiraIssueObject {
+    <#
+    .SYNOPSIS
+        Use a complete typed issue or retrieve its exact key or numeric ID.
+    #>
     [CmdletBinding()]
     [OutputType( [AtlassianPS.JiraPS.Issue] )]
     param(
@@ -7,18 +11,17 @@
         $InputObject,
 
         [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        [AtlassianPS.Connection]
+        $RequestContext
     )
 
     process {
         if ($InputObject.RestURL) {
-            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Using `$InputObject as object"
+            Write-DebugMessage "Using `$InputObject as object"
             return $InputObject
         }
 
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Resolve Issue '$($InputObject.Key)' to object"
-        Get-JiraIssue -Key $InputObject.Key -Credential $Credential -ErrorAction Stop
+        Write-DebugMessage "Resolve Issue '$($InputObject.Key)' to object"
+        Get-JiraIssue -Issue $InputObject -Connection $RequestContext -ErrorAction Stop
     }
 }

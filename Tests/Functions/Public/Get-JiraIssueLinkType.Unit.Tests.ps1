@@ -16,15 +16,9 @@ InModuleScope JiraPS {
             $script:jiraServer = 'http://jiraserver.example.com'
             #endregion Definitions
 
-
             #region Mocks
             $filterAll = { $Method -eq 'Get' -and $Uri -ceq "/rest/api/2/issueLinkType" }
             $filterOne = { $Method -eq 'Get' -and $Uri -ceq "/rest/api/2/issueLinkType/10000" }
-
-            Mock Get-JiraConfigServer -ModuleName JiraPS {
-                Write-MockDebugInfo 'Get-JiraConfigServer'
-                Write-Output $jiraServer
-            }
 
             Mock ConvertTo-JiraIssueLinkType {
                 Write-MockDebugInfo 'ConvertTo-JiraIssueLinkType'
@@ -36,13 +30,13 @@ InModuleScope JiraPS {
             }
 
             # Generic catch-all. This will throw an exception if we forgot to mock something.
-            Mock Invoke-JiraMethod -ModuleName JiraPS {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-                throw "Unidentified call to Invoke-JiraMethod"
+            Mock Invoke-JiraRequest -ModuleName JiraPS {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
+                throw "Unidentified call to Invoke-JiraRequest"
             }
 
-            Mock Invoke-JiraMethod -ParameterFilter $filterAll {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+            Mock Invoke-JiraRequest -ParameterFilter $filterAll {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
                 [PSCustomObject] @{
                     issueLinkTypes = @(
                         # We don't care what data actually comes back here
@@ -51,8 +45,8 @@ InModuleScope JiraPS {
                 }
             }
 
-            Mock Invoke-JiraMethod -ParameterFilter $filterOne {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+            Mock Invoke-JiraRequest -ParameterFilter $filterOne {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
                 [PSCustomObject] @{
                     issueLinkTypes = @(
                         'bar'
@@ -62,27 +56,11 @@ InModuleScope JiraPS {
             #endregion Mocks
         }
 
-        Describe "Signature" {
-            Context "Parameter Types" {
-                It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = 'LinkType'; type = 'AtlassianPS.JiraPS.IssueLinkType' }
-                    @{ parameter = 'Credential'; type = 'PSCredential' }
-                ) {
-                    param($parameter, $type)
-                    (Get-Command -Name Get-JiraIssueLinkType) | Should -HaveParameter $parameter -Type $type
-                }
-            }
-
-            Context "Mandatory Parameters" {}
-
-            Context "Default Values" {}
-        }
-
         Describe "Behavior" {
             Context "Returning all link types" {
-                It 'Uses Invoke-JiraMethod to communicate with JIRA' {
+                It 'Uses Invoke-JiraRequest to communicate with JIRA' {
                     $null = Get-JiraIssueLinkType
-                    Should -Invoke Invoke-JiraMethod -ParameterFilter $filterAll -Exactly 1
+                    Should -Invoke Invoke-JiraRequest -ParameterFilter $filterAll -Exactly 1
                 }
 
                 It 'Returns all link types if no value is passed to the -LinkType parameter' {
@@ -111,14 +89,14 @@ InModuleScope JiraPS {
 
                 It 'Returns a single link type if an ID number is passed to the -LinkType parameter' {
                     $output = Get-JiraIssueLinkType -LinkType 10000
-                    Should -Invoke Invoke-JiraMethod -ParameterFilter $filterOne -Exactly 1
+                    Should -Invoke Invoke-JiraRequest -ParameterFilter $filterOne -Exactly 1
                     $output | Should -Not -BeNullOrEmpty
                     @($output) | Should -HaveCount 1
                 }
 
                 It 'Returns the correct link type it a type name is passed to the -LinkType parameter' {
                     $output = Get-JiraIssueLinkType -LinkType 'myLink'
-                    Should -Invoke Invoke-JiraMethod -ParameterFilter $filterAll -Exactly 1
+                    Should -Invoke Invoke-JiraRequest -ParameterFilter $filterAll -Exactly 1
                     $output | Should -Not -BeNullOrEmpty
                     @($output) | Should -HaveCount 1
                     $output.ID | Should -Be 5
@@ -127,7 +105,6 @@ InModuleScope JiraPS {
         }
 
         Describe "Input Validation" {
-            Context "Type Validation - Positive Cases" {}
 
             Context "Type Validation - Negative Cases" {
                 It "uses transformer errors for invalid link type input" {

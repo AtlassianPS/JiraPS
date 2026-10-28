@@ -1,4 +1,8 @@
 ﻿function ConvertTo-JiraFilter {
+    <#
+    .SYNOPSIS
+        Convert Jira response data to AtlassianPS.JiraPS.Filter objects.
+    #>
     [CmdletBinding()]
     [OutputType([AtlassianPS.JiraPS.Filter])]
     param(
@@ -13,7 +17,7 @@
     process {
         foreach ($i in $InputObject) {
             if ($null -eq $i) { continue }
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to AtlassianPS.JiraPS.Filter"
+            Write-DebugMessage "Converting `$InputObject to AtlassianPS.JiraPS.Filter"
 
             $hash = @{
                 ID              = $i.id

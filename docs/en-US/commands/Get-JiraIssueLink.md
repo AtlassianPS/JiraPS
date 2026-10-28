@@ -15,7 +15,7 @@ Returns a specific issueLink from Jira
 ## SYNTAX
 
 ```powershell
-Get-JiraIssueLink [-Id] <int[]> [[-Credential] <pscredential>] [<CommonParameters>]
+Get-JiraIssueLink [-IssueLink] <AtlassianPS.JiraPS.IssueLink[]> [[-Connection] <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -24,40 +24,33 @@ This function returns information regarding a specified issueLink from Jira.
 
 ## EXAMPLES
 
-### EXAMPLE 1
+### Example 1
 
 ```powershell
-Get-JiraIssueLink 10000
+Get-JiraIssueLink -IssueLink 1234
 ```
 
-Returns information about the IssueLink with ID 10000
+Retrieve a typed issue-link record by ID.
 
-### EXAMPLE 2
+### Example 2
 
 ```powershell
-Get-JiraIssueLink -IssueLink 10000
+1234 | Get-JiraIssueLink
 ```
 
-Returns information about the IssueLink with ID 10000
-
-### EXAMPLE 3
-
-```powershell
-(Get-JiraIssue TEST-01).issuelinks | Get-JiraIssueLink
-```
-
-Returns the information about all IssueLinks in issue TEST-01
+Retrieve an issue link through the typed selector pipeline.
 
 ## PARAMETERS
 
-### -Credential
+### -Connection
 
-Credentials to use to connect to JIRA.
-If not specified, this function will use anonymous access.
+Active Jira connection for this operation.
+When omitted, the command uses the selected Jira default.
+Create connections with Connect-Jira; resolve names with Get-JiraConnection -Name.
 
 ```yaml
-Type: PSCredential
-DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
+Type: AtlassianPS.Connection
+DefaultValue: None
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
@@ -72,23 +65,22 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
-### -Id
+### -IssueLink
 
-The IssueLink ID to search.
-
-Accepts input from pipeline when the object is of type `JiraPS.IssueLink`
+Positive issue-link IDs or typed IssueLink objects.
 
 ```yaml
-Type: Int32[]
+Type: AtlassianPS.JiraPS.IssueLink[]
 DefaultValue: ''
 SupportsWildcards: false
-Aliases: []
+Aliases:
+- Id
 ParameterSets:
 - Name: (All)
   Position: 0
   IsRequired: true
   ValueFromPipeline: true
-  ValueFromPipelineByPropertyName: true
+  ValueFromPipelineByPropertyName: false
   ValueFromRemainingArguments: false
 DontShow: false
 AcceptedValues: []
@@ -104,8 +96,7 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## INPUTS
 
-### Int[]
-
+### AtlassianPS.JiraPS.IssueLink[]
 
 ## OUTPUTS
 
@@ -113,11 +104,13 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## NOTES
 
-This function requires either the `-Credential` parameter to be passed or a persistent JIRA session.
-See `New-JiraSession` for more details.
-If neither are supplied, this function will run with anonymous access to JIRA.
+This function uses the selected Jira connection unless you pass another connection through `-Connection`.
+Use `Connect-Jira` to create a connection.
+For anonymous access, create the connection with `Connect-Jira -Anonymous`.
 
 ## RELATED LINKS
+
+[about_JiraPS_Authentication](../../about/authentication.html)
 
 [Add-JiraIssueLink](../Add-JiraIssueLink/)
 

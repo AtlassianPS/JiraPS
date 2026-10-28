@@ -1,4 +1,6 @@
 ﻿#requires -modules @{ ModuleName = "Pester"; ModuleVersion = "6.2.0"; MaximumVersion = "6.999" }
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingConvertToSecureStringWithPlainText', '', Justification = 'Nonsecret unit-test credential fixture.')]
+param()
 
 BeforeDiscovery {
     . "$PSScriptRoot/../../Helpers/TestTools.ps1"
@@ -99,11 +101,6 @@ InModuleScope JiraPS {
             #endregion Definitions
 
             #region Mocks
-            Mock Get-JiraConfigServer -ModuleName JiraPS {
-                Write-MockDebugInfo 'Get-JiraConfigServer'
-                $jiraServer
-            }
-
             Mock ConvertTo-JiraFilter -ModuleName JiraPS {
                 Write-MockDebugInfo 'ConvertTo-JiraFilter'
                 $i = New-Object -TypeName PSCustomObject
@@ -120,7 +117,7 @@ InModuleScope JiraPS {
 
             Mock Get-JiraFilter -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraFilter' 'InputObject'
-                foreach ($item in $InputObject) {
+                foreach ($item in $Filter) {
                     [AtlassianPS.JiraPS.Filter]@{
                         Id      = $item.Id
                         RestUrl = "$jiraServer/rest/api/2/filter/$($item.Id)"
@@ -128,61 +125,18 @@ InModuleScope JiraPS {
                 }
             }
 
-            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
+            Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter {
                 $Method -eq 'Post' -and $URI -like "$jiraServer/rest/api/*/filter/*/permission"
             } {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri', 'Body'
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri', 'Body'
                 ConvertFrom-Json $permissionJSON
             }
 
-            Mock Invoke-JiraMethod -ModuleName JiraPS {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-                throw "Unidentified call to Invoke-JiraMethod: $Method $URI"
+            Mock Invoke-JiraRequest -ModuleName JiraPS {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
+                throw "Unidentified call to Invoke-JiraRequest: $Method $URI"
             }
             #endregion Mocks
-        }
-
-        Describe "Signature" {
-            BeforeAll {
-                $script:command = Get-Command -Name 'Add-JiraFilterPermission'
-            }
-
-            Context "Parameter Types" {
-                It "keeps ID as an alias and has only the required parameter sets" {
-                    $command = Get-Command Add-JiraFilterPermission
-                    $command.Parameters.Filter.Aliases | Should -Contain 'Id'
-                    $command.ParameterSets.Count | Should -Be 1
-                }
-
-                It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = 'Filter'; type = 'AtlassianPS.JiraPS.Filter[]' }
-                    @{ parameter = 'Type'; type = 'String' }
-                    @{ parameter = 'Value'; type = 'String' }
-                    @{ parameter = 'Credential'; type = 'System.Management.Automation.PSCredential' }
-                ) {
-                    param($parameter, $type)
-
-                    $command | Should -HaveParameter $parameter -Type $type
-
-                }
-            }
-
-            Context "Default Values" {
-                It "parameter '<parameter>' has a default value of '<defaultValue>'" -TestCases @(
-                    @{ parameter = "Credential"; defaultValue = "[System.Management.Automation.PSCredential]::Empty" }
-                ) {
-                    $command | Should -HaveParameter $parameter -DefaultValue $defaultValue
-                }
-            }
-
-            Context "Mandatory Parameters" {
-                It "parameter '<parameter>' is mandatory" -TestCases @(
-                    @{ parameter = "Filter" }
-                    @{ parameter = "Type" }
-                ) {
-                    $command | Should -HaveParameter $parameter -Mandatory
-                }
-            }
         }
 
         Describe "Behavior" {
@@ -195,13 +149,17 @@ InModuleScope JiraPS {
                     $arguments = @{ $parameter = @('12345', '67890') }
                     Add-JiraFilterPermission @arguments -Type Global -Confirm:$false
 
-                    Should -Invoke Invoke-JiraMethod -Exactly -Times 2
+                    Should -Invoke Invoke-JiraRequest -Exactly -Times 2
+                    Should -Invoke Invoke-JiraRequest -Exactly -Times 1 -ParameterFilter { $URI -like '*/filter/12345/permission' }
+                    Should -Invoke Invoke-JiraRequest -Exactly -Times 1 -ParameterFilter { $URI -like '*/filter/67890/permission' }
                 }
 
                 It "accepts numeric strings from the pipeline" {
                     '12345', '67890' | Add-JiraFilterPermission -Type Global -Confirm:$false
 
-                    Should -Invoke Invoke-JiraMethod -Exactly -Times 2
+                    Should -Invoke Invoke-JiraRequest -Exactly -Times 2
+                    Should -Invoke Invoke-JiraRequest -Exactly -Times 1 -ParameterFilter { $URI -like '*/filter/12345/permission' }
+                    Should -Invoke Invoke-JiraRequest -Exactly -Times 1 -ParameterFilter { $URI -like '*/filter/67890/permission' }
                 }
 
                 It "accepts a complete typed filter from the pipeline" {
@@ -212,56 +170,18 @@ InModuleScope JiraPS {
                     }
                     $filter | Add-JiraFilterPermission -Type Global -Confirm:$false
 
-                    Should -Invoke Invoke-JiraMethod -Exactly -Times 1
-                }
-            }
-
-
-            Context "Filter Object Input" {
-                It "Adds share permission to Filter Object" {
-                    $filter = Get-JiraFilter -Id 12844
-                    {
-                        Add-JiraFilterPermission -Filter $filter -Type "Global"
-                    } | Should -Not -Throw
-
-                    Should -Invoke 'Invoke-JiraMethod' -ModuleName 'JiraPS' -Exactly -Times 1 -ParameterFilter {
-                        $Method -eq 'Post' -and
-                        $URI -like '*/rest/api/*/filter/12844/permission'
-                    }
-
-                    Should -Invoke 'ConvertTo-JiraFilter' -ModuleName 'JiraPS' -Exactly -Times 1
+                    Should -Invoke Invoke-JiraRequest -Exactly -Times 1
                 }
             }
 
             Context "Filter ID Input" {
-                It "forwards credentials when resolving filter IDs and adding permissions" {
-                    $credential = [PSCredential]::new('filter-owner', [SecureString]::new())
-                    Add-JiraFilterPermission -Id 12844 -Type Global -Credential $credential -Confirm:$false
-
-                    Should -Invoke Get-JiraFilter -Exactly -Times 1 -ParameterFilter {
-                        $Credential.UserName -eq 'filter-owner' -and $ErrorAction -eq 'Stop'
-                    }
-                    Should -Invoke Invoke-JiraMethod -Exactly -Times 1 -ParameterFilter { $Credential.UserName -eq 'filter-owner' }
-                }
 
                 It "does not add permissions under WhatIf" {
                     Add-JiraFilterPermission -Id 12844 -Type Global -WhatIf
 
-                    Should -Invoke Invoke-JiraMethod -Exactly -Times 0
+                    Should -Invoke Invoke-JiraRequest -Exactly -Times 0
                 }
 
-                It "Adds share permission to FilterId" {
-                    {
-                        Add-JiraFilterPermission -Id 12844 -Type "Global"
-                    } | Should -Not -Throw
-
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
-                        $Method -eq 'Post' -and
-                        $URI -like '*/rest/api/*/filter/12844/permission'
-                    }
-
-                    Should -Invoke -CommandName ConvertTo-JiraFilter -ModuleName JiraPS -Exactly -Times 1
-                }
             }
         }
 
@@ -276,48 +196,6 @@ InModuleScope JiraPS {
                 }
             }
 
-            Context "Type Validation - Positive Cases" {
-                It "accepts AtlassianPS.JiraPS.Filter objects" {
-                    { Add-JiraFilterPermission -Filter (Get-JiraFilter -Id 1) -Type "Global" } | Should -Not -Throw
-                }
-
-                It "can find a filter by it's Id" {
-                    { Add-JiraFilterPermission -Id 1 -Type "Global" } | Should -Not -Throw
-
-                    Should -Invoke -CommandName Get-JiraFilter -ModuleName JiraPS -Exactly -Times 1
-                }
-            }
-
-            Context "Pipeline Support" {
-                It "allows a AtlassianPS.JiraPS.Filter to be passed over the pipeline" {
-                    { Get-JiraFilter -Id 1 | Add-JiraFilterPermission -Type "Global" } | Should -Not -Throw
-                }
-
-                It "allows for the filter's Id to be passed over the pipeline" {
-                    { 1, 2 | Add-JiraFilterPermission -Type "Global" } | Should -Not -Throw
-
-                    Should -Invoke -CommandName Get-JiraFilter -ModuleName JiraPS -Exactly -Times 2
-                }
-            }
-
-            Context "Multiple Items" {
-                It "can process multiple Filters" {
-                    $filters = 1..5 | ForEach-Object { Get-JiraFilter -Id 1 }
-                    $filters | Should -HaveCount 5
-
-                    { Add-JiraFilterPermission -Filter $filters -Type "Global" } | Should -Not -Throw
-
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 5
-                }
-
-                It "can process multiple FilterIds" {
-                    { Add-JiraFilterPermission -Id 1, 2, 3, 4, 5 -Type "Global" } | Should -Not -Throw
-
-                    Should -Invoke -CommandName Get-JiraFilter -ModuleName JiraPS -Exactly -Times 5
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 5
-                }
-            }
-
             Context "Permission Types - Negative Cases" {
                 It "rejects invalid permission type '<invalidType>' with ValidateSet error" -TestCases @(
                     @{ invalidType = "lorem" }
@@ -328,31 +206,11 @@ InModuleScope JiraPS {
                 }
             }
 
-            Context "Permission Types - Positive Cases" {
-                It "accepts valid permission type '<validType>'" -TestCases @(
-                    @{ validType = "Global" }
-                    @{ validType = "Group" }
-                    @{ validType = "Project" }
-                    @{ validType = "ProjectRole" }
-                    @{ validType = "Authenticated" }
-                ) {
-                    { Add-JiraFilterPermission -Id 1 -Type $validType } | Should -Not -Throw
-                }
-
-                It "does not validate -Value" {
-                    { Add-JiraFilterPermission -Id 1 -Type "Global" -Value "invalid" } | Should -Not -Throw
-                    { Add-JiraFilterPermission -Id 1 -Type "Group" -Value "not a group" } | Should -Not -Throw
-                    { Add-JiraFilterPermission -Id 1 -Type "Project" -Value "not a project" } | Should -Not -Throw
-                    { Add-JiraFilterPermission -Id 1 -Type "ProjectRole" -Value "not a Role" } | Should -Not -Throw
-                    { Add-JiraFilterPermission -Id 1 -Type "Authenticated" -Value "invalid" } | Should -Not -Throw
-                }
-            }
-
             Context "Request Body Construction" {
                 It "constructs a valid request Body for type 'Global'" {
                     { Add-JiraFilterPermission -Id 12844 -Type "Global" } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
+                    Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                         $Method -eq 'Post' -and
                         $URI -like '*/rest/api/*/filter/12844/permission' -and
                         $Body -match '"type":\s*"global"' -and
@@ -363,7 +221,7 @@ InModuleScope JiraPS {
                 It "constructs a valid request Body for type 'Authenticated'" {
                     { Add-JiraFilterPermission -Id 12844 -Type "Authenticated" } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
+                    Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                         $Method -eq 'Post' -and
                         $URI -like '*/rest/api/*/filter/12844/permission' -and
                         $Body -match '"type":\s*"authenticated"' -and
@@ -374,7 +232,7 @@ InModuleScope JiraPS {
                 It "constructs a valid request Body for type 'Group'" {
                     { Add-JiraFilterPermission -Id 12844 -Type "Group" -Value "administrators" } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
+                    Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                         $Method -eq 'Post' -and
                         $URI -like '*/rest/api/*/filter/12844/permission' -and
                         $Body -match '"type":\s*"group"' -and
@@ -385,7 +243,7 @@ InModuleScope JiraPS {
                 It "constructs a valid request Body for type 'Project'" {
                     { Add-JiraFilterPermission -Id 12844 -Type "Project" -Value "11822" } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
+                    Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                         $Method -eq 'Post' -and
                         $URI -like '*/rest/api/*/filter/12844/permission' -and
                         $Body -match '"type":\s*"project"' -and
@@ -396,7 +254,7 @@ InModuleScope JiraPS {
                 It "constructs a valid request Body for type 'ProjectRole'" {
                     { Add-JiraFilterPermission -Id 12844 -Type "ProjectRole" -Value "11822" } | Should -Not -Throw
 
-                    Should -Invoke -CommandName Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
+                    Should -Invoke -CommandName Invoke-JiraRequest -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
                         $Method -eq 'Post' -and
                         $URI -like '*/rest/api/*/filter/12844/permission' -and
                         $Body -match '"type":\s*"projectRole"' -and

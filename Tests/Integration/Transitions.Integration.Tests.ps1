@@ -56,14 +56,14 @@ InModuleScope JiraPS {
             if ($script:createdIssues -and $script:createdIssues.Count -gt 0) {
                 foreach ($key in $script:createdIssues) {
                     try {
-                        Remove-JiraIssue -IssueId $key -Force -ErrorAction SilentlyContinue
+                        Remove-JiraIssue -Issue $key -Confirm:$false -ErrorAction SilentlyContinue
                     }
                     catch {
                         Write-Verbose "Cleanup: Failed to remove issue $key - $_"
                     }
                 }
             }
-            Remove-JiraSession -ErrorAction SilentlyContinue
+            Disconnect-Jira -ErrorAction SilentlyContinue
         }
 
         Context "Read Operations" {
@@ -117,7 +117,7 @@ InModuleScope JiraPS {
 
                 $targetTransition = $availableTransitions[0]
 
-                { Invoke-JiraIssueTransition -Issue $issue.Key -Transition $targetTransition.Id } |
+                { Invoke-JiraIssueTransition -Issue $issue.Key -Transition $targetTransition.Id -ErrorAction Stop } |
                     Should -Not -Throw
             }
 
@@ -137,7 +137,7 @@ InModuleScope JiraPS {
 
                 $targetTransition = $availableTransitions[0]
 
-                { Invoke-JiraIssueTransition -Issue $issue.Key -Transition $targetTransition } |
+                { Invoke-JiraIssueTransition -Issue $issue.Key -Transition $targetTransition -ErrorAction Stop } |
                     Should -Not -Throw
             }
 
@@ -179,7 +179,7 @@ InModuleScope JiraPS {
 
                 $targetTransition = $availableTransitions[0]
 
-                { $issue | Invoke-JiraIssueTransition -Transition $targetTransition.Id } |
+                { $issue | Invoke-JiraIssueTransition -Transition $targetTransition.Id -ErrorAction Stop } |
                     Should -Not -Throw
             }
 

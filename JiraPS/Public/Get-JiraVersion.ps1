@@ -1,144 +1,69 @@
 ﻿function Get-JiraVersion {
     # .ExternalHelp ..\JiraPS-help.xml
-    [CmdletBinding( SupportsPaging, DefaultParameterSetName = 'byInputVersion' )]
+    [CmdletBinding(SupportsPaging, DefaultParameterSetName = 'Version')]
     param(
-        [Parameter( Mandatory, ParameterSetName = 'byId' )]
-        [Int[]]
-        $Id,
-
-        [Parameter( Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = 'byInputVersion' )]
+        [Parameter(Mandatory, Position = 0, ValueFromPipeline, ParameterSetName = 'Version')]
         [ValidateNotNull()]
+        [Alias('Id')]
         [AtlassianPS.JiraPS.VersionTransformation(AllowPipelineFallthrough = $true)]
-        [AtlassianPS.JiraPS.Version]
-        $InputVersion,
+        [AtlassianPS.JiraPS.Version[]]$Version,
 
-        [Parameter( Position = 0, Mandatory , ParameterSetName = 'byProject' )]
+        [Parameter(Mandatory, ValueFromPipeline, ParameterSetName = 'Project')]
+        [ValidateNotNull()]
         [Alias('Key')]
-        [String[]]
-        $Project,
-
-        [Parameter( Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = 'byInputProject' )]
         [AtlassianPS.JiraPS.ProjectTransformation(AllowPipelineFallthrough = $true)]
-        [AtlassianPS.JiraPS.Project[]]
-        $InputProject,
+        [AtlassianPS.JiraPS.Project[]]$Project,
 
-        [Parameter( ParameterSetName = 'byProject' )]
-        [Parameter( ParameterSetName = 'byInputProject' )]
-        [Alias('Versions')]
-        [String[]]
-        $Name = "*",
+        [Parameter(ParameterSetName = 'Project')]
+        [String[]]$Name = '*',
 
-        [Parameter( ParameterSetName = 'byProject')]
-        [Parameter( ParameterSetName = 'byInputProject')]
-        [ValidateSet("sequence",
-            "name",
-            "startDate",
-            "releaseDate"
-        )]
-        [String]
-        $Sort = "name",
+        [Parameter(ParameterSetName = 'Project')]
+        [ValidateSet('sequence', 'name', 'startDate', 'releaseDate')]
+        [String]$Sort = 'name',
 
-        [UInt32]
-        $PageSize = $script:DefaultPageSize,
+        [ValidateRange(1, [int]::MaxValue)]
+        [Int]$PageSize = $script:DefaultPageSize,
 
-        [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        [AtlassianPS.Connection]$Connection
     )
 
     begin {
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+        $requestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
 
-        $resourceURi = "/rest/api/2/{0}"
+        $matches = [Collections.Generic.List[Object]]::new()
     }
 
     process {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
-
-        $ParameterSetName = ''
-        switch ($PsCmdlet.ParameterSetName) {
-            'byInputProject' {
-                $Project = @($InputProject | ForEach-Object {
-                        if ($_.Key) { $_.Key } else { $_.Id }
-                    })
-                $ParameterSetName = 'byProject'
+        if ($PSCmdlet.ParameterSetName -eq 'Version') {
+            foreach ($item in $Version) {
+                if (-not $item.Id) { throw 'Version requires a numeric version ID. Use -Project and -Name to match version names.' }
+                $result = Invoke-JiraRequest -RequestContext $RequestContext -Uri "/rest/api/2/version/$($item.Id)" -Method Get
+                foreach ($value in @(ConvertTo-JiraVersion -InputObject $result)) { $matches.Add($value) }
             }
-            'byInputVersion' {
-                if (-not $InputVersion.Id) {
-                    $errorItem = [System.Management.Automation.ErrorRecord]::new(
-                        ([System.ArgumentException]"Version ID is required"),
-                        'ParameterValue.VersionIdRequired',
-                        [System.Management.Automation.ErrorCategory]::InvalidArgument,
-                        $InputVersion
-                    )
-                    $errorItem.ErrorDetails = "Get-JiraVersion requires a version ID when -InputVersion is used. Provide a numeric version ID or an AtlassianPS.JiraPS.Version object with an ID."
-                    ThrowError -ErrorRecord $errorItem
-                }
-                $Id = $InputVersion.Id
-                $ParameterSetName = 'byId'
-            }
-            'byProject' { $ParameterSetName = 'byProject' }
-            'byId' { $ParameterSetName = 'byId' }
         }
-
-        switch ($ParameterSetName) {
-            "byId" {
-                foreach ($_id in $ID) {
-                    Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_id]"
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_id [$_id]"
-
-                    $parameter = @{
-                        URI        = $resourceURi -f "version/$_id"
-                        Method     = "GET"
-                        Credential = $Credential
-                    }
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-                    $result = Invoke-JiraMethod @parameter
-
-                    Write-Output (ConvertTo-JiraVersion -InputObject $result)
+        else {
+            foreach ($item in $Project) {
+                $projectValue = if ($item.Key) { $item.Key } else { $item.Id }
+                $projectObject = Get-JiraProject -Project $projectValue -Connection $RequestContext -ErrorAction Stop
+                $parameters = @{
+                    Uri          = "/rest/api/2/project/$($projectObject.Key)/version"
+                    Method       = 'Get'
+                    GetParameter = @{ orderBy = $Sort; maxResults = $PageSize }
+                    Paging       = $true
+                    PageSize     = $PageSize
+                    OutputType   = 'JiraVersion'
                 }
-            }
-            "byProject" {
-                foreach ($_project in $Project) {
-                    Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_project]"
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_project [$_project]"
-
-                    $projectData = Get-JiraProject -Project $_project -Credential $Credential
-
-                    $parameter = @{
-                        URI          = $resourceURi -f "project/$($projectData.key)/version"
-                        Method       = "GET"
-                        GetParameter = @{
-                            orderBy    = $Sort
-                            maxResults = $PageSize
-                        }
-                        Paging       = $true
-                        OutputType   = "JiraVersion"
-                        Credential   = $Credential
-                    }
-                    # Paging
-                    ($PSCmdlet.PagingParameters | Get-Member -MemberType Property).Name | ForEach-Object {
-                        $parameter[$_] = $PSCmdlet.PagingParameters.$_
-                    }
-
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-                    if ($result = Invoke-JiraMethod @parameter) {
-                        $result | Where-Object {
-                            $__ = $_.Name
-                            Write-DebugMessage ($__ | Out-String)
-                            $Name | ForEach-Object {
-                                Write-Verbose "[$($MyInvocation.MyCommand.Name)] Matching $_ against $($__)"
-                                $__ -like $_
-                            }
-                        }
-                    }
+                foreach ($value in @(Invoke-JiraRequest -RequestContext $RequestContext @parameters)) {
+                    if (@($Name | Where-Object { $value.Name -like $_ }).Count) { $matches.Add($value) }
                 }
             }
         }
     }
+
     end {
-        Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
+        if ($PSCmdlet.PagingParameters.IncludeTotalCount) { $PSCmdlet.PagingParameters.NewTotalCount($matches.Count, 1.0) }
+        $skip = [int][Math]::Min($PSCmdlet.PagingParameters.Skip, $matches.Count)
+        $first = [int][Math]::Min($PSCmdlet.PagingParameters.First, $matches.Count)
+        if ($first) { $matches | Select-Object -Skip $skip -First $first }
     }
 }

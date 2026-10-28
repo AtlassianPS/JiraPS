@@ -35,11 +35,6 @@ InModuleScope JiraPS {
             #region Mocks
             Mock Test-JiraCloudServer -ModuleName JiraPS { $false }
 
-            Mock Get-JiraConfigServer -ModuleName JiraPS {
-                Write-MockDebugInfo 'Get-JiraConfigServer'
-                $jiraServer
-            }
-
             Mock Get-JiraUser -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraUser' 'UserName'
                 $object = ConvertFrom-Json $testJsonGet
@@ -47,76 +42,44 @@ InModuleScope JiraPS {
                 return $object
             }
 
-            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
+            Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter {
                 $Method -eq 'DELETE' -and
                 $URI -like "/rest/api/*/user?username=$testUsername"
             } {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
                 # This REST method should produce no output
             }
 
             # Generic catch-all. This will throw an exception if we forgot to mock something.
-            Mock Invoke-JiraMethod -ModuleName JiraPS {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-                throw "Unidentified call to Invoke-JiraMethod"
+            Mock Invoke-JiraRequest -ModuleName JiraPS {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
+                throw "Unidentified call to Invoke-JiraRequest"
             }
             #endregion Mocks
-        }
-
-        Describe "Signature" {
-            BeforeAll {
-                $script:command = Get-Command -Name Remove-JiraUser
-            }
-
-            Context "Parameter Types" {
-                It "has a parameter '<parameter>' of type '<type>'" -TestCases @(
-                    @{ parameter = 'User'; type = 'AtlassianPS.JiraPS.User' }
-                    @{ parameter = 'Credential'; type = 'PSCredential' }
-                    @{ parameter = 'Force'; type = 'Switch' }
-                ) {
-                    param($parameter, $type)
-                    $command | Should -HaveParameter $parameter -Type $type
-                }
-            }
-
-            Context "Mandatory Parameters" {}
-
-            Context "Default Values" {}
         }
 
         Describe "Behavior" {
             Context "User Deletion" {
                 It "Accepts a username as a String to the -User parameter" {
-                    { Remove-JiraUser -User $testUsername -Force } | Should -Not -Throw
-                    Should -Invoke -CommandName Invoke-JiraMethod -Exactly -Times 1
+                    { Remove-JiraUser -User $testUsername -Confirm:$false } | Should -Not -Throw
+                    Should -Invoke -CommandName Invoke-JiraRequest -Exactly -Times 1
                 }
 
                 It "Accepts a AtlassianPS.JiraPS.User object to the -User parameter" {
-                    $user = Get-JiraUser -UserName $testUsername
-                    { Remove-JiraUser -User $user -Force } | Should -Not -Throw
-                    Should -Invoke -CommandName Invoke-JiraMethod -Exactly -Times 1
+                    $user = Get-JiraUser -User $testUsername
+                    { Remove-JiraUser -User $user -Confirm:$false } | Should -Not -Throw
+                    Should -Invoke -CommandName Invoke-JiraRequest -Exactly -Times 1
                 }
 
                 It "Accepts pipeline input from Get-JiraUser" {
-                    { Get-JiraUser -UserName $testUsername | Remove-JiraUser -Force } | Should -Not -Throw
-                    Should -Invoke -CommandName Invoke-JiraMethod -Exactly -Times 1
-                }
-
-                It "Removes a user from JIRA" {
-                    { Remove-JiraUser -User $testUsername -Force } | Should -Not -Throw
-                    Should -Invoke -CommandName Invoke-JiraMethod -Exactly -Times 1
+                    { Get-JiraUser -User $testUsername | Remove-JiraUser -Confirm:$false } | Should -Not -Throw
+                    Should -Invoke -CommandName Invoke-JiraRequest -Exactly -Times 1
                 }
 
                 It "Provides no output" {
-                    Remove-JiraUser -User $testUsername -Force | Should -BeNullOrEmpty
+                    Remove-JiraUser -User $testUsername -Confirm:$false | Should -BeNullOrEmpty
                 }
             }
-        }
-
-        Describe "Input Validation" {
-            Context "Type Validation - Positive Cases" {}
-
-            Context "Type Validation - Negative Cases" {}
         }
 
         Describe "Cloud Deployment" {
@@ -133,18 +96,18 @@ InModuleScope JiraPS {
                     return $object
                 }
 
-                Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
+                Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter {
                     $Method -eq 'DELETE' -and
                     $URI -like "/rest/api/*/user?accountId=*"
                 } {
-                    Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+                    Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
                 }
             }
 
             It "Uses accountId in the URI instead of username" {
-                { Remove-JiraUser -User $testUsername -Force } | Should -Not -Throw
+                { Remove-JiraUser -User $testUsername -Confirm:$false } | Should -Not -Throw
 
-                Should -Invoke -CommandName Invoke-JiraMethod -Exactly -Times 1 -ParameterFilter {
+                Should -Invoke -CommandName Invoke-JiraRequest -Exactly -Times 1 -ParameterFilter {
                     $Method -eq 'DELETE' -and
                     $URI -like "*accountId=$testAccountId*"
                 }

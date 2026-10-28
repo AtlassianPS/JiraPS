@@ -16,7 +16,8 @@ Returns worklogs from an issue in Jira.
 ## SYNTAX
 
 ```powershell
-Get-JiraIssueWorklog [-Issue] <AtlassianPS.JiraPS.Issue> [[-Credential] <pscredential>] [<CommonParameters>]
+Get-JiraIssueWorklog [-Issue] <AtlassianPS.JiraPS.Issue> [[-PageSize] <int>] [[-Connection] <AtlassianPS.Connection>]
+ [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -28,34 +29,70 @@ This function obtains worklogs from existing issues in Jira.
 ### Example 1
 
 ```powershell
-Get-JiraIssueWorklog -Key TEST-001
+Get-JiraIssueWorklog -Issue PROJ-1 -First 10 -Skip 5 -PageSize 25
 ```
 
-This example returns all worklogs from issue TEST-001.
-
-### Example 2
-
-```powershell
-Get-JiraIssue TEST-002 | Get-JiraIssueWorklog
-```
-
-This example illustrates use of the pipeline to return all worklogs from issue TEST-002.
+Return ten worklogs after skipping five, using the shared Jira pager.
 
 ## PARAMETERS
 
-### -Credential
+### -Connection
 
-Credentials to use to connect to Jira.
-If not specified, this function will use anonymous access.
+Active Jira connection for this operation.
+When omitted, the command uses the selected Jira default.
+Create connections with Connect-Jira; resolve names with Get-JiraConnection -Name.
 
 ```yaml
-Type: PSCredential
-DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
+Type: AtlassianPS.Connection
+DefaultValue: None
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
 - Name: (All)
-  Position: 1
+  Position: 2
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -First
+
+Maximum number of matching records to return.
+
+```yaml
+Type: UInt64
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -IncludeTotalCount
+
+Return total-count information before the records.
+Accuracy is unknown when Jira does not provide a total.
+
+```yaml
+Type: SwitchParameter
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
   IsRequired: false
   ValueFromPipeline: false
   ValueFromPipelineByPropertyName: false
@@ -67,9 +104,7 @@ HelpMessage: ''
 
 ### -Issue
 
-Jira issue to check for worklogs.
-
-Can be an `AtlassianPS.JiraPS.Issue` object, issue key, or internal issue ID.
+Issue keys, numeric ID strings or typed issue objects.
 
 ```yaml
 Type: AtlassianPS.JiraPS.Issue
@@ -89,14 +124,59 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
+### -PageSize
+
+Number of records requested per page.
+Use First to limit output and Skip to skip records.
+
+```yaml
+Type: Int32
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: 1
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -Skip
+
+Number of matching records to skip before returning output.
+
+```yaml
+Type: UInt64
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable, -ProgressAction, -Verbose, -WarningAction, and -WarningVariable.
-For more information, see [about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
+-InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
+-ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
+[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
-### AtlassianPS.JiraPS.Issue / String
+### AtlassianPS.JiraPS.Issue
 
 ## OUTPUTS
 
@@ -104,11 +184,13 @@ For more information, see [about_CommonParameters](https://go.microsoft.com/fwli
 
 ## NOTES
 
-This function requires either the `-Credential` parameter to be passed or a persistent Jira session.
-See `New-JiraSession` for more details.
-If neither are supplied, this function will run with anonymous access to Jira.
+This function uses the selected Jira connection unless you pass another connection through `-Connection`.
+Use `Connect-Jira` to create a connection.
+For anonymous access, create the connection with `Connect-Jira -Anonymous`.
 
 ## RELATED LINKS
+
+[about_JiraPS_Authentication](../../about/authentication.html)
 
 [Add-JiraIssueWorklog](../Add-JiraIssueWorklog/)
 

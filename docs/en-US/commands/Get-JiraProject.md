@@ -17,13 +17,13 @@ Returns a project from Jira.
 ### _All (Default)
 
 ```powershell
-Get-JiraProject [-Credential <pscredential>] [<CommonParameters>]
+Get-JiraProject [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 
 ### _Search
 
 ```powershell
-Get-JiraProject [-Project] <AtlassianPS.JiraPS.Project[]> [-Credential <pscredential>] [<CommonParameters>]
+Get-JiraProject [-Project] <AtlassianPS.JiraPS.Project[]> [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -39,7 +39,7 @@ The `-Project` parameter will accept either a project ID or a project key.
 ### Example 1
 
 ```powershell
-Get-JiraProject -Project TEST -Credential $cred
+Get-JiraProject -Project TEST
 ```
 
 Returns information about the project TEST
@@ -47,7 +47,7 @@ Returns information about the project TEST
 ### Example 2
 
 ```powershell
-Get-JiraProject 2 -Credential $cred
+Get-JiraProject 2
 ```
 
 Returns information about the project with ID 2
@@ -62,14 +62,15 @@ Returns information about all projects the user is authorized to view
 
 ## PARAMETERS
 
-### -Credential
+### -Connection
 
-Credentials to use to connect to Jira.
-If not specified, this function will use anonymous access.
+Active Jira connection for this operation.
+When omitted, the command uses the selected Jira default.
+Create connections with Connect-Jira; resolve names with Get-JiraConnection -Name.
 
 ```yaml
-Type: PSCredential
-DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
+Type: AtlassianPS.Connection
+DefaultValue: None
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
@@ -107,10 +108,14 @@ HelpMessage: ''
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable, -ProgressAction, -Verbose, -WarningAction, and -WarningVariable.
-For more information, see [about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
+-InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
+-ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
+[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
+
+### AtlassianPS.JiraPS.Project[]
 
 ## OUTPUTS
 
@@ -118,10 +123,12 @@ For more information, see [about_CommonParameters](https://go.microsoft.com/fwli
 
 ## NOTES
 
-This function requires either the `-Credential` parameter to be passed or a persistent Jira session.
-See `New-JiraSession` for more details.
-If neither are supplied, this function will run with anonymous access to Jira.
+This function uses the selected Jira connection unless you pass another connection through `-Connection`.
+Use `Connect-Jira` to create a connection.
+For anonymous access, create the connection with `Connect-Jira -Anonymous`.
 
 Remaining operations for `project` have not yet been implemented in the module.
 
 ## RELATED LINKS
+
+[about_JiraPS_Authentication](../../about/authentication.html)

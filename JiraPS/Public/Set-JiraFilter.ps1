@@ -6,7 +6,7 @@
         [ValidateNotNullOrEmpty()]
         [AtlassianPS.JiraPS.FilterTransformation()]
         [AtlassianPS.JiraPS.Filter]
-        $InputObject,
+        $Filter,
 
         [Parameter()]
         [ValidateNotNullOrEmpty()]
@@ -27,22 +27,26 @@
         [Bool]
         $Favorite,
 
+        [Switch]
+        $PassThru,
+
         [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        [AtlassianPS.Connection]
+        $Connection
     )
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+
+        $RequestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
     }
 
     process {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+        Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
 
-        if ($InputObject -and -not $InputObject.RestUrl) {
-            $InputObject = Get-JiraFilter -Id $InputObject.Id -Credential $Credential -ErrorAction Stop
+        if ($Filter -and -not $Filter.RestUrl) {
+            $Filter = Get-JiraFilter -Id $Filter.Id -Connection $RequestContext -ErrorAction Stop
         }
 
         $requestBody = @{}
@@ -53,16 +57,15 @@
 
         if ($requestBody.Keys.Count) {
             $parameter = @{
-                URI        = $InputObject.RestURL
-                Method     = "PUT"
-                Body       = ConvertTo-Json -InputObject $requestBody
-                Credential = $Credential
+                URI    = $Filter.RestURL
+                Method = "PUT"
+                Body   = ConvertTo-Json -InputObject $requestBody
             }
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-            if ($PSCmdlet.ShouldProcess($InputObject.Name, "Update Filter")) {
-                $result = Invoke-JiraMethod @parameter
+            Write-DebugMessage "Invoking JiraMethod with `$parameter"
+            if ($PSCmdlet.ShouldProcess($Filter.Name, "Update Filter")) {
+                $result = Invoke-JiraRequest -RequestContext $RequestContext @parameter
 
-                Write-Output (ConvertTo-JiraFilter -InputObject $result)
+                if ($PassThru) { ConvertTo-JiraFilter -InputObject $result }
             }
         }
     }

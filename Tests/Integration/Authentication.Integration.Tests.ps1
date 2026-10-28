@@ -18,111 +18,61 @@ InModuleScope JiraPS {
             . "$PSScriptRoot/../Helpers/IntegrationTestTools.ps1"
 
             $script:env = Initialize-IntegrationEnvironment
+            $script:secureToken = ConvertTo-SecureString -String $env.Password -AsPlainText -Force
         }
 
-        AfterAll {
-            Remove-JiraSession -ErrorAction SilentlyContinue
+        AfterEach {
+            Get-JiraConnection | Disconnect-Jira -ErrorAction SilentlyContinue
         }
 
-        Context "Set-JiraConfigServer" {
-            It "configures the Jira server URL" {
-                { Set-JiraConfigServer -Server $env.CloudUrl } | Should -Not -Throw
-            }
+        Context "Connect-Jira" {
+            It 'creates an active connection with a validated identity using an API token' {
+                $session = Connect-Jira -Name 'authentication-integration' -Uri $env.CloudUrl -ApiToken $secureToken -EmailAddress $env.Username -ErrorAction Stop
 
-            It "stores the server URL for subsequent calls" {
-                Set-JiraConfigServer -Server $env.CloudUrl
-
-                $server = Get-JiraConfigServer
-                $server | Should -Be $env.CloudUrl
-            }
-        }
-
-        Context "New-JiraSession" {
-            BeforeAll {
-                Set-JiraConfigServer -Server $env.CloudUrl
-                $script:secureToken = ConvertTo-SecureString -String $env.Password -AsPlainText -Force
-            }
-
-            AfterEach {
-                Remove-JiraSession -ErrorAction SilentlyContinue
-            }
-
-            It "creates a session with valid API token" {
-                $session = New-JiraSession -ApiToken $secureToken -EmailAddress $env.Username
-
-                $session | Should -Not -BeNullOrEmpty
-            }
-
-            It "returns a session object with correct type" {
-                $session = New-JiraSession -ApiToken $secureToken -EmailAddress $env.Username
-
-                $session.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.Session'
-            }
-
-            It "enables subsequent API calls without explicit credentials" {
-                New-JiraSession -ApiToken $secureToken -EmailAddress $env.Username
-
-                $serverInfo = Get-JiraServerInformation
-                $serverInfo | Should -Not -BeNullOrEmpty
+                $session | Should -BeOfType ([AtlassianPS.Connection])
+                $session.State | Should -Be 'Active'
+                $session.Username | Should -Not -BeNullOrEmpty
+                (Get-JiraUser -Connection $session -ErrorAction Stop).AccountId | Should -Be $session.Username
             }
 
             It "fails with invalid API token" {
                 $badToken = ConvertTo-SecureString -String "invalid-token" -AsPlainText -Force
 
-                { New-JiraSession -ApiToken $badToken -EmailAddress $env.Username -ErrorAction Stop } |
+                { Connect-Jira -Name 'authentication-integration' -Uri $env.CloudUrl -ApiToken $badToken -EmailAddress $env.Username -ErrorAction Stop } |
                     Should -Throw
             }
 
             It "fails with invalid email address" {
-                { New-JiraSession -ApiToken $secureToken -EmailAddress "invalid@example.com" -ErrorAction Stop } |
+                {
+                    Connect-Jira -Name 'authentication-integration' -Uri $env.CloudUrl -ApiToken $secureToken -EmailAddress "invalid@example.com" -ErrorAction Stop
+                } |
                     Should -Throw
             }
         }
 
-        Context "Get-JiraSession" {
-            BeforeAll {
-                Set-JiraConfigServer -Server $env.CloudUrl
-
-                $script:secureToken = ConvertTo-SecureString -String $env.Password -AsPlainText -Force
-            }
-
-            It "returns null when no session exists" {
-                Remove-JiraSession -ErrorAction SilentlyContinue
-
-                $session = Get-JiraSession
-                $session | Should -BeNullOrEmpty
-            }
+        Context "Get-JiraConnection" {
 
             It "returns the current session after authentication" {
-                New-JiraSession -ApiToken $secureToken -EmailAddress $env.Username
+                Connect-Jira -Name 'authentication-integration' -Uri $env.CloudUrl -ApiToken $secureToken -EmailAddress $env.Username
 
-                $session = Get-JiraSession
+                $session = Get-JiraConnection
+
                 $session | Should -Not -BeNullOrEmpty
-                $session.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.Session'
+                $session.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.Connection'
             }
         }
 
-        Context "Remove-JiraSession" {
-            BeforeAll {
-                Set-JiraConfigServer -Server $env.CloudUrl
-
-                $script:secureToken = ConvertTo-SecureString -String $env.Password -AsPlainText -Force
-            }
-
+        Context "Disconnect-Jira" {
             It "removes an existing session" {
-                New-JiraSession -ApiToken $secureToken -EmailAddress $env.Username
-                Get-JiraSession | Should -Not -BeNullOrEmpty
+                Connect-Jira -Name 'authentication-integration' -Uri $env.CloudUrl -ApiToken $secureToken -EmailAddress $env.Username
 
-                Remove-JiraSession
+                Get-JiraConnection | Should -Not -BeNullOrEmpty
 
-                Get-JiraSession | Should -BeNullOrEmpty
+                Get-JiraConnection | Disconnect-Jira
+
+                Get-JiraConnection | Should -BeNullOrEmpty
             }
 
-            It "succeeds even when no session exists" {
-                Remove-JiraSession -ErrorAction SilentlyContinue
-
-                { Remove-JiraSession } | Should -Not -Throw
-            }
         }
     }
 }

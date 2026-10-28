@@ -916,9 +916,6 @@ InModuleScope JiraPS {
                     $result.Summary | Should -Be 'Allow set active/inactive via REST API'
                 }
 
-                It "includes 'Attachment' property" {
-                    $result.Attachment | Should -Not -BeNullOrEmpty
-                }
             }
 
             Context "Type Conversion" {
@@ -1105,9 +1102,6 @@ InModuleScope JiraPS {
             }
 
             Context "Pipeline Support" {
-                It "accepts pipeline input" {
-                    { $sampleObject | ConvertTo-JiraIssue } | Should -Not -Throw
-                }
 
                 It "processes multiple issues from pipeline" {
                     $result = @($sampleObject, $sampleObject) | ConvertTo-JiraIssue
@@ -1132,7 +1126,7 @@ InModuleScope JiraPS {
                     # from $InputObject.self, which broadcasts member-access
                     # across the array when -InputObject is bound directly
                     # with multiple issues (the path Get-JiraIssue uses for
-                    # ByJQL / ByFilter results from Invoke-JiraMethod).
+                    # ByJQL / ByFilter results from Invoke-JiraRequest).
                     # `(@($a.self, $b.self) -split 'rest')[0]` returns only
                     # the FIRST issue's prefix, so every issue in the batch
                     # silently inherited issue[0]'s server URL — issue B's

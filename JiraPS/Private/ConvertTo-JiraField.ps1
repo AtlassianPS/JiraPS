@@ -1,4 +1,8 @@
 ﻿function ConvertTo-JiraField {
+    <#
+    .SYNOPSIS
+        Convert Jira response data to AtlassianPS.JiraPS.Field objects.
+    #>
     [CmdletBinding()]
     [OutputType([AtlassianPS.JiraPS.Field])]
     param(
@@ -10,7 +14,7 @@
     process {
         foreach ($i in $InputObject) {
             if ($null -eq $i) { continue }
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to AtlassianPS.JiraPS.Field"
+            Write-DebugMessage "Converting `$InputObject to AtlassianPS.JiraPS.Field"
 
             $props = @{
                 'ID'          = $i.id

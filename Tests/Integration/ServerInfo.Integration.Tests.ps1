@@ -20,15 +20,15 @@ InModuleScope JiraPS {
         }
 
         AfterAll {
-            Remove-JiraSession -ErrorAction SilentlyContinue
+            Disconnect-Jira -ErrorAction SilentlyContinue
         }
 
-        Describe "Get-JiraConfigServer" {
-            It "returns the configured server URL" {
-                $server = Get-JiraConfigServer
+        Describe "Connection endpoint" {
+            It "returns the active connection API endpoint" {
+                $server = (Get-JiraConnection -Default).BaseUri.AbsoluteUri.TrimEnd('/')
 
                 $server | Should -Not -BeNullOrEmpty
-                $server | Should -Be $fixtures.CloudUrl
+                $server | Should -Be $session.BaseUri.AbsoluteUri.TrimEnd('/')
             }
         }
 
@@ -37,39 +37,13 @@ InModuleScope JiraPS {
                 $script:serverInfo = Get-JiraServerInformation
             }
 
-            It "retrieves server information" {
-                $serverInfo | Should -Not -BeNullOrEmpty
-            }
-
-            It "returns the correct type" {
-                $serverInfo.PSObject.TypeNames[0] | Should -Be 'AtlassianPS.JiraPS.ServerInfo'
-            }
-
-            It "includes the base URL" {
+            It 'returns typed Jira metadata with the expected deployment' {
+                $serverInfo | Should -BeOfType ([AtlassianPS.JiraPS.ServerInfo])
                 $serverInfo.BaseURL | Should -Not -BeNullOrEmpty
-            }
-
-            It "includes the version" {
                 $serverInfo.Version | Should -Not -BeNullOrEmpty
-            }
-
-            It "identifies the correct deployment type" {
-                # `Get-JiraServerInformation` returns 'Cloud' when the underlying
-                # `/serverInfo` payload includes `deploymentType: Cloud` (Atlassian
-                # Cloud), and 'Server' for Data Center / on-prem. The Server-tagged
-                # CI run boots the moveworkforward AMPS image — which is on-prem
-                # Jira and therefore correctly reports 'Server'. Pick the expected
-                # value off the same `IsCloud` flag that `Initialize-IntegrationEnvironment`
-                # uses to drive the rest of the deployment-aware fixtures.
                 $expected = if ($fixtures.IsCloud) { 'Cloud' } else { 'Server' }
                 $serverInfo.DeploymentType | Should -Be $expected
-            }
-
-            It "includes build information" {
                 $serverInfo.BuildNumber | Should -Not -BeNullOrEmpty
-            }
-
-            It "includes server title" {
                 $serverInfo.ServerTitle | Should -Not -BeNullOrEmpty
             }
         }

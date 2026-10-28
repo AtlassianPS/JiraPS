@@ -42,12 +42,12 @@ This guide lists every breaking change introduced in v3 and shows how to update 
 | Class slot type tightening   | Boolean / numeric slots on `Filter` and `Version` are now strongly typed; missing flags surface as `$false` instead of `$null`. |
 | `Version.StartDate` / `Version.ReleaseDate` | Empty-string sentinel for missing dates dropped; the slots are now `[DateTime?]` and `$null` when absent. |
 | Identifier equality on core classes | `Issue`, `User`, `Project`, `Group`, `Filter`, and `Version` now compare by canonical identifier instead of object reference. |
-| Issue-scoped cmdlets         | `-Issue` (and `-InputObject` on `Get-JiraIssue` / `Remove-JiraIssue`) is now `[AtlassianPS.JiraPS.Issue]` with a custom transformer; arrays / pipelines iterate the `process` block per item instead of throwing. |
-| User-scoped cmdlets          | `-User` / `-UserName` / `-Owner` on `Set-JiraUser`, `Remove-JiraUser`, `Add-JiraGroupMember`, `Remove-JiraGroupMember`, and `Find-JiraFilter` are now strongly-typed `[AtlassianPS.JiraPS.User]` / `[AtlassianPS.JiraPS.User[]]` with a custom transformer. |
+| Issue-scoped cmdlets         | `-Issue` uses strongly typed issue objects with a custom transformer; supported arrays and pipelines iterate the `process` block per item instead of throwing. |
+| User-scoped cmdlets          | `-User` on `Set-JiraUser`, `Remove-JiraUser`, `Add-JiraGroupMember`, and `Remove-JiraGroupMember`, and `-Owner` on `Find-JiraFilter`, use strongly typed `[AtlassianPS.JiraPS.User]` / `[AtlassianPS.JiraPS.User[]]` with a custom transformer. |
 | Group promoted to .NET class | `Group` joins the eight original `AtlassianPS.JiraPS.*` types. `ConvertTo-JiraGroup` returns `[AtlassianPS.JiraPS.Group]`; `PSObject.TypeNames[0]` is `AtlassianPS.JiraPS.Group` (was `JiraPS.Group`). |
 | Group-scoped cmdlets         | `-Group` on `Add-JiraGroupMember`, `Get-JiraGroupMember`, `Remove-JiraGroup`, and `Remove-JiraGroupMember` is now strongly-typed `[AtlassianPS.JiraPS.Group[]]` with a custom transformer. |
-| Version-scoped cmdlets       | `-Version` / `-After` / `-InputObject` / `-InputVersion` on `Get-JiraVersion`, `Move-JiraVersion`, `New-JiraVersion`, `Remove-JiraVersion`, and `Set-JiraVersion` are now strongly-typed `[AtlassianPS.JiraPS.Version]` / `[AtlassianPS.JiraPS.Version[]]` with a custom transformer. |
-| Filter-scoped cmdlets        | `-InputObject` on `Get-JiraFilter` and `-Filter` on `Get-JiraIssue` are now strongly-typed `[AtlassianPS.JiraPS.Filter]` / `[AtlassianPS.JiraPS.Filter[]]` with a custom transformer. |
+| Version-scoped cmdlets       | `-Version` on `Get-JiraVersion`, `Move-JiraVersion`, `Remove-JiraVersion`, and `Set-JiraVersion`, `-After` on `Move-JiraVersion`, and `-InputObject` on `New-JiraVersion` use strongly typed version objects with a custom transformer. |
+| Filter-scoped cmdlets        | `-Filter` on `Get-JiraFilter` and `Get-JiraIssue` uses strongly typed `[AtlassianPS.JiraPS.Filter]` / `[AtlassianPS.JiraPS.Filter[]]` with a custom transformer. |
 | Project-scoped cmdlets       | `-Project` on `Get-JiraComponent`, `Find-JiraFilter`, `New-JiraVersion`, and `Set-JiraVersion` is now strongly-typed `[AtlassianPS.JiraPS.Project]` / `[AtlassianPS.JiraPS.Project[]]` with a custom transformer. |
 | Class construction           | The six identifier-driven `AtlassianPS.JiraPS.*` classes ship a single string-arg constructor for stub-from-an-identifier (`[AtlassianPS.JiraPS.Issue]::new('TEST-1')`). The hashtable-cast form `[AtlassianPS.JiraPS.Issue]@{ Key = 'TEST-1' }` continues to work. |
 | Rich-text fields (read)      | On Cloud, returned as Markdown strings instead of ADF JSON trees.       |
@@ -59,17 +59,113 @@ This guide lists every breaking change introduced in v3 and shows how to update 
 | Project `Roles` and user `AvatarUrl` | These properties use dictionaries of URI values. Read entries by key. |
 | Filter and related object parameters | Commands declare the object types they accept. Identifier and name shorthand remain available where documented. |
 
-## Deprecations
+## Removed legacy commands
 
-The old command name continues to work as an exported alias in v3.
-The alias will be removed in a future major version.
-Update at your convenience.
-
-| Area          | What Changed                                                                  |
-| ------------- | ----------------------------------------------------------------------------- |
-| `Format-Jira` | Renamed to `ConvertTo-JiraTable`. The old name is preserved as a deprecated, exported alias. |
+`Format-Jira`, the session commands and the Jira-specific server configuration commands are removed in v3.
+Use `ConvertTo-JiraTable`, shared named endpoint profiles and the live connection commands below.
 
 ## Detailed migration guide
+
+### Connections and authentication
+
+```powershell
+# v2
+Set-JiraConfigServer 'https://jira.example.com'
+New-JiraSession -Credential $credential
+Get-JiraIssue -Key PROJ-1 -Credential $credential
+
+# v3
+$work = Connect-Jira -Name work -Uri 'https://jira.example.com' -Credential $credential
+Get-JiraIssue -Issue PROJ-1 -Connection $work
+Get-JiraConnection -Name work
+Select-JiraConnection -Connection $work
+Disconnect-Jira -Connection $work
+```
+
+Ordinary Jira commands accept `Connection` and otherwise use the selected Jira default.
+Authentication belongs to connection creation; the per-call `Credential` and `Session` parameters are removed.
+Use `Add-AtlassianServerConfiguration` for saved endpoints and `Connect-Jira -Profile` to connect explicitly.
+No command imports the installed module's legacy `server_config` automatically.
+For standalone REST work, `Invoke-JiraMethod` accepts `BaseUri` and authentication in the same call.
+
+### Exact selectors, search and paging
+
+```powershell
+Get-JiraIssue -Issue 'PROJ-1', 'PROJ-2'
+Get-JiraFilter -Filter 12345
+Get-JiraVersion -Version 10001
+Get-JiraVersion -Project PROJ -Name 'v3*', 'v4*' -Skip 1 -First 5
+Get-JiraUser -User 'opaque-account-id' -Connection $cloud
+Get-JiraUser -User 'username' -Connection $dataCenter
+Get-JiraUser -Query 'John Smith' -First 10
+Get-JiraUser -All -First 100
+Get-JiraIssueComment -Issue PROJ-1 -Skip 5 -First 10 -PageSize 25
+Get-JiraIssueWorklog -Issue PROJ-1 -Skip 5 -First 10 -PageSize 25
+```
+
+User strings are exact Cloud account IDs or Data Center usernames; display names require an explicit search.
+Cloud search returns active users among the first 1,000 matches; `All` includes inactive and previously deleted accounts.
+Data Center enumeration follows `/user/list` cursors when that endpoint is supported and fails actionably otherwise.
+`Find-JiraFilter` uses Cloud's filter-search API; Data Center callers use exact or favorite filter lookup.
+Use `User` for group membership, `Watcher` for watchers, `IssueLink` for issue links and `Link` for remote links.
+
+### Refreshing cached metadata
+
+Replace `-Force` with `-Refresh` in `Get-JiraField`, `Get-JiraIssueType`, `Get-JiraPriority` and `Get-JiraServerInformation`.
+`-Refresh` fetches fresh data and replaces the selected connection's cached response for the requested resource.
+`Get-JiraIssueLinkType` and `Get-JiraStatus` now also cache responses and support `-Refresh`.
+Priority ID lookups honor `-Refresh` as well as catalogue lookups.
+
+Fields, issue types, issue link types, priorities and statuses expire after one hour; server information expires after five minutes.
+Field and issue type selectors share one catalogue per invocation, including when several values arrive through the pipeline.
+Catalogue and individual lookup responses use separate cache entries.
+Use `Clear-JiraCache -Type IssueLinkTypes`, or another metadata type, to invalidate all matching responses across connections.
+
+```powershell
+# v2
+Get-JiraField -Force
+
+# v3
+Get-JiraField -Refresh
+```
+
+### Mutation intent and outputs
+
+```powershell
+Invoke-JiraIssueTransition -Issue PROJ-1 -Transition 'Start Progress' -WhatIf
+Move-JiraVersion -Version 10001 -Position Last -WhatIf
+Remove-JiraIssue -Issue PROJ-1 -Confirm:$false
+Set-JiraIssue -Issue PROJ-1 -Description '' -Label @() -FixVersion @()
+Set-JiraFilter -Filter 12345 -Name 'Review' -PassThru
+$permissions = Get-JiraFilterPermission -Filter 12345
+Remove-JiraFilterPermission -Filter 12345 -Permission $permissions[0]
+Remove-JiraFilterPermission -Filter 12345 -All
+```
+
+Use `Confirm:$false` instead of confirmation-only `Force` switches.
+`Get/Add-JiraFilterPermission` return permission records.
+`All` fetches current filter permissions before removing them; omission does not imply bulk removal.
+`Set-JiraFilter -PassThru` returns the successful update response without an extra lookup.
+Explicitly empty description, label and fix-version inputs clear those fields; omission preserves them.
+Transitions and version moves support standard confirmation and `WhatIf`.
+
+### Saving attachments and creating users
+
+```powershell
+Get-JiraIssueAttachment -Issue PROJ-1 | Save-JiraIssueAttachment -Path './downloads'
+$attachment | Save-JiraIssueAttachment -Path './report.bin' -Force
+New-JiraUser -EmailAddress 'me@example.com' -Products jira-software -Connection $cloud
+New-JiraUser -EmailAddress 'me@example.com' -Products @() -Connection $cloud
+New-JiraUser -EmailAddress 'me@example.com' -UserName me -Connection $dataCenter
+```
+
+`Save-JiraIssueAttachment` replaces `Get-JiraIssueAttachmentFile` and returns `FileInfo` for each completed write.
+The destination directory must exist; an explicit file destination accepts one attachment.
+`Force` permits overwriting a file, while `WhatIf` performs no download or write.
+Cloud user creation requires an explicit product-access list, including an empty array for no access.
+Data Center requires a username and accepts an optional display name.
+The unsupported Boolean `Notify` parameter is removed.
+Manage Cloud account-field updates through Atlassian account administration.
 
 ### Pagination — `Get-JiraIssue` and `Get-JiraGroupMember`
 
@@ -187,7 +283,7 @@ In v3:
 - `-Reporter` rejects `$null`, `''`, and whitespace-only strings at parameter binding time with an actionable message.
   **Omit `-Reporter` entirely** to let Jira apply the project's default reporter — this matches the API's behaviour and is the supported way to "reset" the reporter on creation.
 - `-Reporter` is now resolved through `Resolve-JiraUser` on Server / DC as well, so typos are caught client-side and Cloud / DC use the same code path.
-  `Resolve-JiraUser` performs an exact match (`-Exact`).
+  `Resolve-JiraUser` resolves the deployment-specific identity without searching.
 
 #### v2
 
@@ -213,8 +309,8 @@ The command returns a string containing Jira wiki-markup table syntax.
 It does not produce a formatting object like `Format-Table`.
 Treating it as a `ConvertTo-*` is also more honest about the destructive nature of the conversion.
 
-Existing scripts continue to work because `Format-Jira` is preserved as an exported deprecated alias.
-The alias will be removed in a future major version, so update scripts at your convenience.
+The deprecated `Format-Jira` alias is removed in v3.
+Update scripts to use `ConvertTo-JiraTable`.
 
 #### v2
 
@@ -335,11 +431,45 @@ $issue.Status.Name.Substring(0, 3)
 
 ### Endpoint paths in `Invoke-JiraMethod`
 
+Only Uri supports positional binding.
+GetParameter was renamed to QueryParameter.
+Query values are supplied unencoded, and arrays become repeated query keys.
+Use explicit comma-separated strings where Jira expects comma-separated values.
+
+Structured Body values are serialized as JSON automatically.
+JSON strings are sent without additional serialization, strings use UTF-8, and byte arrays are sent unchanged.
+ContentType selects the request media type; RawBody was removed.
+
+```powershell
+# v2
+Invoke-JiraMethod -Uri '/rest/api/2/issue/TEST-1' -GetParameter @{ fields = 'summary,status' }
+
+# v3
+Invoke-JiraMethod '/rest/api/2/issue/TEST-1' -QueryParameter @{ fields = 'summary,status' }
+Invoke-JiraMethod '/rest/api/2/group' -Method Post -Body @{ name = 'release-reviewers' } -Connection $connection
+```
+
+Select a connection through Connection, ConnectionName or the default.
+Standalone authentication requires BaseUri with Credential, EmailAddress and ApiToken, PersonalAccessToken, or Anonymous.
+Authentication overrides on selected connections are no longer supported.
+
+Paging must be explicit, and First, Skip, IncludeTotalCount and PageSize require Paging.
+Automatic paging supports GET offset responses and enhanced-search GET tokens; manage body-based continuation explicitly.
+Skip is applied locally for token responses.
+RawResponse returns status, headers and content; OutFile saves bytes and returns FileInfo.
+Paging, RawResponse and OutFile are mutually exclusive response modes.
+
+StoreSession, InFile, OutputType and the public cache controls were removed.
+Use Connect-Jira for reusable connections and Add-JiraIssueAttachment for multipart uploads.
+Potential mutations and file output support WhatIf and Confirm.
+Automatic retries are limited to GET, HEAD and OPTIONS.
+
 In v3, JiraPS standardizes internal REST calls on relative endpoint paths that match Atlassian documentation (for example, `/rest/api/2/project`).
-`Invoke-JiraMethod` resolves those relative paths against `Get-JiraConfigServer`.
+`Invoke-JiraMethod` resolves those relative paths against the selected connection's API endpoint.
 Relative paths must start with `/`.
 Calls like `Invoke-JiraMethod -Uri 'rest/api/2/project'` now throw a clear argument error.
-Absolute URLs are still accepted for backward compatibility and for object properties like `RestURL`.
+Absolute URLs must belong to that connection's endpoint.
+Cloud site REST URLs from properties like `RestURL` are mapped to the same connection's API gateway.
 
 #### Recommended in v3
 
@@ -350,7 +480,7 @@ Invoke-JiraMethod -Uri '/rest/api/2/issue/TEST-1'
 
 ### PSTypeName changes in `AtlassianPS.JiraPS.*`
 
-The eight most-used JiraPS domain types are now real .NET classes under the `AtlassianPS.JiraPS` namespace, mirroring the long-standing convention used by `ConfluencePS` and other AtlassianPS modules.
+Common JiraPS domain types are now real .NET classes under the `AtlassianPS.JiraPS` namespace, mirroring the long-standing convention used by `ConfluencePS` and other AtlassianPS modules.
 Returned objects have `GetType().FullName -eq 'AtlassianPS.JiraPS.<Type>'`, support hashtable construction (`[AtlassianPS.JiraPS.User]@{ Name = 'jdoe' }`), expose strongly-typed cross-references (e.g. `Project.Lead` is `[User]`, `Issue.Project` is `[Project]`), and surface real properties to `Get-Member` and IDE IntelliSense.
 
 The following types were renamed:
@@ -363,7 +493,7 @@ The following types were renamed:
 | `JiraPS.Filter`     | `AtlassianPS.JiraPS.Filter`      |
 | `JiraPS.Version`    | `AtlassianPS.JiraPS.Version`     |
 | `JiraPS.Comment`    | `AtlassianPS.JiraPS.Comment`     |
-| `JiraPS.Session`    | `AtlassianPS.JiraPS.Session`     |
+| `JiraPS.Session`    | `AtlassianPS.Connection`        |
 | `JiraPS.ServerInfo` | `AtlassianPS.JiraPS.ServerInfo`  |
 
 There is no backward-compatibility alias.
@@ -492,18 +622,18 @@ Most scripts can keep passing strings, while newer scripts can pass real `Atlass
 
 | Family | Representative parameters | v3 class | Canonical identifier slot |
 | ------ | ------------------------- | -------- | ------------------------- |
-| Issue | `-Issue`, `-InputObject` | `[AtlassianPS.JiraPS.Issue]` | `Key` |
-| Version | `-Version`, `-After`, `-InputVersion`, `-InputObject` | `[AtlassianPS.JiraPS.Version]` | `Id` (fallback `Name`) |
-| Filter | `-Filter`, `-InputObject` | `[AtlassianPS.JiraPS.Filter]` | `Id` |
+| Issue | `-Issue` | `[AtlassianPS.JiraPS.Issue]` | `Key` |
+| Version | `-Version`, `-After`, `-InputObject` | `[AtlassianPS.JiraPS.Version]` | `Id` (fallback `Name`) |
+| Filter | `-Filter` | `[AtlassianPS.JiraPS.Filter]` | `Id` |
 | Project | `-Project` | `[AtlassianPS.JiraPS.Project]` | `Key` (or `Id`) |
-| User | `-User`, `-UserName`, `-Owner`, `-Assignee`, `-Reporter` | `[AtlassianPS.JiraPS.User]` | `AccountId` on Cloud, otherwise `Name` |
+| User | `-User`, `-Owner`, `-Assignee`, `-Reporter` | `[AtlassianPS.JiraPS.User]` | `AccountId` on Cloud, otherwise `Name` |
 | Group | `-Group` | `[AtlassianPS.JiraPS.Group]` | `Name` |
 
 Anything else throws an `ArgumentTransformationMetadataException` at parameter binding time with an actionable message, instead of failing later inside the cmdlet body with a generic `Cannot convert ...` error.
 
 #### Affected cmdlets
 
-`Add-JiraIssueAttachment`, `Add-JiraIssueComment`, `Add-JiraIssueWatcher`, `Add-JiraIssueWorklog`, `Get-JiraIssue` (`-InputObject`), `Get-JiraIssueAttachment`, `Get-JiraIssueComment`, `Get-JiraIssueWatcher`, `Get-JiraIssueWorklog`, `Get-JiraRemoteLink`, `Invoke-JiraIssueTransition`, `Remove-JiraIssue` (`-InputObject`), `Remove-JiraIssueAttachment`, `Remove-JiraIssueWatcher`, `Remove-JiraRemoteLink`, `Set-JiraIssue`, `Set-JiraIssueLabel`.
+`Add-JiraIssueAttachment`, `Add-JiraIssueComment`, `Add-JiraIssueWatcher`, `Add-JiraIssueWorklog`, `Get-JiraIssue`, `Get-JiraIssueAttachment`, `Get-JiraIssueComment`, `Get-JiraIssueWatcher`, `Get-JiraIssueWorklog`, `Get-JiraRemoteLink`, `Invoke-JiraIssueTransition`, `Remove-JiraIssue`, `Remove-JiraIssueAttachment`, `Remove-JiraIssueWatcher`, `Remove-JiraRemoteLink`, `Set-JiraIssue`, `Set-JiraIssueLabel`.
 
 #### `Add-JiraIssueLink` now uses explicit relationship endpoints
 
@@ -643,7 +773,8 @@ Add-JiraIssueComment -Issue $issue -Comment 'Team note' -Visibility @{ Type = 'g
 Commands that accept filters and related Jira objects now declare their .NET types as parameter types.
 Check the command help for accepted objects, identifiers and names.
 Use a transition name that is available on the issue.
-`Remove-JiraFilterPermission` accepts a typed `Filter` or its ID, with `FilterId` and `Id` aliases, and optional typed permissions through `-Permission` (`-PermissionId` is an alias).
+`Remove-JiraFilterPermission` accepts a typed `Filter` or its ID, with `FilterId` and `Id` aliases, and requires explicit `Permission` or `All`.
+`PermissionId` remains an alias for `Permission`.
 Properties such as user `AccountType`, filter permission `Type` and server `DeploymentType` now use nullable enums.
 Unknown API values become `$null`.
 When exporting these properties as JSON, cast them to `[string]` to retain their names; `ConvertTo-Json` otherwise writes enum numbers.

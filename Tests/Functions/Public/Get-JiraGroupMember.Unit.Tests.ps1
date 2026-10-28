@@ -2,6 +2,7 @@
 
 BeforeDiscovery {
     . "$PSScriptRoot/../../Helpers/TestTools.ps1"
+
     $script:moduleToTest = Initialize-TestEnvironment
 }
 
@@ -18,11 +19,6 @@ InModuleScope JiraPS {
 
             #region Mocks
             Mock Test-JiraCloudServer -ModuleName JiraPS { $false }
-
-            Mock Get-JiraConfigServer -ModuleName JiraPS {
-                Write-MockDebugInfo 'Get-JiraConfigServer'
-                $jiraServer
-            }
 
             Mock Get-JiraUser -ModuleName JiraPS {
                 Write-MockDebugInfo 'Get-JiraUser'
@@ -45,8 +41,8 @@ InModuleScope JiraPS {
                 Write-Output $obj
             }
 
-            Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $URI -like '*/rest/api/*/group/member' -and $GetParameter["groupname"] -eq "testgroup" } {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
+            Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter { $Method -eq 'Get' -and $URI -like '*/rest/api/*/group/member' -and $GetParameter["groupname"] -eq "testgroup" } {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
                 ConvertFrom-Json @'
 {
 "Name":  "testgroup",
@@ -58,9 +54,9 @@ InModuleScope JiraPS {
 
             # If we don't override this in a context or test, we don't want it to
             # actually try to query a JIRA instance
-            Mock Invoke-JiraMethod {
-                Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri'
-                throw "Unidentified call to Invoke-JiraMethod"
+            Mock Invoke-JiraRequest {
+                Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri'
+                throw "Unidentified call to Invoke-JiraRequest"
             }
             #endregion Mocks
         }
@@ -79,7 +75,7 @@ InModuleScope JiraPS {
             It "Obtains members about a provided group in JIRA" {
                 { Get-JiraGroupMember -Group testgroup } | Should -Not -Throw
 
-                Should -Invoke Invoke-JiraMethod -ModuleName 'JiraPS' -ParameterFilter {
+                Should -Invoke Invoke-JiraRequest -ModuleName 'JiraPS' -ParameterFilter {
                     $Method -eq 'Get' -and
                     $URI -like '*/rest/api/*/group/member'
                 } -Exactly 1
@@ -88,7 +84,7 @@ InModuleScope JiraPS {
             It "Supports the -Skip parameter to page through search results" {
                 { Get-JiraGroupMember -Group testgroup -Skip 10 } | Should -Not -Throw
 
-                Should -Invoke Invoke-JiraMethod -ModuleName 'JiraPS' -ParameterFilter {
+                Should -Invoke Invoke-JiraRequest -ModuleName 'JiraPS' -ParameterFilter {
                     $Method -eq 'Get' -and
                     $URI -like '*/rest/api/*/group/member' -and
                     $Skip -eq 10
@@ -98,7 +94,7 @@ InModuleScope JiraPS {
             It "Supports the -First parameter to limit search results" {
                 { Get-JiraGroupMember -Group testgroup -First 50 } | Should -Not -Throw
 
-                Should -Invoke Invoke-JiraMethod -ModuleName 'JiraPS' -ParameterFilter {
+                Should -Invoke Invoke-JiraRequest -ModuleName 'JiraPS' -ParameterFilter {
                     $Method -eq 'Get' -and
                     $URI -like '*/rest/api/*/group/member' -and
                     $First -eq 50
@@ -114,7 +110,7 @@ InModuleScope JiraPS {
             It "Accepts a group name for the -Group parameter" {
                 { Get-JiraGroupMember -Group testgroup } | Should -Not -Throw
 
-                Should -Invoke Invoke-JiraMethod -ModuleName 'JiraPS' -ParameterFilter {
+                Should -Invoke Invoke-JiraRequest -ModuleName 'JiraPS' -ParameterFilter {
                     $Method -eq 'Get' -and
                     $URI -like '*/rest/api/*/group/member' -and
                     $GetParameter["groupname"] -eq "testgroup"
@@ -126,7 +122,7 @@ InModuleScope JiraPS {
 
                 { Get-JiraGroupMember -Group $group } | Should -Not -Throw
 
-                Should -Invoke Invoke-JiraMethod -ModuleName 'JiraPS' -ParameterFilter {
+                Should -Invoke Invoke-JiraRequest -ModuleName 'JiraPS' -ParameterFilter {
                     $Method -eq 'Get' -and
                     $URI -like '*/rest/api/*/group/member' -and
                     $GetParameter["groupname"] -eq "testgroup"
@@ -138,12 +134,12 @@ InModuleScope JiraPS {
             It "uses groupId for Cloud-compatible group lookups when the input group includes an Id" {
                 Mock Test-JiraCloudServer -ModuleName JiraPS { $true }
 
-                Mock Invoke-JiraMethod -ModuleName JiraPS -ParameterFilter {
+                Mock Invoke-JiraRequest -ModuleName JiraPS -ParameterFilter {
                     $Method -eq 'Get' -and
                     $URI -like '*/rest/api/*/group/member' -and
                     $GetParameter['groupId'] -eq $testGroupId
                 } {
-                    Write-MockDebugInfo 'Invoke-JiraMethod' 'Method', 'Uri', 'GetParameter'
+                    Write-MockDebugInfo 'Invoke-JiraRequest' 'Method', 'Uri', 'GetParameter'
                     ConvertFrom-Json @'
 {
   "isLast": true,
@@ -167,7 +163,7 @@ InModuleScope JiraPS {
 
                 { Get-JiraGroupMember -Group $group } | Should -Not -Throw
 
-                Should -Invoke Invoke-JiraMethod -ModuleName 'JiraPS' -ParameterFilter {
+                Should -Invoke Invoke-JiraRequest -ModuleName 'JiraPS' -ParameterFilter {
                     $Method -eq 'Get' -and
                     $URI -like '*/rest/api/*/group/member' -and
                     $GetParameter['groupId'] -eq $testGroupId
@@ -179,7 +175,7 @@ InModuleScope JiraPS {
 
                 { Get-JiraGroupMember -Group testgroup } | Should -Not -Throw
 
-                Should -Invoke Invoke-JiraMethod -ModuleName 'JiraPS' -ParameterFilter {
+                Should -Invoke Invoke-JiraRequest -ModuleName 'JiraPS' -ParameterFilter {
                     $Method -eq 'Get' -and
                     $URI -like '*/rest/api/*/group/member' -and
                     $GetParameter['groupname'] -eq 'testgroup'
@@ -189,7 +185,7 @@ InModuleScope JiraPS {
             It "uses groupname for Server lookups" {
                 { Get-JiraGroupMember -Group testgroup } | Should -Not -Throw
 
-                Should -Invoke Invoke-JiraMethod -ModuleName 'JiraPS' -ParameterFilter {
+                Should -Invoke Invoke-JiraRequest -ModuleName 'JiraPS' -ParameterFilter {
                     $Method -eq 'Get' -and
                     $URI -like '*/rest/api/*/group/member' -and
                     $GetParameter['groupname'] -eq 'testgroup'

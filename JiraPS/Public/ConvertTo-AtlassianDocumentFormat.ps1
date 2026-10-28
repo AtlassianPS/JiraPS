@@ -30,18 +30,18 @@ function ConvertTo-AtlassianDocumentFormat {
     }
 
     process {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
 
         if ([string]::IsNullOrWhiteSpace($Markdown)) {
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Input is empty or whitespace — returning empty ADF doc"
+            Write-DebugMessage "Input is empty or whitespace — returning empty ADF doc"
             return @{ version = 1; type = 'doc'; content = @() }
         }
 
         $lines = @($Markdown -split "`r?`n")
-        Write-Debug "[$($MyInvocation.MyCommand.Name)] Parsing $($lines.Count) line(s) of Markdown"
+        Write-DebugMessage "Parsing $($lines.Count) line(s) of Markdown"
         $content = @(ConvertTo-AdfContent -Lines $lines)
 
-        Write-Debug "[$($MyInvocation.MyCommand.Name)] Produced $($content.Count) top-level ADF node(s)"
+        Write-DebugMessage "Produced $($content.Count) top-level ADF node(s)"
         @{ version = 1; type = 'doc'; content = $content }
     }
 

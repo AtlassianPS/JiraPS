@@ -1,4 +1,8 @@
 ﻿function ConvertTo-JiraResolution {
+    <#
+    .SYNOPSIS
+        Convert Jira response data to AtlassianPS.JiraPS.Resolution objects.
+    #>
     [CmdletBinding()]
     [OutputType([AtlassianPS.JiraPS.Resolution])]
     param(
@@ -10,7 +14,7 @@
     process {
         foreach ($i in $InputObject) {
             if ($null -eq $i) { continue }
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to AtlassianPS.JiraPS.Resolution"
+            Write-DebugMessage "Converting `$InputObject to AtlassianPS.JiraPS.Resolution"
 
             $props = @{
                 ID          = $i.id

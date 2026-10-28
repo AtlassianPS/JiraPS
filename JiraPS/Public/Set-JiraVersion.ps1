@@ -32,22 +32,23 @@
         $Project,
 
         [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        [AtlassianPS.Connection]
+        $Connection
     )
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+
+        $RequestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
     }
 
     process {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+        Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
 
         foreach ($_version in $Version) {
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_version]"
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_version [$_version]"
+            Write-DebugMessage "Processing `$_version [$_version]"
 
             if (-not $_version.Id) {
                 $errorItem = [System.Management.Automation.ErrorRecord]::new(
@@ -56,11 +57,12 @@
                     [System.Management.Automation.ErrorCategory]::InvalidArgument,
                     $_version
                 )
+
                 $errorItem.ErrorDetails = "Set-JiraVersion requires a version ID. Provide a numeric version ID or an AtlassianPS.JiraPS.Version object with an ID."
                 ThrowError -ErrorRecord $errorItem
             }
 
-            $versionObj = Get-JiraVersion -Id $_version.Id -Credential $Credential -ErrorAction Stop
+            $versionObj = Get-JiraVersion -Id $_version.Id -Connection $RequestContext -ErrorAction Stop
 
             $requestBody = @{}
 
@@ -76,7 +78,7 @@
                     $requestBody["projectId"] = $Project.Id
                 }
                 else {
-                    $projectObj = Get-JiraProject -Project $Project.Key -Credential $Credential -ErrorAction Stop
+                    $projectObj = Get-JiraProject -Project $Project.Key -Connection $RequestContext -ErrorAction Stop
                     $requestBody["projectId"] = $projectObj.Id
                 }
             }
@@ -88,14 +90,13 @@
             }
 
             $parameter = @{
-                URI        = $versionObj.RestUrl
-                Method     = "PUT"
-                Body       = ConvertTo-Json -InputObject $requestBody
-                Credential = $Credential
+                URI    = $versionObj.RestUrl
+                Method = "PUT"
+                Body   = ConvertTo-Json -InputObject $requestBody
             }
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+            Write-DebugMessage "Invoking JiraMethod with `$parameter"
             if ($PSCmdlet.ShouldProcess($Name, "Updating Version on JIRA")) {
-                $result = Invoke-JiraMethod @parameter
+                $result = Invoke-JiraRequest -RequestContext $RequestContext @parameter
 
                 Write-Output (ConvertTo-JiraVersion -InputObject $result)
             }

@@ -107,7 +107,7 @@ InModuleScope JiraPS {
             if ($script:createdIssues -and $script:createdIssues.Count -gt 0) {
                 foreach ($key in $script:createdIssues) {
                     try {
-                        Remove-JiraIssue -IssueId $key -Force -ErrorAction SilentlyContinue
+                        Remove-JiraIssue -Issue $key -Confirm:$false -ErrorAction SilentlyContinue
                     }
                     catch {
                         Write-Verbose "Cleanup: Failed to remove issue $key - $_"
@@ -119,7 +119,7 @@ InModuleScope JiraPS {
             if ($script:createdVersions -and $script:createdVersions.Count -gt 0) {
                 foreach ($version in $script:createdVersions) {
                     try {
-                        Remove-JiraVersion -Version $version -Force -ErrorAction SilentlyContinue
+                        Remove-JiraVersion -Version $version -Confirm:$false -ErrorAction SilentlyContinue
                     }
                     catch {
                         Write-Verbose "Cleanup: Failed to remove version - $_"
@@ -131,7 +131,7 @@ InModuleScope JiraPS {
             if ($script:createdFilters -and $script:createdFilters.Count -gt 0) {
                 foreach ($filter in $script:createdFilters) {
                     try {
-                        Remove-JiraFilter -InputObject $filter -ErrorAction SilentlyContinue -Confirm:$false
+                        Remove-JiraFilter -Filter $filter -ErrorAction SilentlyContinue -Confirm:$false
                     }
                     catch {
                         Write-Verbose "Cleanup: Failed to remove filter - $_"
@@ -139,7 +139,7 @@ InModuleScope JiraPS {
                 }
             }
 
-            Remove-JiraSession -ErrorAction SilentlyContinue
+            Disconnect-Jira -ErrorAction SilentlyContinue
             #endregion Cleanup
         }
 

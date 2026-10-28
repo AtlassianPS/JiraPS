@@ -9,50 +9,49 @@
 
         [Parameter()]
         [Switch]
-        $Force,
+        $Refresh,
 
         [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        [AtlassianPS.Connection]
+        $Connection
     )
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
+
+        $requestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
 
         $resourceURi = "/rest/api/2/issuetype"
+        $allIssueTypes = $null
     }
 
     process {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+        Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
 
-        switch ($PSCmdlet.ParameterSetName) {
-            '_All' {
-                $parameter = @{
-                    URI         = $resourceURi
-                    Method      = "GET"
-                    Credential  = $Credential
-                    CacheKey    = 'IssueTypes'
-                    CacheExpiry = [TimeSpan]::FromHours(1)
-                    BypassCache = $Force
-                }
-                Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-                $result = Invoke-JiraMethod @parameter
-
-                Write-Output (ConvertTo-JiraIssueType -InputObject $result)
+        if ($null -eq $allIssueTypes) {
+            $parameter = @{
+                URI         = $resourceURi
+                Method      = "GET"
+                CacheKey    = 'IssueTypes'
+                CacheExpiry = [TimeSpan]::FromHours(1)
+                BypassCache = $Refresh
             }
-            '_Search' {
-                foreach ($_issueType in $IssueType) {
-                    Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_issueType]"
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_issueType [$_issueType]"
+            Write-DebugMessage "Invoking JiraMethod with `$parameter"
+            $result = Invoke-JiraRequest -RequestContext $RequestContext @parameter
+            $allIssueTypes = @(ConvertTo-JiraIssueType -InputObject $result)
+        }
 
-                    $allIssueTypes = Get-JiraIssueType -Force:$Force -Credential $Credential
+        if ($PSCmdlet.ParameterSetName -eq '_All') { Write-Output $allIssueTypes }
+        else {
+            foreach ($_issueType in $IssueType) {
+                Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_issueType]"
+                Write-DebugMessage "Processing `$_issueType [$_issueType]"
 
-                    Write-Output ($allIssueTypes | Where-Object -FilterScript {
-                            if ($null -ne $_issueType.Id) { $_.Id -eq $_issueType.Id }
-                            else { $_.Name -like $_issueType.Name }
-                        })
+                $allIssueTypes | Where-Object -FilterScript {
+                    if ($null -ne $_issueType.Id) { $_.Id -eq $_issueType.Id }
+                    else { $_.Name -like $_issueType.Name }
                 }
             }
         }

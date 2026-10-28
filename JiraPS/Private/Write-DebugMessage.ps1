@@ -1,9 +1,20 @@
 ﻿function Write-DebugMessage {
-    [CmdletBinding()]
+    <#
+    .SYNOPSIS
+        Forward messages and bound parameters through Configuration's redacted debug logging.
+    #>
+    [CmdletBinding( DefaultParameterSetName = 'Message' )]
     param(
-        [Parameter( ValueFromPipeline )]
+        [Parameter( Position = 0, ValueFromPipeline, ParameterSetName = 'Message' )]
         [String]
-        $Message
+        $Message,
+
+        [Parameter( Mandatory, ParameterSetName = 'BoundParameters' )]
+        [System.Collections.IDictionary]
+        $BoundParameters,
+
+        [System.Management.Automation.PSCmdlet]
+        $Cmdlet = (Get-Variable -Scope 1 -Name PSCmdlet -ValueOnly)
     )
 
     begin {
@@ -12,7 +23,10 @@
     }
 
     process {
-        Write-Debug $Message
+        $parameters = @{} + $PSBoundParameters
+        $parameters['Cmdlet'] = $Cmdlet
+        $parameters['Debug'] = $DebugPreference -ne 'SilentlyContinue'
+        AtlassianPS.Configuration\Write-AtlassianDebugMessage @parameters
     }
 
     end {

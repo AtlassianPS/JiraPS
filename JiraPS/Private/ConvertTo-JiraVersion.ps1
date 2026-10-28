@@ -1,4 +1,8 @@
 ﻿function ConvertTo-JiraVersion {
+    <#
+    .SYNOPSIS
+        Convert Jira response data to AtlassianPS.JiraPS.Version objects.
+    #>
     [CmdletBinding()]
     [OutputType([AtlassianPS.JiraPS.Version])]
     param(
@@ -10,7 +14,7 @@
     process {
         foreach ($i in $InputObject) {
             if ($null -eq $i) { continue }
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to AtlassianPS.JiraPS.Version"
+            Write-DebugMessage "Converting `$InputObject to AtlassianPS.JiraPS.Version"
 
             $hash = @{
                 ID          = $i.id

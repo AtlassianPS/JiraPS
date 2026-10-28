@@ -101,6 +101,7 @@ namespace AtlassianPS.JiraPS
     {
         protected override Type TargetType { get { return typeof(IssueLink); } }
         protected override object FromString(string value) { return new IssueLink(value); }
+        protected override object FromNumericScalar(long value) { return new IssueLink { Id = value }; }
 
         protected override string[] LegacyTypeNames { get { return new[] { "AtlassianPS.JiraPS.IssueLink", "JiraPS.IssueLink" }; } }
 
@@ -644,15 +645,31 @@ namespace AtlassianPS.JiraPS
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter, AllowMultiple = false)]
     public sealed class IssueTransformationAttribute : JiraTransformationAttribute
     {
+        public bool AllowCollection { get; set; }
         protected override Type TargetType { get { return typeof(Issue); } }
-        protected override bool UseFanOut { get { return false; } }
+        protected override bool UseFanOut { get { return AllowCollection; } }
         protected override object FromString(string value) { return new Issue(value); }
+        protected override object FromNumericScalar(long value)
+        {
+            return AllowCollection ? new Issue(value.ToString(System.Globalization.CultureInfo.InvariantCulture)) : null;
+        }
 
         protected override string[] LegacyTypeNames { get { return new[] { "AtlassianPS.JiraPS.Issue" }; } }
+
+        protected override bool ShouldMapLegacyObject(System.Management.Automation.PSObject pso)
+        {
+            return base.ShouldMapLegacyObject(pso) ||
+                (AllowCollection && (pso.Properties["Key"] != null || pso.Properties["Id"] != null));
+        }
 
         protected override object MapLegacyObject(System.Management.Automation.PSObject pso)
         {
             var issue = new Issue();
+            if (AllowCollection && !base.ShouldMapLegacyObject(pso))
+            {
+                var identifier = pso.Properties["Key"] ?? pso.Properties["Id"];
+                return FromString(System.Management.Automation.LanguagePrimitives.ConvertTo<string>(identifier.Value));
+            }
             foreach (var prop in pso.Properties)
             {
                 switch (prop.Name)

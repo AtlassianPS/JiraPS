@@ -2,48 +2,42 @@
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding()]
     param(
-        [Parameter( Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName )]
-        [Int[]]
-        $Id,
+        [Parameter( Mandatory, ValueFromPipeline )]
+        [ValidateNotNull()]
+        [Alias('Id')]
+        [AtlassianPS.JiraPS.IssueLinkTransformation()]
+        [AtlassianPS.JiraPS.IssueLink[]]
+        $IssueLink,
 
         [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        [AtlassianPS.Connection]
+        $Connection
     )
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
+        $RequestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
+
         $resourceURi = "/rest/api/2/issueLink/{0}"
     }
 
     process {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+        Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
 
-        # Validate input object from Pipeline
-        if (($_) -and ("JiraPS.IssueLink" -notin $_.PSObject.TypeNames)) {
-            $exception = ([System.ArgumentException]"Invalid Parameter")
-            $errorId = 'ParameterProperties.WrongObjectType'
-            $errorCategory = [System.Management.Automation.ErrorCategory]::InvalidArgument
-            $errorTarget = $Id
-            $errorItem = New-Object -TypeName System.Management.Automation.ErrorRecord $exception, $errorId, $errorCategory, $errorTarget
-            $errorItem.ErrorDetails = "The IssueLink provided did not match the constraints."
-            $PSCmdlet.ThrowTerminatingError($errorItem)
-        }
-
-        foreach ($_id in $Id) {
+        foreach ($link in $IssueLink) {
+            if ($null -eq $link.Id -or $link.Id -le 0) { throw 'IssueLink requires a positive issue-link ID.' }
+            $_id = $link.Id
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_id]"
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_id [$_id]"
+            Write-DebugMessage "Processing `$_id [$_id]"
 
             $parameter = @{
-                URI        = $resourceURi -f $_id
-                Method     = "GET"
-                Credential = $Credential
+                URI    = $resourceURi -f $_id
+                Method = "GET"
             }
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-            $result = Invoke-JiraMethod @parameter
+            Write-DebugMessage "Invoking JiraMethod with `$parameter"
+            $result = Invoke-JiraRequest -RequestContext $RequestContext @parameter
 
             Write-Output (ConvertTo-JiraIssueLink -InputObject $result)
         }

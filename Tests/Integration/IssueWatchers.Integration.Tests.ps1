@@ -51,14 +51,14 @@ InModuleScope JiraPS {
             if ($script:createdIssues -and $script:createdIssues.Count -gt 0) {
                 foreach ($key in $script:createdIssues) {
                     try {
-                        Remove-JiraIssue -IssueId $key -Force -ErrorAction SilentlyContinue
+                        Remove-JiraIssue -Issue $key -Confirm:$false -ErrorAction SilentlyContinue
                     }
                     catch {
                         Write-Verbose "Cleanup: Failed to remove issue $key - $_"
                     }
                 }
             }
-            Remove-JiraSession -ErrorAction SilentlyContinue
+            Disconnect-Jira -ErrorAction SilentlyContinue
         }
 
         Describe "Get-JiraIssueWatcher" {
@@ -69,7 +69,7 @@ InModuleScope JiraPS {
                         return
                     }
 
-                    { Get-JiraIssueWatcher -Issue $fixtures.TestIssue } | Should -Not -Throw
+                    { Get-JiraIssueWatcher -Issue $fixtures.TestIssue -ErrorAction Stop } | Should -Not -Throw
                 }
 
                 It "accepts issue object via pipeline" {
@@ -79,7 +79,7 @@ InModuleScope JiraPS {
                     }
 
                     $issue = Get-JiraIssue -Key $fixtures.TestIssue
-                    { $issue | Get-JiraIssueWatcher } | Should -Not -Throw
+                    { $issue | Get-JiraIssueWatcher -ErrorAction Stop } | Should -Not -Throw
                 }
             }
 

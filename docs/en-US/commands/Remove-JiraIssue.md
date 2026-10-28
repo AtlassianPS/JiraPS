@@ -14,18 +14,9 @@ Removes an existing issue from Jira.
 
 ## SYNTAX
 
-### ByInputObject (Default)
-
 ```powershell
-Remove-JiraIssue [-InputObject] <AtlassianPS.JiraPS.Issue> [-IncludeSubTasks] [-Credential <pscredential>] [-Force]
- [-WhatIf] [-Confirm] [<CommonParameters>]
-```
-
-### ByIssueId
-
-```powershell
-Remove-JiraIssue [-IssueId] <string[]> [-IncludeSubTasks] [-Credential <pscredential>] [-Force]
- [-WhatIf] [-Confirm] [<CommonParameters>]
+Remove-JiraIssue [-Issue] <AtlassianPS.JiraPS.Issue[]> [-IncludeSubTasks] [-Connection <AtlassianPS.Connection>] [-WhatIf]
+ [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -87,34 +78,15 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
-### -Credential
+### -Connection
 
-Credentials to use to connect to Jira.
-
-```yaml
-Type: PSCredential
-DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
-SupportsWildcards: false
-Aliases: []
-ParameterSets:
-- Name: (All)
-  Position: Named
-  IsRequired: false
-  ValueFromPipeline: false
-  ValueFromPipelineByPropertyName: false
-  ValueFromRemainingArguments: false
-DontShow: false
-AcceptedValues: []
-HelpMessage: ''
-```
-
-### -Force
-
-Suppress user confirmation.
+Active Jira connection for this operation.
+When omitted, the command uses the selected Jira default.
+Create connections with Connect-Jira; resolve names with Get-JiraConnection -Name.
 
 ```yaml
-Type: SwitchParameter
-DefaultValue: False
+Type: AtlassianPS.Connection
+DefaultValue: None
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
@@ -154,48 +126,22 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
-### -InputObject
+### -Issue
 
-One or more issues to delete, specified as `AtlassianPS.JiraPS.Issue` objects (e.g. from `Get-JiraIssue`).
+Issue keys, numeric ID strings or typed issue objects.
 
 ```yaml
-Type: AtlassianPS.JiraPS.Issue
+Type: AtlassianPS.JiraPS.Issue[]
 DefaultValue: ''
 SupportsWildcards: false
 Aliases:
-- Issue
+- Key
+- Id
 ParameterSets:
-- Name: ByInputObject
+- Name: (All)
   Position: 0
   IsRequired: true
   ValueFromPipeline: true
-  ValueFromPipelineByPropertyName: false
-  ValueFromRemainingArguments: false
-DontShow: false
-AcceptedValues: []
-HelpMessage: ''
-```
-
-### -IssueId
-
-One or more issues to delete, either:
-
-* Issue Keys (e.g. "TEST-1234")
-* Numerical issue IDs.
-
-```yaml
-Type: String[]
-DefaultValue: ''
-SupportsWildcards: false
-Aliases:
-- Id
-- Key
-- issueIdOrKey
-ParameterSets:
-- Name: ByIssueId
-  Position: 0
-  IsRequired: true
-  ValueFromPipeline: false
   ValueFromPipelineByPropertyName: false
   ValueFromRemainingArguments: false
 DontShow: false
@@ -228,13 +174,14 @@ HelpMessage: ''
 
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable, -ProgressAction, -Verbose, -WarningAction, and -WarningVariable.
-For more information, see [about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
+-InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
+-ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
+[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
-### AtlassianPS.JiraPS.Issue / String
-
+### AtlassianPS.JiraPS.Issue[]
 
 ## OUTPUTS
 
@@ -245,7 +192,10 @@ For more information, see [about_CommonParameters](https://go.microsoft.com/fwli
 If the issue has subtasks you must include the parameter IncludeSubTasks to delete the issue.
 You cannot delete an issue without its subtasks also being deleted.
 
-This function requires either the \`-Credential\` parameter to be passed or a persistent Jira session.
-See \`New-JiraSession\` for more details.
+This function uses the selected Jira connection unless you pass another connection through `-Connection`.
+Use `Connect-Jira` to create a connection.
+For anonymous access, create the connection with `Connect-Jira -Anonymous`.
 
 ## RELATED LINKS
+
+[about_JiraPS_Authentication](../../about/authentication.html)

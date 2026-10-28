@@ -29,7 +29,7 @@
 
         if ($InputObject.Headers -and $InputObject.Headers[$loginReasonKey]) {
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] Checking response headers for authentication errors"
-            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] Investigating `$InputObject.Headers['$loginReasonKey']"
+            Write-DebugMessage "Investigating `$InputObject.Headers['$loginReasonKey']"
 
             $loginReason = $InputObject.Headers[$loginReasonKey] -split ","
 
@@ -79,7 +79,7 @@
                 default { "Recoverable Error" }
             }
             Write-Verbose "[$($MyInvocation.MyCommand.Name)] Got `"$statusCode - $statusName`". Checking retry"
-            Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] #Retry: $RetryCount / $MaxRetries"
+            Write-DebugMessage "#Retry: $RetryCount / $MaxRetries"
 
             if ($RetryCount -lt $MaxRetries) {
                 $_retryAfter = if ($InputObject.Headers -and $InputObject.Headers['Retry-After']) {

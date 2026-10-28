@@ -2,11 +2,11 @@
     # .ExternalHelp ..\JiraPS-help.xml
     [CmdletBinding( ConfirmImpact = 'High', SupportsShouldProcess, DefaultParameterSetName = 'byId' )]
     param(
-        [Parameter( Position = 0, Mandatory, ValueFromPipelineByPropertyName, ParameterSetName = 'byId' )]
+        [Parameter( Position = 0, Mandatory, ValueFromPipeline, ParameterSetName = 'byId' )]
         [ValidateNotNullOrEmpty()]
-        [Alias('Id')]
-        [Int[]]
-        $AttachmentId,
+        [Alias('Id', 'AttachmentId')]
+        [AtlassianPS.JiraPS.Attachment[]]
+        $Attachment,
 
         [Parameter( Mandatory, Position = 0, ValueFromPipelineByPropertyName, ParameterSetName = 'byIssue' )]
         [ValidateNotNull()]
@@ -20,52 +20,45 @@
         $FileName,
 
         [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty,
-
-        [Switch]
-        $Force
+        [AtlassianPS.Connection]
+        $Connection
     )
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
-        $resourceURi = "/rest/api/2/attachment/{0}"
+        $RequestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
 
-        if ($Force) {
-            Write-DebugMessage "[Remove-JiraGroupMember] -Force was passed. Backing up current ConfirmPreference [$ConfirmPreference] and setting to None"
-            $oldConfirmPreference = $ConfirmPreference
-            $ConfirmPreference = 'None'
-        }
+        $resourceURi = "/rest/api/2/attachment/{0}"
     }
 
     process {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+        Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
 
         switch ($PsCmdlet.ParameterSetName) {
             "byId" {
-                foreach ($_id in $AttachmentId) {
+                foreach ($item in $Attachment) {
+                    $_id = 0L
+                    if (-not [long]::TryParse($item.Id, [ref]$_id) -or $_id -le 0) { throw 'Attachment requires a positive numeric attachment ID.' }
                     Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$_id]"
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$_id [$_id]"
+                    Write-DebugMessage "Processing `$_id [$_id]"
 
                     $parameter = @{
-                        URI        = $resourceURi -f $_id
-                        Method     = "DELETE"
-                        Credential = $Credential
+                        URI    = $resourceURi -f $_id
+                        Method = "DELETE"
                     }
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-                    if ($PSCmdlet.ShouldProcess($thisUrl, "Removing an attachment")) { Invoke-JiraMethod @parameter }
+                    Write-DebugMessage "Invoking JiraMethod with `$parameter"
+                    if ($PSCmdlet.ShouldProcess($_id, "Removing an attachment")) { Invoke-JiraRequest -RequestContext $RequestContext @parameter }
                 }
             }
             "byIssue" {
                 Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$Issue]"
-                Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$Issue [$Issue]"
+                Write-DebugMessage "Processing `$Issue [$Issue]"
 
                 # Find the proper object for the Issue
-                $issueObj = Resolve-JiraIssueObject -InputObject $Issue -Credential $Credential
-                $attachments = Get-JiraIssueAttachment -Issue $IssueObj -Credential $Credential -ErrorAction Stop
+                $issueObj = Resolve-JiraIssueObject -InputObject $Issue -RequestContext $RequestContext
+                $attachments = Get-JiraIssueAttachment -Issue $IssueObj -Connection $RequestContext -ErrorAction Stop
 
                 if ($FileName) {
                     $_attachments = @()
@@ -77,16 +70,15 @@
 
                 foreach ($attachment in $attachments) {
                     Write-Verbose "[$($MyInvocation.MyCommand.Name)] Processing [$attachment]"
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Processing `$attachment [$attachment]"
+                    Write-DebugMessage "Processing `$attachment [$attachment]"
 
                     $parameter = @{
-                        URI        = $resourceURi -f $attachment.Id
-                        Method     = "DELETE"
-                        Credential = $Credential
+                        URI    = $resourceURi -f $attachment.Id
+                        Method = "DELETE"
                     }
-                    Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+                    Write-DebugMessage "Invoking JiraMethod with `$parameter"
                     if ($PSCmdlet.ShouldProcess($Issue.Key, "Removing attachment '$($attachment.FileName)'")) {
-                        Invoke-JiraMethod @parameter
+                        Invoke-JiraRequest -RequestContext $RequestContext @parameter
                     }
                 }
             }
@@ -94,11 +86,6 @@
     }
 
     end {
-        if ($Force) {
-            Write-DebugMessage "[Remove-JiraGroupMember] Restoring ConfirmPreference to [$oldConfirmPreference]"
-            $ConfirmPreference = $oldConfirmPreference
-        }
-
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Complete"
     }
 }

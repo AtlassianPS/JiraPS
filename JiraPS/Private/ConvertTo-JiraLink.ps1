@@ -1,4 +1,8 @@
 ﻿function ConvertTo-JiraLink {
+    <#
+    .SYNOPSIS
+        Convert Jira response data to AtlassianPS.JiraPS.Link objects.
+    #>
     [CmdletBinding()]
     [OutputType([AtlassianPS.JiraPS.Link])]
     param(
@@ -10,7 +14,7 @@
     process {
         foreach ($i in $InputObject) {
             if ($null -eq $i) { continue }
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to AtlassianPS.JiraPS.Link"
+            Write-DebugMessage "Converting `$InputObject to AtlassianPS.JiraPS.Link"
 
             $props = @{
                 'Id'      = ConvertTo-JiraNullableInt64 $i.id

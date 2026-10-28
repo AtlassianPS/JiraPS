@@ -1,4 +1,8 @@
 ﻿function ConvertTo-JiraStatus {
+    <#
+    .SYNOPSIS
+        Convert Jira response data to AtlassianPS.JiraPS.Status objects.
+    #>
     [CmdletBinding()]
     [OutputType([AtlassianPS.JiraPS.Status])]
     param(
@@ -10,7 +14,7 @@
     process {
         foreach ($i in $InputObject) {
             if ($null -eq $i) { continue }
-            Write-Debug "[$($MyInvocation.MyCommand.Name)] Converting `$InputObject to AtlassianPS.JiraPS.Status"
+            Write-DebugMessage "Converting `$InputObject to AtlassianPS.JiraPS.Status"
 
             $props = @{
                 'ID'          = ConvertTo-JiraNullableInt64 $i.id

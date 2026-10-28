@@ -17,13 +17,13 @@ Returns issue status information from Jira.
 ### _All (Default)
 
 ```powershell
-Get-JiraStatus [-Credential <pscredential>] [<CommonParameters>]
+Get-JiraStatus [-Refresh] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 
 ### _Search
 
 ```powershell
-Get-JiraStatus [-Status] <AtlassianPS.JiraPS.Status[]> [-Credential <pscredential>] [<CommonParameters>]
+Get-JiraStatus [-Status] <AtlassianPS.JiraPS.Status[]> [-Refresh] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -31,6 +31,9 @@ Get-JiraStatus [-Status] <AtlassianPS.JiraPS.Status[]> [-Credential <pscredentia
 This function returns Jira status objects.
 Use it to retrieve all available statuses or to query one or more statuses by ID or name.
 `-IdOrName` is provided as an alias for `-Status`.
+
+Responses are cached for one hour per connection and resource.
+Use `-Refresh` to fetch fresh data and replace the cached response.
 
 ## EXAMPLES
 
@@ -58,16 +61,25 @@ Get-JiraStatus -Status Open
 
 Returns the status named Open.
 
+### Example 4: Refresh metadata after a Jira configuration change
+
+```powershell
+Get-JiraStatus -Status Open -Refresh
+```
+
+Fetches the current metadata and replaces the cached response for this lookup.
+
 ## PARAMETERS
 
-### -Credential
+### -Connection
 
-Credentials to use to connect to Jira.
-If not specified, this function uses anonymous access.
+Active Jira connection for this operation.
+When omitted, the command uses the selected Jira default.
+Create connections with Connect-Jira; resolve names with Get-JiraConnection -Name.
 
 ```yaml
-Type: PSCredential
-DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
+Type: AtlassianPS.Connection
+DefaultValue: None
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
@@ -106,16 +118,37 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
+### -Refresh
+
+Fetch fresh data and replace the selected connection's cached response for the requested resource.
+
+```yaml
+Type: SwitchParameter
+DefaultValue: ''
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
 ### CommonParameters
 
-This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable, -InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable, -ProgressAction, -Verbose, -WarningAction, and -WarningVariable.
-For more information, see [about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
+This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable,
+-InformationAction, -InformationVariable, -OutBuffer, -OutVariable, -PipelineVariable,
+-ProgressAction, -Verbose, -WarningAction, and -WarningVariable. For more information, see
+[about_CommonParameters](https://go.microsoft.com/fwlink/?LinkID=113216).
 
 ## INPUTS
 
-### String
-
-Values passed to `-Status` can be provided through the pipeline.
+### AtlassianPS.JiraPS.Status[]
 
 ## OUTPUTS
 
@@ -123,11 +156,13 @@ Values passed to `-Status` can be provided through the pipeline.
 
 ## NOTES
 
-This function requires either the `-Credential` parameter to be passed or a persistent Jira session.
-See `New-JiraSession` for more details.
-If neither are supplied, this function runs with anonymous access to Jira.
+This function uses the selected Jira connection unless you pass another connection through `-Connection`.
+Use `Connect-Jira` to create a connection.
+For anonymous access, create the connection with `Connect-Jira -Anonymous`.
 
 ## RELATED LINKS
+
+[about_JiraPS_Authentication](../../about/authentication.html)
 
 [Get-JiraIssue](../Get-JiraIssue/)
 

@@ -14,23 +14,25 @@
         $IssueType,
 
         [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        [AtlassianPS.Connection]
+        $Connection
     )
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
 
-        $isCloud = Test-JiraCloudServer -Credential $Credential
+        $requestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
+
+        $isCloud = Test-JiraCloudServer -RequestContext $RequestContext
         $resourceURi = "/rest/api/2/issue/createmeta/{0}/issuetypes/{1}"
     }
 
     process {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+        Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
 
-        $projectObj = Get-JiraProject -Project $Project -Credential $Credential -ErrorAction Stop
+        $projectObj = Get-JiraProject -Project $Project -Connection $RequestContext -ErrorAction Stop
         $issueTypeObj = $projectObj.IssueTypes | Where-Object -FilterScript {
             if ($null -ne $IssueType.Id) { $_.Id -eq $IssueType.Id } else { $_.Name -eq $IssueType.Name }
         }
@@ -49,7 +51,6 @@
             Method       = "GET"
             GetParameter = @{ maxResults = $script:DefaultPageSize }
             Paging       = $true
-            Credential   = $Credential
         }
 
         # Forward PowerShell's SupportsPaging common parameters (First/Skip/IncludeTotalCount)
@@ -57,8 +58,8 @@
             $parameter[$_] = $PSCmdlet.PagingParameters.$_
         }
 
-        Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
-        Invoke-JiraMethod @parameter | ConvertTo-JiraCreateMetaField
+        Write-DebugMessage "Invoking JiraMethod with `$parameter"
+        Invoke-JiraRequest -RequestContext $RequestContext @parameter | ConvertTo-JiraCreateMetaField
     }
 
     end {

@@ -15,37 +15,44 @@ Creates a new user in JIRA
 ## SYNTAX
 
 ```powershell
-New-JiraUser [-UserName] <string> [-EmailAddress] <string> [[-DisplayName] <string>]
- [[-Notify] <bool>] [[-Credential] <pscredential>] [-WhatIf] [-Confirm] [<CommonParameters>]
+New-JiraUser [-EmailAddress] <string> [[-UserName] <string>] [[-DisplayName] <string>]
+ [[-Products] <string[]>] [[-Connection] <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
 
-This function creates a new user in JIRA.
-
-By default, the new user will be notified via e-mail.
-
-The new user's password is also randomly generated.
+Creates users through the deployment-specific Jira API.
+Cloud requires EmailAddress and an explicit Products array.
+Data Center requires EmailAddress and UserName, with optional DisplayName.
+Cloud rejects Data Center-only parameters; Data Center rejects Products.
+Returns the typed user from the creation response without a follow-up lookup.
+Invitation behavior is controlled by Atlassian or Jira; no Boolean notification flag is sent.
 
 ## EXAMPLES
 
-### EXAMPLE 1
+### Example 1
 
 ```powershell
-New-JiraUser -UserName "testUser" -EmailAddress "testUser@example.com"
+New-JiraUser -EmailAddress 'me@example.com' -Products jira-software -Connection $cloud
 ```
 
-This example creates a new JIRA user named testUser,
-and sends a notification e-mail.
-The user's DisplayName will be set to "testUser" since it is not specified.
+Create a Cloud user with Jira Software access.
 
-### EXAMPLE 2
+### Example 2
 
 ```powershell
-New-JiraUser -UserName "testUser2" -EmailAddress "testUser2@example.com" -DisplayName "Test User 2"
+New-JiraUser -EmailAddress 'me@example.com' -Products @() -Connection $cloud
 ```
 
-This example illustrates setting a user's display name during user creation.
+Create a Cloud user without product access.
+
+### Example 3
+
+```powershell
+New-JiraUser -EmailAddress 'me@example.com' -UserName me -DisplayName 'My Name' -Connection $dataCenter
+```
+
+Create a Data Center user with an explicit username and display name.
 
 ## PARAMETERS
 
@@ -71,14 +78,15 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
-### -Credential
+### -Connection
 
-Credentials to use to connect to JIRA.
-If not specified, this function will use anonymous access.
+Active Jira connection for this operation.
+When omitted, the command uses the selected Jira default.
+Create connections with Connect-Jira; resolve names with Get-JiraConnection -Name.
 
 ```yaml
-Type: PSCredential
-DefaultValue: '[System.Management.Automation.PSCredential]::Empty'
+Type: AtlassianPS.Connection
+DefaultValue: None
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
@@ -95,7 +103,9 @@ HelpMessage: ''
 
 ### -DisplayName
 
-Display name of the user.
+Data Center display name.
+When omitted, Data Center uses UserName.
+This parameter is unavailable on Cloud.
 
 ```yaml
 Type: String
@@ -116,7 +126,7 @@ HelpMessage: ''
 
 ### -EmailAddress
 
-E-mail address of the user.
+Email address of the user to create.
 
 ```yaml
 Type: String
@@ -126,7 +136,7 @@ Aliases:
 - Email
 ParameterSets:
 - Name: (All)
-  Position: 1
+  Position: 0
   IsRequired: true
   ValueFromPipeline: false
   ValueFromPipelineByPropertyName: false
@@ -136,13 +146,15 @@ AcceptedValues: []
 HelpMessage: ''
 ```
 
-### -Notify
+### -Products
 
-Notify the user by e-mail
+Explicit Cloud product access list.
+Use @() to request no product access.
+This parameter is unavailable on Data Center.
 
 ```yaml
-Type: Boolean
-DefaultValue: True
+Type: String[]
+DefaultValue: ''
 SupportsWildcards: false
 Aliases: []
 ParameterSets:
@@ -153,13 +165,18 @@ ParameterSets:
   ValueFromPipelineByPropertyName: false
   ValueFromRemainingArguments: false
 DontShow: false
-AcceptedValues: []
+AcceptedValues:
+- jira-core
+- jira-servicedesk
+- jira-product-discovery
+- jira-software
 HelpMessage: ''
 ```
 
 ### -UserName
 
-Name of user.
+Required username for Data Center.
+This parameter is unavailable on Cloud.
 
 ```yaml
 Type: String
@@ -168,8 +185,8 @@ SupportsWildcards: false
 Aliases: []
 ParameterSets:
 - Name: (All)
-  Position: 0
-  IsRequired: true
+  Position: 1
+  IsRequired: false
   ValueFromPipeline: false
   ValueFromPipelineByPropertyName: false
   ValueFromRemainingArguments: false
@@ -210,17 +227,21 @@ This cmdlet supports the common parameters: -Debug, -ErrorAction, -ErrorVariable
 
 ## INPUTS
 
+None.
+
 ## OUTPUTS
 
 ### AtlassianPS.JiraPS.User
 
 ## NOTES
 
-This function requires either the `-Credential` parameter to be passed or a persistent JIRA session.
-See `New-JiraSession` for more details.
-If neither are supplied, this function will run with anonymous access to JIRA.
+This function uses the selected Jira connection unless you pass another connection through `-Connection`.
+Use `Connect-Jira` to create a connection.
+For anonymous access, create the connection with `Connect-Jira -Anonymous`.
 
 ## RELATED LINKS
+
+[about_JiraPS_Authentication](../../about/authentication.html)
 
 [Get-JiraUser](../Get-JiraUser/)
 

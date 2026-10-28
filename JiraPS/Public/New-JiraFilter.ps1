@@ -22,20 +22,21 @@
         $Favorite,
 
         [Parameter()]
-        [System.Management.Automation.PSCredential]
-        [System.Management.Automation.Credential()]
-        $Credential = [System.Management.Automation.PSCredential]::Empty
+        [AtlassianPS.Connection]
+        $Connection
     )
 
     begin {
         Write-Verbose "[$($MyInvocation.MyCommand.Name)] Function started"
 
+        $RequestContext = Resolve-JiraOperationContext -BoundParameters $PSBoundParameters
+
         $resourceURi = "/rest/api/2/filter"
     }
 
     process {
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] ParameterSetName: $($PsCmdlet.ParameterSetName)"
-        Write-DebugMessage "[$($MyInvocation.MyCommand.Name)] PSBoundParameters: $($PSBoundParameters | Out-String)"
+        Write-DebugMessage "ParameterSetName: $($PsCmdlet.ParameterSetName)"
+        Write-DebugMessage -BoundParameters $PSBoundParameters
 
         $requestBody = @{
             name = $Name
@@ -45,14 +46,13 @@
         $requestBody["favourite"] = [Bool]$Favorite
 
         $parameter = @{
-            URI        = $resourceURi
-            Method     = "POST"
-            Body       = ConvertTo-Json -InputObject $requestBody
-            Credential = $Credential
+            URI    = $resourceURi
+            Method = "POST"
+            Body   = ConvertTo-Json -InputObject $requestBody
         }
-        Write-Debug "[$($MyInvocation.MyCommand.Name)] Invoking JiraMethod with `$parameter"
+        Write-DebugMessage "Invoking JiraMethod with `$parameter"
         if ($PSCmdlet.ShouldProcess($Name, "Creating new Filter")) {
-            $result = Invoke-JiraMethod @parameter
+            $result = Invoke-JiraRequest -RequestContext $RequestContext @parameter
 
             Write-Output (ConvertTo-JiraFilter -InputObject $result)
         }
