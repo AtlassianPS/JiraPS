@@ -48,6 +48,8 @@ InModuleScope JiraPS {
             @{ Resource = '/rest/../private' }
             @{ Resource = '/rest/%2e%2e/private' }
             @{ Resource = '/rest/%252e%252e/private' }
+            @{ Resource = '/rest/%25%32%65%25%32%65/private' }
+            @{ Resource = '/rest/%25252fprivate' }
             @{ Resource = '/rest/api/2/issue/1#fragment' }
         ) {
             { Resolve-JiraResourceUri -Uri $Resource -RequestContext $gateway } | Should -Throw
@@ -55,6 +57,12 @@ InModuleScope JiraPS {
 
         It 'rejects absolute URLs outside the Data Center application path' {
             { Resolve-JiraResourceUri -Uri 'https://jira.example.com/other/rest/api/2/issue/1' -RequestContext $server } | Should -Throw
+        }
+
+        It 'preserves escaped percent characters in a Data Center resource path' {
+            $resource = 'https://jira.example.com/jira/secure/attachment/1/100%25%20coverage.txt'
+
+            (Resolve-JiraResourceUri -Uri $resource -RequestContext $server).AbsoluteUri | Should -Be $resource
         }
     }
 }

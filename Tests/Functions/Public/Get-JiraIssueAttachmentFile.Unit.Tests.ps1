@@ -158,4 +158,32 @@ InModuleScope JiraPS {
             Context "Type Validation - Negative Cases" {}
         }
     }
+
+    Describe 'Data Center attachment request paths' -Tag Unit {
+        BeforeAll {
+            . "$PSScriptRoot/../../Helpers/TestTools.ps1"
+        }
+
+        It 'downloads an attachment whose filename contains a percent character' {
+            $connection = AtlassianPS.Configuration\New-AtlassianConnectionContext -Name review-attachment -Product Jira -BaseUri https://jira.example.com/jira -Anonymous
+            $connection.SetValidationResult('Server', $null)
+            $null = AtlassianPS.Configuration\Register-AtlassianConnection -Connection $connection
+            $attachment = [AtlassianPS.JiraPS.Attachment]@{
+                ID       = '1'
+                FileName = '100% coverage.txt'
+                Content  = 'https://jira.example.com/jira/secure/attachment/1/100%25%20coverage.txt'
+            }
+            Mock Invoke-WebRequest { [IO.File]::WriteAllText($OutFile, 'Attachment content') }
+
+            try {
+                Get-JiraIssueAttachmentFile -Attachment $attachment -Path $TestDrive -Connection $connection | Should -BeTrue
+
+                Should -Invoke Invoke-WebRequest -Exactly 1 -ParameterFilter {
+                    $Uri.GetLeftPart([UriPartial]::Path) -eq 'https://jira.example.com/jira/secure/attachment/1/100%25%20coverage.txt'
+                }
+                Get-Content -LiteralPath (Join-Path $TestDrive '100% coverage.txt') | Should -Be 'Attachment content'
+            }
+            finally { $connection | Disconnect-Jira }
+        }
+    }
 }

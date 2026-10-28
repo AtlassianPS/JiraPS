@@ -12,11 +12,22 @@
     )
 
     $raw = $Uri.OriginalString.Split('?', 2)[0]
-    if ($Uri.OriginalString.Contains('#') -or $raw.Contains([string][char]92) -or $raw -match '(?i)%2e|%2f|%5c|%25|(?:^|/)\.\.(?:/|$)' -or
+    if ($Uri.OriginalString.Contains('#') -or
         ($Uri.IsAbsoluteUri -and ($Uri.Fragment -or $Uri.UserInfo))
     ) {
         throw 'Jira resource URI contains an unsupported path escape, fragment or user information.'
     }
+
+    $pathToCheck = $raw
+    do {
+        if ($pathToCheck.Contains([string][char]92) -or $pathToCheck -match '(?i)%2e|%2f|%5c|(?:^|/)\.\.(?:/|$)') {
+            throw 'Jira resource URI contains an unsupported path escape, fragment or user information.'
+        }
+
+        $decodedPath = [Uri]::UnescapeDataString($pathToCheck)
+        $pathChanged = $decodedPath -cne $pathToCheck
+        $pathToCheck = $decodedPath
+    } while ($pathChanged)
 
     $base = $RequestContext.BaseUri
     if (-not $Uri.IsAbsoluteUri) {
