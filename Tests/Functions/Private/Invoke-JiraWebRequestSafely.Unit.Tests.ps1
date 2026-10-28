@@ -59,53 +59,6 @@ namespace JiraPS.Tests {
             $result.WebResponse | Should -Be $fallbackResponse
         }
 
-        It "captures session variable name and value when SessionVariable is used" {
-            $capturedSession = [Microsoft.PowerShell.Commands.WebRequestSession]::new()
-            Mock Get-Variable -ModuleName 'JiraPS' -ParameterFilter {
-                $Name -eq 'newSessionVar' -and $Scope -eq 'Local'
-            } {
-                [PSCustomObject]@{
-                    Value = $capturedSession
-                }
-            }
-            Mock Invoke-WebRequest -ModuleName 'JiraPS' {
-                [PSCustomObject]@{
-                    StatusCode = [System.Net.HttpStatusCode]::OK
-                }
-            }
-
-            $result = Invoke-JiraWebRequestSafely -SplatParameters @{
-                Uri             = 'https://jira.example.com/rest/api/2/myself'
-                Method          = 'GET'
-                Headers         = @{}
-                SessionVariable = 'newSessionVar'
-            }
-
-            $result.SessionVariableName | Should -Be 'newSessionVar'
-            $result.SessionVariableValue | Should -Be $capturedSession
-        }
-
-        It "returns null session value when SessionVariable is requested but not available in scope" {
-            Mock Get-Variable -ModuleName 'JiraPS' -ParameterFilter {
-                $Name -eq 'missingSessionVar' -and $Scope -eq 'Local'
-            } { $null }
-            Mock Invoke-WebRequest -ModuleName 'JiraPS' {
-                [PSCustomObject]@{
-                    StatusCode = [System.Net.HttpStatusCode]::OK
-                }
-            }
-
-            $result = Invoke-JiraWebRequestSafely -SplatParameters @{
-                Uri             = 'https://jira.example.com/rest/api/2/myself'
-                Method          = 'GET'
-                Headers         = @{}
-                SessionVariable = 'missingSessionVar'
-            }
-
-            $result.SessionVariableName | Should -Be 'missingSessionVar'
-            $result.SessionVariableValue | Should -BeNullOrEmpty
-        }
-
         It "restores ProgressPreference after successful requests" {
             Mock Invoke-WebRequest -ModuleName 'JiraPS' { [PSCustomObject]@{ StatusCode = [System.Net.HttpStatusCode]::OK } }
             $previousProgressPreference = $ProgressPreference

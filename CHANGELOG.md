@@ -150,6 +150,7 @@ See the [authentication guide](docs/en-US/about_JiraPS_Authentication.md) for co
 ### Internal
 
 - `Set-JiraIssueLabel` applies label changes directly through the shared transport.
+- Removed obsolete web-session capture code from the private transport.
 - Build and test tooling uses AtlassianPS.Standards 0.4.0, Pester 6.2, and PlatyPS 1.0.
   Shared-standards scripts and workflow actions use the version declared in `Tools/build.requirements.psd1`; dependency updates honor `-WhatIf` before bootstrap side effects.
 - Shared standards tooling handles help generation, package validation, environment loading, test-module resolution, and release-note extraction.
