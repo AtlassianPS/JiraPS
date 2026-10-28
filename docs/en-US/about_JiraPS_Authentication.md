@@ -53,6 +53,27 @@ Use HTTPS for production endpoints.
 Explicit HTTP endpoints remain available for local Data Center test environments.
 No browser OAuth, SSO, automatic refresh or cookie-login requirement is added.
 
+### Deployment discovery on restricted installations
+
+Connect-Jira prefers a recognized deploymentType from serverInfo without requiring a version.
+If metadata is absent or restricted with HTTP 403, 404 or 405, a successful myself response identifies Cloud through accountId or Server/Data Center through name.
+A resolved Cloud gateway also provides Cloud evidence.
+Conflicting evidence or a response containing both identity formats fails.
+Authentication, network, TLS and server failures remain errors.
+
+Supply DeploymentType when the installation requires explicit deployment information.
+The accepted values are Cloud, Server and Data Center.
+Server and Data Center use the same API family; returned metadata takes precedence when it is available.
+The parameter never bypasses authenticated identity validation.
+
+```powershell
+$internal = Connect-Jira -Name internal -Uri 'https://jira.example.com/jira' -PersonalAccessToken $token -DeploymentType 'Data Center'
+```
+
+Anonymous fallback without metadata requires an explicit DeploymentType and a recognizable, nonempty project list from /rest/api/2/project.
+At least one project must be visible anonymously.
+If anonymous browsing is restricted or the probe returns no recognizable project, use an authenticated connection or ask the Jira administrator to allow anonymous project browsing.
+
 ### Authentication examples
 
 Choose the authentication method supported by your Jira deployment.

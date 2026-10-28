@@ -41,6 +41,10 @@
         [Switch]
         $Anonymous,
 
+        [ValidateSet('Cloud', 'Server', 'Data Center')]
+        [String]
+        $DeploymentType,
+
         [Switch]
         $Default
     )
@@ -55,7 +59,9 @@
     }
 
     $authentication = Get-JiraAuthenticationParameter -BoundParameters $PSBoundParameters
-    $candidate = New-JiraCandidate -Name $Name -Uri $Uri -Authentication $authentication
+    $validation = @{}
+    if ($PSBoundParameters.ContainsKey('DeploymentType')) { $validation['DeploymentType'] = $DeploymentType }
+    $candidate = New-JiraCandidate -Name $Name -Uri $Uri -Authentication $authentication @validation
 
     try {
         AtlassianPS.Configuration\Register-AtlassianConnection -Connection $candidate -Default:$Default

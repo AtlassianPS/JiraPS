@@ -40,6 +40,9 @@ See the [authentication guide](docs/en-US/about_JiraPS_Authentication.md) for co
 
 ### Added
 
+- `Connect-Jira` and `New-JiraSession` accept `-DeploymentType` for installations with restricted deployment metadata.
+  Authenticated connections validate `myself` and reconcile metadata, gateway and identity evidence without requiring a Jira version.
+  Anonymous fallback requires an explicit deployment and a recognizable, nonempty anonymous project-list response.
 - `Connect-Jira`, `Get-JiraConnection`, `Select-JiraConnection`, and `Disconnect-Jira` manage named connections for multiple Jira sites and identities.
   Pass `-Connection` (alias `-Session`) to target one command; omitting it uses the selected Jira default.
 - `Connect-Jira` and compatibility `New-JiraSession` support Cloud API tokens through `-ApiToken` and `-EmailAddress`, and Data Center personal access tokens through `-PersonalAccessToken` (aliases `-PAT`, `-BearerToken`).

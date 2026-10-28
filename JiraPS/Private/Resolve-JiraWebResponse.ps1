@@ -30,7 +30,10 @@
     )
 
     if (-not $WebResponse) {
-        Write-Verbose "[$CommandName] No Web result object was returned from. This is unusual!"
+        if ($Exception) {
+            WriteError -ErrorRecord $Exception -ErrorId $Exception.FullyQualifiedErrorId -Category $Exception.CategoryInfo.Category -Cmdlet $Cmdlet
+        }
+        else { Write-Verbose "[$CommandName] No Web result object was returned from. This is unusual!" }
         return
     }
 
