@@ -48,15 +48,7 @@ Describe "Help tests" -Tag "Documentation", "Build" {
     Describe "Public Functions" {
         Context "Command <_.CommandName>" -ForEach $commands {
             BeforeDiscovery {
-                # Exclude default params and any parameter marked [Parameter(DontShow)],
-                # which is the principled signal for "internal, not part of the public surface".
-                $cmd = $_.Command
-                $isDontShow = {
-                    param($name)
-                    $paramAttr = $cmd.Parameters[$name].Attributes | Where-Object { $_ -is [System.Management.Automation.ParameterAttribute] }
-                    return ($paramAttr.DontShow -contains $true)
-                }
-                $script:parameters = $cmd.Parameters.Keys | Where-Object { $_ -notin $DefaultParams -and -not (& $isDontShow $_) }
+                $script:parameters = $_.Command.Parameters.Keys | Where-Object { $_ -notin $DefaultParams }
             }
 
             BeforeAll {
@@ -99,8 +91,6 @@ Describe "Help tests" -Tag "Documentation", "Build" {
                             [regex]::Match($syntax, $pattern).Groups[1].Value
                         }
                         foreach ($parameter in $parameterSet.Parameters) {
-                            $attributes = $command.Parameters[$parameter.Name].Attributes
-                            if ($attributes.DontShow -contains $true) { continue }
                             if ($parameter.Position -ge 0 -or $parameter.Name -in @('WhatIf', 'Confirm')) {
                                 $setSyntax | Should -Match ('\[-' + [regex]::Escape($parameter.Name) + '\]')
                             }
@@ -347,10 +337,7 @@ Describe "Help tests" -Tag "Documentation", "Build" {
 
                     foreach ($paramName in $command.Parameters.Keys) {
                         if ($paramName -in $DefaultParams) { continue }
-                        $paramAttr = $command.Parameters[$paramName].Attributes | Where-Object { $_ -is [System.Management.Automation.ParameterAttribute] }
-                        if ($paramAttr.DontShow -contains $true) { continue }
-
-                        $documented | Should -Contain $paramName -Because "every public parameter must be documented in docs/en-US/commands/$($command.Name).md (or marked [Parameter(DontShow)] if it is internal)"
+                        $documented | Should -Contain $paramName -Because "every public parameter must be documented in docs/en-US/commands/$($command.Name).md"
                     }
                 }
             }
@@ -423,6 +410,16 @@ Describe "Help tests" -Tag "Documentation", "Build" {
 }
 
 Describe 'Domain parameter documentation' -Tag Documentation, Build {
+    It 'keeps common parameters available in command and setup completion' {
+        $commandNames = @($commands.Command.Name) + "& '$projectRoot/Tools/setup.ps1'"
+        foreach ($commandName in $commandNames) {
+            $inputScript = "$commandName -"
+            $completion = TabExpansion2 -InputScript $inputScript -CursorColumn $inputScript.Length
+            $completion.CompletionMatches.CompletionText | Should -Contain '-Verbose' -Because "$commandName should expose diagnostic parameters in completion"
+            $completion.CompletionMatches.CompletionText | Should -Contain '-Debug'
+        }
+    }
+
     It 'omits empty command aliases sections from markdown' {
         foreach ($command in $commands.Command) {
             $markdown = Get-Content -LiteralPath "$projectRoot/docs/en-US/commands/$($command.Name).md" -Raw

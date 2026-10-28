@@ -2,11 +2,9 @@
 
 [CmdletBinding()]
 param(
-    [Parameter(DontShow = $true)]
     [ValidateSet('Desktop', 'Core')]
     [String]$RuntimePSEdition = $PSVersionTable.PSEdition,
 
-    [Parameter(DontShow = $true)]
     [Switch]$ForceDesktopBootstrapRemediation,
 
     [String]$ConfigurationCandidatePackage,
