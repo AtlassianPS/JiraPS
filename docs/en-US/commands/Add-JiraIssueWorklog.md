@@ -14,7 +14,7 @@ Adds a worklog item to an existing Jira issue.
 
 ## SYNTAX
 
-```
+```powershell
 Add-JiraIssueWorklog [-Comment] <string> [-Issue] <AtlassianPS.JiraPS.Issue> [-TimeSpent] <timespan>
  [-DateStarted] <datetime> [[-Visibility] <AtlassianPS.JiraPS.Visibility>] [[-Connection] <AtlassianPS.Connection>] [-WhatIf]
  [-Confirm] [<CommonParameters>]

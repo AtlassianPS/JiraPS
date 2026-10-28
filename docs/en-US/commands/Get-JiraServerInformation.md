@@ -14,7 +14,7 @@ This function returns the information about the JIRA Server
 
 ## SYNTAX
 
-```
+```powershell
 Get-JiraServerInformation [[-Connection] <AtlassianPS.Connection>] [-Refresh] [<CommonParameters>]
 ```
 

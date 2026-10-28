@@ -16,13 +16,13 @@ Gets available issue link types.
 
 ### _All (Default)
 
-```
+```powershell
 Get-JiraIssueLinkType [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 
 ### _Search
 
-```
+```powershell
 Get-JiraIssueLinkType [-LinkType] <AtlassianPS.JiraPS.IssueLinkType> [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 

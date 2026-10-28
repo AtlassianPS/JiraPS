@@ -16,13 +16,13 @@ Returns information about a filter in Jira.
 
 ### ByFilter (Default)
 
-```
+```powershell
 Get-JiraFilter [-Filter] <AtlassianPS.JiraPS.Filter[]> [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 
 ### MyFavorite
 
-```
+```powershell
 Get-JiraFilter -Favorite [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 

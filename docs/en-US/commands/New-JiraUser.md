@@ -14,7 +14,7 @@ Creates a new user in JIRA
 
 ## SYNTAX
 
-```
+```powershell
 New-JiraUser [-EmailAddress] <string> [[-UserName] <string>] [[-DisplayName] <string>]
  [[-Products] <string[]>] [[-Connection] <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```

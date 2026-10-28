@@ -16,14 +16,14 @@ Modifies user properties in Jira.
 
 ### ByNamedParameters (Default)
 
-```
+```powershell
 Set-JiraUser [-User] <AtlassianPS.JiraPS.User> [-DisplayName <string>] [-EmailAddress <string>] [-Active <bool>]
  [-PassThru] [-Connection <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ### ByHashtable
 
-```
+```powershell
 Set-JiraUser [-User] <AtlassianPS.JiraPS.User> [-Property] <hashtable> [-PassThru] [-Connection <AtlassianPS.Connection>] [-WhatIf]
  [-Confirm] [<CommonParameters>]
 ```

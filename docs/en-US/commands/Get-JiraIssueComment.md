@@ -14,7 +14,7 @@ Returns comments on an issue in Jira.
 
 ## SYNTAX
 
-```
+```powershell
 Get-JiraIssueComment [-Issue] <AtlassianPS.JiraPS.Issue> [[-PageSize] <int>] [[-Connection] <AtlassianPS.Connection>]
  [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```

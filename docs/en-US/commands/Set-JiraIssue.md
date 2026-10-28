@@ -16,7 +16,7 @@ Modifies an existing issue in Jira.
 
 ### AssignToUser (Default)
 
-```
+```powershell
 Set-JiraIssue -Issue <AtlassianPS.JiraPS.Issue> [-Summary <string>] [-Description <string>] [-FixVersion <AtlassianPS.JiraPS.Version[]>]
  [-Assignee <AtlassianPS.JiraPS.User>] [-Label <string[]>] [-Fields <psobject>] [-AddComment <string>] [-PassThru]
  [-SkipNotification] [-Connection <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
@@ -24,7 +24,7 @@ Set-JiraIssue -Issue <AtlassianPS.JiraPS.Issue> [-Summary <string>] [-Descriptio
 
 ### Unassign
 
-```
+```powershell
 Set-JiraIssue -Issue <AtlassianPS.JiraPS.Issue> [-Summary <string>] [-Description <string>] [-FixVersion <AtlassianPS.JiraPS.Version[]>]
  [-Unassign] [-Label <string[]>] [-Fields <psobject>] [-AddComment <string>] [-PassThru]
  [-SkipNotification] [-Connection <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
@@ -32,7 +32,7 @@ Set-JiraIssue -Issue <AtlassianPS.JiraPS.Issue> [-Summary <string>] [-Descriptio
 
 ### UseDefaultAssignee
 
-```
+```powershell
 Set-JiraIssue -Issue <AtlassianPS.JiraPS.Issue> [-Summary <string>] [-Description <string>] [-FixVersion <AtlassianPS.JiraPS.Version[]>]
  [-UseDefaultAssignee] [-Label <string[]>] [-Fields <psobject>] [-AddComment <string>] [-PassThru]
  [-SkipNotification] [-Connection <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]

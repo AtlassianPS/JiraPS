@@ -16,7 +16,7 @@ Creates a new issue in Jira.
 
 ### AssignToUser (Default)
 
-```
+```powershell
 New-JiraIssue -Project <AtlassianPS.JiraPS.Project> -IssueType <AtlassianPS.JiraPS.IssueType> -Summary <string> [-Priority <AtlassianPS.JiraPS.Priority>]
  [-Description <string>] [-Reporter <AtlassianPS.JiraPS.User>] [-Assignee <AtlassianPS.JiraPS.User>] [-Label <string[]>]
  [-Parent <string>] [-FixVersion <AtlassianPS.JiraPS.Version[]>] [-Fields <psobject>] [-Components <AtlassianPS.JiraPS.Component[]>]
@@ -25,7 +25,7 @@ New-JiraIssue -Project <AtlassianPS.JiraPS.Project> -IssueType <AtlassianPS.Jira
 
 ### Unassign
 
-```
+```powershell
 New-JiraIssue -Project <AtlassianPS.JiraPS.Project> -IssueType <AtlassianPS.JiraPS.IssueType> -Summary <string> [-Priority <AtlassianPS.JiraPS.Priority>]
  [-Description <string>] [-Reporter <AtlassianPS.JiraPS.User>] [-Unassign] [-Label <string[]>] [-Parent <string>]
  [-FixVersion <AtlassianPS.JiraPS.Version[]>] [-Fields <psobject>] [-Components <AtlassianPS.JiraPS.Component[]>]

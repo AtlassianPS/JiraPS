@@ -14,7 +14,7 @@ Modifies an existing version in Jira.
 
 ## SYNTAX
 
-```
+```powershell
 Set-JiraVersion [-Version] <AtlassianPS.JiraPS.Version[]> [[-Name] <string>] [[-Description] <string>]
  [[-Archived] <bool>] [[-Released] <bool>] [[-ReleaseDate] <datetime>] [[-StartDate] <datetime>]
  [[-Project] <AtlassianPS.JiraPS.Project>] [[-Connection] <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]

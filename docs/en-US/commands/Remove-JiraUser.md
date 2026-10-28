@@ -14,7 +14,7 @@ Removes an existing user from Jira.
 
 ## SYNTAX
 
-```
+```powershell
 Remove-JiraUser [-User] <AtlassianPS.JiraPS.User> [[-Connection] <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 

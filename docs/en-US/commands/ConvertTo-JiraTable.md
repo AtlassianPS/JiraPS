@@ -14,7 +14,7 @@ Converts an object into a Jira **wiki-markup** table string (Server / Data Cente
 
 ## SYNTAX
 
-```
+```powershell
 ConvertTo-JiraTable [-InputObject] <psobject[]> [[-Property] <Object[]>] [<CommonParameters>]
 ```
 

@@ -16,14 +16,14 @@ Removes an attachment from a Jira issue.
 
 ### byId (Default)
 
-```
+```powershell
 Remove-JiraIssueAttachment [-Attachment] <AtlassianPS.JiraPS.Attachment[]> [-Connection <AtlassianPS.Connection>] [-WhatIf]
  [-Confirm] [<CommonParameters>]
 ```
 
 ### byIssue
 
-```
+```powershell
 Remove-JiraIssueAttachment [-Issue] <AtlassianPS.JiraPS.Issue> [-FileName <string[]>] [-Connection <AtlassianPS.Connection>]
  [-WhatIf] [-Confirm] [<CommonParameters>]
 ```

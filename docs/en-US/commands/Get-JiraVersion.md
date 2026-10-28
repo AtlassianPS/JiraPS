@@ -16,14 +16,14 @@ Returns versions in a Jira project.
 
 ### Version (Default)
 
-```
+```powershell
 Get-JiraVersion [-Version] <AtlassianPS.JiraPS.Version[]> [-PageSize <int>] [-Connection <AtlassianPS.Connection>]
  [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```
 
 ### Project
 
-```
+```powershell
 Get-JiraVersion -Project <AtlassianPS.JiraPS.Project[]> [-Name <string[]>] [-Sort <string>] [-PageSize <int>]
  [-Connection <AtlassianPS.Connection>] [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```

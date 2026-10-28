@@ -14,7 +14,7 @@ Adds a comment to an existing Jira issue.
 
 ## SYNTAX
 
-```
+```powershell
 Add-JiraIssueComment [-Comment] <string> [-Issue] <AtlassianPS.JiraPS.Issue> [[-Visibility] <AtlassianPS.JiraPS.Visibility>]
  [[-Connection] <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```

@@ -16,13 +16,13 @@ Returns issue status information from Jira.
 
 ### _All (Default)
 
-```
+```powershell
 Get-JiraStatus [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 
 ### _Search
 
-```
+```powershell
 Get-JiraStatus [-Status] <AtlassianPS.JiraPS.Status[]> [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 

@@ -16,31 +16,31 @@ Disconnect Jira locally and invalidate retained handles.
 
 ### Default (Default)
 
-```
+```powershell
 Disconnect-Jira [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ### Object
 
-```
+```powershell
 Disconnect-Jira -Connection <AtlassianPS.Connection> [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ### Name
 
-```
+```powershell
 Disconnect-Jira -Name <string> [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ### Id
 
-```
+```powershell
 Disconnect-Jira -Id <int> [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ### All
 
-```
+```powershell
 Disconnect-Jira -All [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 

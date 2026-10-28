@@ -94,7 +94,7 @@ Copy-Item .env.example .env
 
 Edit `.env` with your Jira Cloud connection details:
 
-```
+```text
 JIRA_CLOUD_URL=https://your-instance.atlassian.net/
 JIRA_CLOUD_USERNAME=your-email@example.com
 JIRA_CLOUD_PASSWORD=your-api-token

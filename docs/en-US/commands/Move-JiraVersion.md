@@ -16,13 +16,13 @@ Moves an existing version in Jira.
 
 ### ByAfter (Default)
 
-```
+```powershell
 Move-JiraVersion -Version <AtlassianPS.JiraPS.Version> -After <AtlassianPS.JiraPS.Version> [-Connection <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ### ByPosition
 
-```
+```powershell
 Move-JiraVersion -Version <AtlassianPS.JiraPS.Version> -Position <string> [-Connection <AtlassianPS.Connection>] [-WhatIf]
  [-Confirm] [<CommonParameters>]
 ```

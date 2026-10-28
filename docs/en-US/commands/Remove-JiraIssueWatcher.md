@@ -14,7 +14,7 @@ Removes a watcher from an existing Jira issue.
 
 ## SYNTAX
 
-```
+```powershell
 Remove-JiraIssueWatcher [-Watcher] <AtlassianPS.JiraPS.User[]> [-Issue] <AtlassianPS.JiraPS.Issue> [[-Connection] <AtlassianPS.Connection>] [-WhatIf]
  [-Confirm] [<CommonParameters>]
 ```

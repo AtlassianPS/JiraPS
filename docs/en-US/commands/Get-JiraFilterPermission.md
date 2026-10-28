@@ -14,7 +14,7 @@ Fetch the permissions of a specific filter.
 
 ## SYNTAX
 
-```
+```powershell
 Get-JiraFilterPermission [-Filter] <AtlassianPS.JiraPS.Filter[]> [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 

@@ -16,27 +16,27 @@ Returns a user from Jira.
 
 ### Self (Default)
 
-```
+```powershell
 Get-JiraUser [-Connection <AtlassianPS.Connection>] [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```
 
 ### User
 
-```
+```powershell
 Get-JiraUser [-User] <AtlassianPS.JiraPS.User[]> [-Connection <AtlassianPS.Connection>] [-IncludeTotalCount] [-Skip <ulong>]
  [-First <ulong>] [<CommonParameters>]
 ```
 
 ### Query
 
-```
+```powershell
 Get-JiraUser -Query <string> [-IncludeInactive] [-PageSize <int>] [-Connection <AtlassianPS.Connection>]
  [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```
 
 ### All
 
-```
+```powershell
 Get-JiraUser -All [-PageSize <int>] [-Connection <AtlassianPS.Connection>] [-IncludeTotalCount] [-Skip <ulong>]
  [-First <ulong>] [<CommonParameters>]
 ```

@@ -14,7 +14,7 @@ Returns members of a given group in Jira.
 
 ## SYNTAX
 
-```
+```powershell
 Get-JiraGroupMember [-Group] <AtlassianPS.JiraPS.Group[]> [[-PageSize] <uint>] [[-Connection] <AtlassianPS.Connection>]
  [-IncludeInactive] [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```

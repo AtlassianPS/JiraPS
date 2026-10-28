@@ -14,7 +14,7 @@ Removes a remote link from a Jira issue.
 
 ## SYNTAX
 
-```
+```powershell
 Remove-JiraRemoteLink [-Issue] <AtlassianPS.JiraPS.Issue> [-Link] <AtlassianPS.JiraPS.Link[]> [[-Connection] <AtlassianPS.Connection>] [-WhatIf]
  [-Confirm] [<CommonParameters>]
 ```

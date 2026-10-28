@@ -14,7 +14,7 @@ Returns attachments of an issue in Jira.
 
 ## SYNTAX
 
-```
+```powershell
 Get-JiraIssueAttachment [-Issue] <AtlassianPS.JiraPS.Issue> [[-FileName] <string>] [[-Connection] <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 

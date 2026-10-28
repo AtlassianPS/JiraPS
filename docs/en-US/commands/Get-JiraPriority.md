@@ -16,13 +16,13 @@ Returns information about the available priorities in JIRA.
 
 ### _All (Default)
 
-```
+```powershell
 Get-JiraPriority [-Refresh] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 
 ### _Search
 
-```
+```powershell
 Get-JiraPriority [-Id] <int[]> [-Refresh] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 

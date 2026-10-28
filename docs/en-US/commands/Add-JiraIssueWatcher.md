@@ -14,7 +14,7 @@ Adds a watcher to an existing Jira issue.
 
 ## SYNTAX
 
-```
+```powershell
 Add-JiraIssueWatcher [-Watcher] <AtlassianPS.JiraPS.User[]> [-Issue] <AtlassianPS.JiraPS.Issue> [[-Connection] <AtlassianPS.Connection>] [-WhatIf]
  [-Confirm] [<CommonParameters>]
 ```

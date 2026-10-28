@@ -14,7 +14,7 @@ Returns metadata required to create an issue in Jira.
 
 ## SYNTAX
 
-```
+```powershell
 Get-JiraIssueCreateMetadata [-Project] <AtlassianPS.JiraPS.Project> [-IssueType] <AtlassianPS.JiraPS.IssueType>
  [[-Connection] <AtlassianPS.Connection>] [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```

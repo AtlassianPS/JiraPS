@@ -14,7 +14,7 @@ Returns a specific issueLink from Jira
 
 ## SYNTAX
 
-```
+```powershell
 Get-JiraIssueLink [-IssueLink] <AtlassianPS.JiraPS.IssueLink[]> [[-Connection] <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 

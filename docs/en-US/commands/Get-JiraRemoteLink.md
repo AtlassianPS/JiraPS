@@ -14,7 +14,7 @@ Returns a remote link from a Jira issue.
 
 ## SYNTAX
 
-```
+```powershell
 Get-JiraRemoteLink [-Issue] <AtlassianPS.JiraPS.Issue> [[-LinkId] <int>] [[-Connection] <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 

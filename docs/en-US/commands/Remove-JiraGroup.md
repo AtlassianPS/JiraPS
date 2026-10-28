@@ -14,7 +14,7 @@ Removes an existing group from Jira.
 
 ## SYNTAX
 
-```
+```powershell
 Remove-JiraGroup [-Group] <AtlassianPS.JiraPS.Group[]> [[-Connection] <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 

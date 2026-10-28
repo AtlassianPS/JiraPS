@@ -14,7 +14,7 @@ Returns a group from Jira
 
 ## SYNTAX
 
-```
+```powershell
 Get-JiraGroup [-GroupName] <string[]> [[-Connection] <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 

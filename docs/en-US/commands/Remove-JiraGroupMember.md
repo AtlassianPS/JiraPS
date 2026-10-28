@@ -14,7 +14,7 @@ Removes a user from a Jira group.
 
 ## SYNTAX
 
-```
+```powershell
 Remove-JiraGroupMember [-Group] <AtlassianPS.JiraPS.Group[]> [-User] <AtlassianPS.JiraPS.User[]> [[-Connection] <AtlassianPS.Connection>] [-PassThru]
  [-WhatIf] [-Confirm] [<CommonParameters>]
 ```

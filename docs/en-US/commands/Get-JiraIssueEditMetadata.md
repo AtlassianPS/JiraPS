@@ -14,7 +14,7 @@ Returns metadata required to change an issue in JIRA
 
 ## SYNTAX
 
-```
+```powershell
 Get-JiraIssueEditMetadata [-Issue] <AtlassianPS.JiraPS.Issue> [[-Connection] <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 

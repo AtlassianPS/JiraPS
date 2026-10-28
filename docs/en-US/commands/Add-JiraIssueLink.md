@@ -14,7 +14,7 @@ Adds a link between two issues on Jira.
 
 ## SYNTAX
 
-```
+```powershell
 Add-JiraIssueLink [-IssueLink] <AtlassianPS.JiraPS.IssueLinkCreateRequest[]> [[-Comment] <string>]
  [[-Connection] <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```

@@ -14,7 +14,7 @@ Share a filter with other users.
 
 ## SYNTAX
 
-```
+```powershell
 Add-JiraFilterPermission [-Filter] <AtlassianPS.JiraPS.Filter[]> -Type <string> [-Value <string>]
  [-Connection <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```

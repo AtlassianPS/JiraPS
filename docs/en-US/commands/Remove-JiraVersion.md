@@ -14,7 +14,7 @@ This function removes an existing version.
 
 ## SYNTAX
 
-```
+```powershell
 Remove-JiraVersion [-Version] <AtlassianPS.JiraPS.Version[]> [[-Connection] <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 

@@ -16,21 +16,21 @@ Modifies labels on an existing Jira issue.
 
 ### ReplaceLabels (Default)
 
-```
+```powershell
 Set-JiraIssueLabel [-Issue] <AtlassianPS.JiraPS.Issue> -Set <string[]> [-PassThru] [-Connection <AtlassianPS.Connection>] [-WhatIf]
  [-Confirm] [<CommonParameters>]
 ```
 
 ### ModifyLabels
 
-```
+```powershell
 Set-JiraIssueLabel [-Issue] <AtlassianPS.JiraPS.Issue> [-Add <string[]>] [-Remove <string[]>] [-PassThru]
  [-Connection <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ### ClearLabels
 
-```
+```powershell
 Set-JiraIssueLabel [-Issue] <AtlassianPS.JiraPS.Issue> -Clear [-PassThru] [-Connection <AtlassianPS.Connection>] [-WhatIf]
  [-Confirm] [<CommonParameters>]
 ```

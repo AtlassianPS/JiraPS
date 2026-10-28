@@ -14,7 +14,7 @@ Create a new Jira filter.
 
 ## SYNTAX
 
-```
+```powershell
 New-JiraFilter [-Name] <string> [[-Description] <string>] [-JQL] <string>
  [[-Connection] <AtlassianPS.Connection>] [-Favorite] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```

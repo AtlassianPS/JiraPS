@@ -15,7 +15,7 @@ Returns worklogs from an issue in Jira.
 
 ## SYNTAX
 
-```
+```powershell
 Get-JiraIssueWorklog [-Issue] <AtlassianPS.JiraPS.Issue> [[-PageSize] <int>] [[-Connection] <AtlassianPS.Connection>]
  [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```

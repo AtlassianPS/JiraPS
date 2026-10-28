@@ -16,19 +16,19 @@ Select an active connection as the Jira default.
 
 ### Object (Default)
 
-```
+```powershell
 Select-JiraConnection -Connection <AtlassianPS.Connection> [<CommonParameters>]
 ```
 
 ### Name
 
-```
+```powershell
 Select-JiraConnection -Name <string> [<CommonParameters>]
 ```
 
 ### Id
 
-```
+```powershell
 Select-JiraConnection -Id <int> [<CommonParameters>]
 ```
 

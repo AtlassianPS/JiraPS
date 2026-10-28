@@ -14,7 +14,7 @@ Make changes to an existing filter.
 
 ## SYNTAX
 
-```
+```powershell
 Set-JiraFilter [-Filter] <AtlassianPS.JiraPS.Filter> [[-Name] <string>] [[-Description] <string>] [[-JQL] <string>]
  [[-Favorite] <bool>] [[-Connection] <AtlassianPS.Connection>] [-PassThru] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```

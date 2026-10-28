@@ -18,7 +18,7 @@ Send a request to a Jira REST endpoint.
 
 ### Connection (Default)
 
-```
+```powershell
 Invoke-JiraMethod [-Uri] <uri> [-Method <WebRequestMethod>] [-Body <Object>] [-ContentType <string>]
  [-Headers <hashtable>] [-QueryParameter <hashtable>] [-Paging] [-PageSize <int>]
  [-OutFile <string>] [-RawResponse] [-TimeoutSec <int>] [-Connection <AtlassianPS.Connection>] [-WhatIf]
@@ -27,7 +27,7 @@ Invoke-JiraMethod [-Uri] <uri> [-Method <WebRequestMethod>] [-Body <Object>] [-C
 
 ### NamedConnection
 
-```
+```powershell
 Invoke-JiraMethod [-Uri] <uri> -ConnectionName <string> [-Method <WebRequestMethod>]
  [-Body <Object>] [-ContentType <string>] [-Headers <hashtable>] [-QueryParameter <hashtable>]
  [-Paging] [-PageSize <int>] [-OutFile <string>] [-RawResponse] [-TimeoutSec <int>] [-WhatIf]
@@ -36,7 +36,7 @@ Invoke-JiraMethod [-Uri] <uri> -ConnectionName <string> [-Method <WebRequestMeth
 
 ### Anonymous
 
-```
+```powershell
 Invoke-JiraMethod [-Uri] <uri> -BaseUri <uri> -Anonymous [-Method <WebRequestMethod>]
  [-Body <Object>] [-ContentType <string>] [-Headers <hashtable>] [-QueryParameter <hashtable>]
  [-Paging] [-PageSize <int>] [-OutFile <string>] [-RawResponse] [-TimeoutSec <int>] [-WhatIf]
@@ -45,7 +45,7 @@ Invoke-JiraMethod [-Uri] <uri> -BaseUri <uri> -Anonymous [-Method <WebRequestMet
 
 ### PersonalAccessToken
 
-```
+```powershell
 Invoke-JiraMethod [-Uri] <uri> -BaseUri <uri> -PersonalAccessToken <Object>
  [-Method <WebRequestMethod>] [-Body <Object>] [-ContentType <string>] [-Headers <hashtable>]
  [-QueryParameter <hashtable>] [-Paging] [-PageSize <int>] [-OutFile <string>] [-RawResponse]
@@ -54,7 +54,7 @@ Invoke-JiraMethod [-Uri] <uri> -BaseUri <uri> -PersonalAccessToken <Object>
 
 ### CloudToken
 
-```
+```powershell
 Invoke-JiraMethod [-Uri] <uri> -BaseUri <uri> -EmailAddress <string> -ApiToken <Object>
  [-Method <WebRequestMethod>] [-Body <Object>] [-ContentType <string>] [-Headers <hashtable>]
  [-QueryParameter <hashtable>] [-Paging] [-PageSize <int>] [-OutFile <string>] [-RawResponse]
@@ -63,7 +63,7 @@ Invoke-JiraMethod [-Uri] <uri> -BaseUri <uri> -EmailAddress <string> -ApiToken <
 
 ### Basic
 
-```
+```powershell
 Invoke-JiraMethod [-Uri] <uri> -BaseUri <uri> -Credential <pscredential>
  [-Method <WebRequestMethod>] [-Body <Object>] [-ContentType <string>] [-Headers <hashtable>]
  [-QueryParameter <hashtable>] [-Paging] [-PageSize <int>] [-OutFile <string>] [-RawResponse]

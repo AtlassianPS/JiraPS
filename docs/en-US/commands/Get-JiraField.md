@@ -16,13 +16,13 @@ This function returns information about Jira fields.
 
 ### _All (Default)
 
-```
+```powershell
 Get-JiraField [-Refresh] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 
 ### _Search
 
-```
+```powershell
 Get-JiraField [-Field] <AtlassianPS.JiraPS.Field[]> [-Refresh] [-Connection <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 

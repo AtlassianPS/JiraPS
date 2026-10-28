@@ -16,14 +16,14 @@ Remove a permission of a filter.
 
 ### Permission (Default)
 
-```
+```powershell
 Remove-JiraFilterPermission [-Filter] <AtlassianPS.JiraPS.Filter> [-Permission] <AtlassianPS.JiraPS.FilterPermission[]>
  [-Connection <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ### All
 
-```
+```powershell
 Remove-JiraFilterPermission [-Filter] <AtlassianPS.JiraPS.Filter> -All [-Connection <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 

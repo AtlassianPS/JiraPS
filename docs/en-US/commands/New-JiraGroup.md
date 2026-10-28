@@ -14,7 +14,7 @@ Creates a new group in JIRA
 
 ## SYNTAX
 
-```
+```powershell
 New-JiraGroup [-GroupName] <string[]> [[-Connection] <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 

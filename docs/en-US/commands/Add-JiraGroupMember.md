@@ -14,7 +14,7 @@ Adds a user to a Jira group.
 
 ## SYNTAX
 
-```
+```powershell
 Add-JiraGroupMember [-Group] <AtlassianPS.JiraPS.Group[]> [-User] <AtlassianPS.JiraPS.User[]> [[-Connection] <AtlassianPS.Connection>] [-PassThru]
  [-WhatIf] [-Confirm] [<CommonParameters>]
 ```

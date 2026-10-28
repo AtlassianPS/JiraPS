@@ -16,13 +16,13 @@ Removes an issue link from a Jira issue.
 
 ### ByIssueLink (Default)
 
-```
+```powershell
 Remove-JiraIssueLink -IssueLink <AtlassianPS.JiraPS.IssueLink[]> [-Connection <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ### ByIssue
 
-```
+```powershell
 Remove-JiraIssueLink -Issue <AtlassianPS.JiraPS.Issue[]> [-Connection <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 

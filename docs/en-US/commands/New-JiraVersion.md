@@ -16,13 +16,13 @@ Creates a new FixVersion in Jira.
 
 ### byObject (Default)
 
-```
+```powershell
 New-JiraVersion [-InputObject] <AtlassianPS.JiraPS.Version> [-Connection <AtlassianPS.Connection>] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ### byParameters
 
-```
+```powershell
 New-JiraVersion [-Name] <string> [-Project] <AtlassianPS.JiraPS.Project> [-Description <string>] [-Archived <bool>]
  [-Released <bool>] [-ReleaseDate <datetime>] [-StartDate <datetime>] [-Connection <AtlassianPS.Connection>]
  [-WhatIf] [-Confirm] [<CommonParameters>]

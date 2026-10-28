@@ -17,7 +17,7 @@ Saves Jira attachment content to disk.
 
 ## SYNTAX
 
-```
+```powershell
 Save-JiraIssueAttachment [-Attachment] <AtlassianPS.JiraPS.Attachment[]> [[-Path] <string>]
  [[-Connection] <AtlassianPS.Connection>] [-Force] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```

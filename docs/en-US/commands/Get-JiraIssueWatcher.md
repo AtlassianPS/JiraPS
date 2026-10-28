@@ -14,7 +14,7 @@ Returns watchers on an issue in Jira.
 
 ## SYNTAX
 
-```
+```powershell
 Get-JiraIssueWatcher [-Issue] <AtlassianPS.JiraPS.Issue> [[-Connection] <AtlassianPS.Connection>] [<CommonParameters>]
 ```
 

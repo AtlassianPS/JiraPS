@@ -16,21 +16,21 @@ Returns information about an issue in Jira.
 
 ### Issue (Default)
 
-```
+```powershell
 Get-JiraIssue [-Issue] <AtlassianPS.JiraPS.Issue[]> [-Fields <string[]>] [-IncludeHistory] [-Connection <AtlassianPS.Connection>]
  [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```
 
 ### ByJQL
 
-```
+```powershell
 Get-JiraIssue -Query <string> [-Fields <string[]>] [-PageSize <uint>] [-IncludeHistory]
  [-Connection <AtlassianPS.Connection>] [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```
 
 ### ByFilter
 
-```
+```powershell
 Get-JiraIssue -Filter <AtlassianPS.JiraPS.Filter> [-Fields <string[]>] [-PageSize <uint>] [-IncludeHistory]
  [-Connection <AtlassianPS.Connection>] [-IncludeTotalCount] [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
 ```

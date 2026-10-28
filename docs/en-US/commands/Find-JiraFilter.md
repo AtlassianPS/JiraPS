@@ -16,7 +16,7 @@ Find Jira filter(s).
 
 ### ByAccountId (Default)
 
-```
+```powershell
 Find-JiraFilter [-Name <string[]>] [-AccountId <string>] [-GroupName <string>] [-Project <AtlassianPS.JiraPS.Project>]
  [-Fields <string[]>] [-Sort <string>] [-Connection <AtlassianPS.Connection>] [-IncludeTotalCount]
  [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]
@@ -24,7 +24,7 @@ Find-JiraFilter [-Name <string[]>] [-AccountId <string>] [-GroupName <string>] [
 
 ### ByOwner
 
-```
+```powershell
 Find-JiraFilter [-Name <string[]>] [-Owner <AtlassianPS.JiraPS.User>] [-GroupName <string>] [-Project <AtlassianPS.JiraPS.Project>]
  [-Fields <string[]>] [-Sort <string>] [-Connection <AtlassianPS.Connection>] [-IncludeTotalCount]
  [-Skip <ulong>] [-First <ulong>] [<CommonParameters>]

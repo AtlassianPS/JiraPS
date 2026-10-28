@@ -14,7 +14,7 @@ Removes an existing issue from Jira.
 
 ## SYNTAX
 
-```
+```powershell
 Remove-JiraIssue [-Issue] <AtlassianPS.JiraPS.Issue[]> [-IncludeSubTasks] [-Connection <AtlassianPS.Connection>] [-WhatIf]
  [-Confirm] [<CommonParameters>]
 ```
