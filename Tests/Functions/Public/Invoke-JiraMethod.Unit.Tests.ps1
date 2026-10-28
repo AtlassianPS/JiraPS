@@ -361,6 +361,7 @@ InModuleScope JiraPS {
         }
 
         It 'isolates caches for separate identities on the same endpoint' {
+            $previousDefault = Get-JiraConnection -Default
             $first = AtlassianPS.Configuration\New-AtlassianConnectionContext -Name cache-first -Product Jira -BaseUri https://jira.example.com -PersonalAccessToken first-secret
             $second = AtlassianPS.Configuration\New-AtlassianConnectionContext -Name cache-second -Product Jira -BaseUri https://jira.example.com -PersonalAccessToken second-secret
             foreach ($candidate in @($first, $second)) {
@@ -368,15 +369,21 @@ InModuleScope JiraPS {
                 $null = AtlassianPS.Configuration\Register-AtlassianConnection -Connection $candidate
             }
             try {
-                (Invoke-JiraRequest -Uri '/rest/api/2/field' -RequestContext $first -CacheKey Fields).id | Should -Be 42
+                $first | Select-JiraConnection | Out-Null
+                (Invoke-JiraRequest -Uri '/rest/api/2/field' -CacheKey Fields).id | Should -Be 42
                 $script:json = '{"id":99}'
-                (Invoke-JiraRequest -Uri '/rest/api/2/field' -RequestContext $second -CacheKey Fields).id | Should -Be 99
-                (Invoke-JiraRequest -Uri '/rest/api/2/field' -RequestContext $first -CacheKey Fields).id | Should -Be 42
+                $second | Select-JiraConnection | Out-Null
+                (Invoke-JiraRequest -Uri '/rest/api/2/field' -CacheKey Fields).id | Should -Be 99
+                $first | Select-JiraConnection | Out-Null
+                (Invoke-JiraRequest -Uri '/rest/api/2/field' -CacheKey Fields).id | Should -Be 42
                 $requests.Count | Should -Be 2
             }
             finally {
                 $first | Disconnect-Jira
                 $second | Disconnect-Jira
+                if ($previousDefault -and $previousDefault.State -eq 'Active') {
+                    $previousDefault | Select-JiraConnection | Out-Null
+                }
             }
         }
 
