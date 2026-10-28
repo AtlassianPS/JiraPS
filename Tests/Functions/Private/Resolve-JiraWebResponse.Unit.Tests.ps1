@@ -74,6 +74,26 @@ InModuleScope JiraPS {
             $script:result | Should -BeNullOrEmpty
         }
 
+        It 'preserves the original transport ErrorRecord and caller error preferences' {
+            $exception = [System.Net.WebException]::new('Transport failure sentinel')
+            $errorRecord = [System.Management.Automation.ErrorRecord]::new(
+                $exception,
+                'ReviewTransportFailure',
+                [System.Management.Automation.ErrorCategory]::ConnectionError,
+                'https://jira.example.com'
+            )
+            $errors = @()
+
+            $result = Invoke-ResolveJiraWebResponse -Remaining @{ Exception = $errorRecord } -ErrorAction SilentlyContinue -ErrorVariable errors
+
+            $result | Should -BeNullOrEmpty
+            $errors.Count | Should -Be 1
+            [Object]::ReferenceEquals($errors[0].Exception, $exception) | Should -BeTrue
+            $errors[0].FullyQualifiedErrorId | Should -Match 'ReviewTransportFailure'
+            { Invoke-ResolveJiraWebResponse -Remaining @{ Exception = $errorRecord } -ErrorAction Stop } |
+                Should -Throw -ExpectedMessage '*Transport failure sentinel*'
+        }
+
         It 'returns JSON without constructing a legacy session' {
             $response = New-FakeWebResponse -StatusCode 200 -Json '{"name":"validated-user"}'
             $result = Invoke-ResolveJiraWebResponse -Remaining @{ WebResponse = $response }
