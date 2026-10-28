@@ -132,6 +132,7 @@ See the [authentication guide](docs/en-US/about_JiraPS_Authentication.md) for co
 - `Remove-JiraIssue` preserves the resolved issue URL so a typed issue from another endpoint cannot delete an issue on the selected site.
 - Each pagination continuation starts with a fresh HTTP retry budget.
 - `Get-JiraIssue` accepts string and numeric `Id` properties on piped issue selectors.
+- Explicit null request bodies serialize as JSON `null` on Windows PowerShell 5.1 and PowerShell 7.
 - PowerShell 7 HTTP errors without `ErrorDetails` report the HTTP status; Windows PowerShell 5.1 retains stream-based error parsing. (#604)
 - `Invoke-JiraIssueTransition` reports unresolved transitions, including issues with no available transitions.
 - Query keys, query values, and status names are percent-encoded, with spaces encoded as `%20`.

@@ -4,6 +4,7 @@
         Build an authenticated web request and encode structured JSON or raw payloads.
     .DESCRIPTION
         Strings use UTF-8 and byte arrays are sent unchanged.
+        Explicit null bodies use the JSON null literal on every supported PowerShell edition.
         File transfers retain the module's private multipart upload support.
     #>
     [CmdletBinding()]
@@ -75,12 +76,13 @@
     if ($hasBody) {
         if ($Body -is [Byte[]]) { $splatParameters['Body'] = $Body }
         else {
-            $text = if ($Body -is [String]) { $Body }
+            [String]$text = if ($Body -is [String]) { $Body }
             else {
                 if ($ContentType -notmatch '^application/(?:json|[\w.+-]+\+json)(?:\s*;|$)') {
                     throw 'Structured Body values require a JSON ContentType. Supply a string or byte array for other formats.'
                 }
-                ConvertTo-Json -InputObject $Body -Depth 100 -Compress -ErrorAction Stop
+                if ($null -eq $Body) { 'null' }
+                else { ConvertTo-Json -InputObject $Body -Depth 100 -Compress -ErrorAction Stop }
             }
             $splatParameters['Body'] = [Text.Encoding]::UTF8.GetBytes($text)
         }

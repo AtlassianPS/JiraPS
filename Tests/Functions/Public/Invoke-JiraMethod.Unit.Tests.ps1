@@ -135,8 +135,10 @@ InModuleScope JiraPS {
             $null = Invoke-JiraMethod '/rest/plugin/endpoint' -Method Post -Body 'Müller' -ContentType 'text/plain; charset=utf-8' -Confirm:$false
             $requests[0].ContentType | Should -Be 'text/plain; charset=utf-8'
             [Text.Encoding]::UTF8.GetString($requests[0].Body) | Should -Be 'Müller'
-            { Invoke-JiraMethod '/rest/plugin/endpoint' -Method Post -Body @{ name = 'x' } -ContentType text/plain -Confirm:$false } |
-                Should -Throw '*require a JSON ContentType*'
+            foreach ($body in @(@{ name = 'x' }, $null)) {
+                { Invoke-JiraMethod '/rest/plugin/endpoint' -Method Post -Body $body -ContentType text/plain -Confirm:$false } |
+                    Should -Throw '*require a JSON ContentType*'
+            }
             $requests.Count | Should -Be 1
         }
 
@@ -228,10 +230,17 @@ InModuleScope JiraPS {
         }
 
         It 'preserves Jira HTTP errors and the caller ErrorAction preference' {
-            $script:httpErrorRecord = [Management.Automation.ErrorRecord]::new([Exception]::new('HTTP sentinel'), 'HttpSentinel', [Management.Automation.ErrorCategory]::InvalidResult, $null)
-            $script:httpErrorRecord.ErrorDetails = [Management.Automation.ErrorDetails]::new('{"errorMessages":["Jira validation sentinel"]}')
             Mock Invoke-JiraWebRequestSafely {
-                @{ WebResponse = @{ StatusCode = 400 }; Exception = $script:httpErrorRecord }
+                $body = '{"errorMessages":["Jira validation sentinel"]}'
+                $response = [PSCustomObject]@{ Stream = [IO.MemoryStream]::new([Text.Encoding]::UTF8.GetBytes($body)) } |
+                    Add-Member -MemberType ScriptMethod -Name GetResponseStream -Value { $this.Stream } -PassThru
+                @{
+                    WebResponse = @{ StatusCode = 400 }
+                    Exception   = [PSCustomObject]@{
+                        ErrorDetails = [PSCustomObject]@{ Message = $body }
+                        Exception    = [PSCustomObject]@{ Response = $response }
+                    }
+                }
             }
             { Invoke-JiraMethod '/rest/api/2/field' -ErrorAction Stop } | Should -Throw '*Jira validation sentinel*'
             $errors = @()
