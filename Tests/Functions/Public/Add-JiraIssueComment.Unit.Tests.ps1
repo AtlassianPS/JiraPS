@@ -86,6 +86,7 @@ InModuleScope JiraPS {
                     @{ parameter = 'Comment'; type = 'String' }
                     @{ parameter = 'Issue'; type = 'AtlassianPS.JiraPS.Issue' }
                     @{ parameter = 'Visibility'; type = 'AtlassianPS.JiraPS.Visibility' }
+                    @{ parameter = 'Internal'; type = 'Switch' }
                     @{ parameter = 'Credential'; type = 'System.Management.Automation.PSCredential' }
                 ) {
                     $command | Should -HaveParameter $parameter -Type $type
@@ -271,6 +272,51 @@ InModuleScope JiraPS {
                         Should -Throw -ExceptionType ([System.Management.Automation.ParameterBindingException])
                     Should -Invoke Resolve-JiraIssueObject -ModuleName JiraPS -Exactly -Times 0
                     Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 0
+                }
+            }
+
+            Context "Internal comments" {
+                It "marks the comment internal on Cloud=<cloud>" -TestCases @(
+                    @{ cloud = $false }
+                    @{ cloud = $true }
+                ) {
+                    Mock Test-JiraCloudServer -ModuleName JiraPS { $cloud }
+
+                    Add-JiraIssueComment -Issue $issueKey -Comment 'Agent-only note' -Internal | Out-Null
+
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
+                        $payload = $Body | ConvertFrom-Json
+                        @($payload.properties).Count -eq 1 -and
+                        $payload.properties[0].key -eq 'sd.public.comment' -and
+                        $payload.properties[0].value.internal -eq $true
+                    }
+                }
+
+                It "omits comment properties when -Internal is <description> on Cloud=<cloud>" -TestCases @(
+                    foreach ($cloud in $false, $true) {
+                        @{ cloud = $cloud; description = 'not supplied'; parameters = @{} }
+                        @{ cloud = $cloud; description = 'explicitly false'; parameters = @{ Internal = $false } }
+                    }
+                ) {
+                    Mock Test-JiraCloudServer -ModuleName JiraPS { $cloud }
+
+                    Add-JiraIssueComment -Issue $issueKey -Comment 'Public reply' @parameters | Out-Null
+
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
+                        $payload = $Body | ConvertFrom-Json
+                        $payload.PSObject.Properties.Name -notcontains 'properties'
+                    }
+                }
+
+                It "combines -Internal with a visibility restriction" {
+                    Add-JiraIssueComment -Issue $issueKey -Comment 'Restricted agent note' -Internal -Visibility 'Developers' | Out-Null
+
+                    Should -Invoke Invoke-JiraMethod -ModuleName JiraPS -Exactly -Times 1 -ParameterFilter {
+                        $payload = $Body | ConvertFrom-Json
+                        $payload.properties[0].key -eq 'sd.public.comment' -and
+                        $payload.visibility.type -eq 'role' -and
+                        $payload.visibility.value -eq 'Developers'
+                    }
                 }
             }
 

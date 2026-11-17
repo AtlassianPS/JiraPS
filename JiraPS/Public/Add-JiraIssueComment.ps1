@@ -27,6 +27,9 @@
         [AtlassianPS.JiraPS.Visibility]
         $Visibility,
 
+        [Switch]
+        $Internal,
+
         [Parameter()]
         [System.Management.Automation.PSCredential]
         [System.Management.Automation.Credential()]
@@ -59,6 +62,16 @@
             $requestBody.visibility = @{ type = $Visibility.Type }
             if ($Visibility.Value) { $requestBody.visibility.value = $Visibility.Value }
             if ($Visibility.Identifier) { $requestBody.visibility.identifier = $Visibility.Identifier }
+        }
+
+        # Jira Service Management reads this entity property on Cloud and Data Center to hide a comment from customers.
+        if ($Internal) {
+            $requestBody.properties = @(
+                @{
+                    key   = 'sd.public.comment'
+                    value = @{ internal = $true }
+                }
+            )
         }
 
         $issueRestUrl = ConvertTo-JiraRestApiV3Url -Url $issueObj.RestUrl -IsCloud $isCloud
