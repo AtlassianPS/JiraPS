@@ -16,14 +16,15 @@ Adds a comment to an existing Jira issue.
 
 ```powershell
 Add-JiraIssueComment [-Comment] <string> [-Issue] <AtlassianPS.JiraPS.Issue>
- [[-Visibility] <AtlassianPS.JiraPS.Visibility>] [[-Credential] <pscredential>] [-WhatIf] [-Confirm]
- [<CommonParameters>]
+ [[-Visibility] <AtlassianPS.JiraPS.Visibility>] [[-Credential] <pscredential>] [-Internal] [-WhatIf]
+ [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
 
 This function adds a comment to an existing issue in Jira.
 You can optionally set the visibility of the comment (All users, Developers, or Administrators).
+On Jira Service Management projects, use `-Internal` to post an internal note that agents can see but customers cannot.
 
 On **Jira Cloud**, the `-Comment` text is interpreted as Markdown and converted to Atlassian Document Format (ADF) before being sent, so familiar Markdown syntax (headings, bold/italic, lists, fenced code blocks, links, Markdown tables) renders as rich text in the issue.
 On **Jira Server / Data Center**, the text is sent verbatim and the legacy wiki-markup syntax (`*bold*`, `_italic_`, `||header||`, `{code}`) continues to apply.
@@ -100,6 +101,15 @@ This example posts a richly-formatted Markdown comment to TEST-100.
 On Jira **Cloud** the heading, bold/italic emphasis, bullet list, and Markdown table are converted to ADF and render natively.
 On Jira **Server / Data Center** the text is posted verbatim — Markdown is not interpreted server-side, so use wiki-markup (`h2.`, `*bold*`, `||header||`, …) for the same effect there.
 
+### Example 7
+
+```powershell
+Add-JiraIssueComment -Issue HELP-42 -Comment 'Escalated to the network team.' -Internal
+```
+
+This example posts an internal comment on the Jira Service Management request HELP-42.
+Agents see the comment, but the customer does not see it on the customer portal.
+
 ## PARAMETERS
 
 ### -Comment
@@ -158,6 +168,34 @@ Aliases: []
 ParameterSets:
 - Name: (All)
   Position: 3
+  IsRequired: false
+  ValueFromPipeline: false
+  ValueFromPipelineByPropertyName: false
+  ValueFromRemainingArguments: false
+DontShow: false
+AcceptedValues: []
+HelpMessage: ''
+```
+
+### -Internal
+
+Marks the comment as internal so that Jira Service Management hides it from customers.
+The comment remains visible to agents and other users with access to the issue in Jira.
+
+JiraPS sets the `sd.public.comment` comment property to `{ "internal": true }`.
+This works on Jira Cloud and Jira Data Center.
+On projects that are not Jira Service Management projects, Jira stores the property but does not change how the comment is displayed.
+Omit this switch to post a public comment, which is the default.
+`-Internal` can be combined with `-Visibility`.
+
+```yaml
+Type: SwitchParameter
+DefaultValue: False
+SupportsWildcards: false
+Aliases: []
+ParameterSets:
+- Name: (All)
+  Position: Named
   IsRequired: false
   ValueFromPipeline: false
   ValueFromPipelineByPropertyName: false
