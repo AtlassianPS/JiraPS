@@ -21,11 +21,7 @@ validates a new final package with an empty prerelease label. Rerun failed jobs 
 transient publication failures while the original artifact exists. Fix lasting
 failures in a reviewed PR and dispatch a new version; never replace a tag or package.
 
-Use stable provisioning by default. Explicit candidate dependencies require a
-released Standards version exporting `Install-AtlassianPSModuleCandidate` and the
-installer's `CandidateRequirement` option. Keep exact full candidate selections
-separate from numeric runtime minimum/maximum bounds. Local archives require SHA256
-verification and an isolated root; changing candidates requires a fresh process.
+Dependencies install from stable releases only.
 
 The temporary JiraPS/Configuration helpers remain until
 the shared replacements pass acquisition and Cloud/Data Center integration tests
