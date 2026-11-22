@@ -29,8 +29,7 @@ Describe 'AtlassianPS.Standards version consistency' -Tag Unit {
             Where-Object { $_.ModuleName -eq 'AtlassianPS.Standards' } |
             Select-Object -First 1
         $standardsVersion = [string] $standardsRequirement.RequiredVersion
-        $expectedStandardsSha = 'fa0c5f72ddb2b96712ffb8f8f0623fa7220d9dd8'
-        $expectedReleaseStandardsSha = '160631f20740a10152d4560d698b5e16806d0edb'
+        $expectedStandardsSha = '7efc986344a4e8c4ffb108d5e3b69f45ef3857c4'
 
         $workflowPaths = Get-ChildItem -Path (Join-Path -Path $projectRoot -ChildPath '.github/workflows') -File -Filter '*.yml' |
             Select-Object -ExpandProperty FullName
@@ -49,19 +48,9 @@ Describe 'AtlassianPS.Standards version consistency' -Tag Unit {
             }
         }
 
-        $releaseMatches = @(
-            $workflowActionMatches |
-                Where-Object { [IO.Path]::GetFileName($_.WorkflowPath) -eq 'continuous_release.yml' }
-        )
-        $buildMatches = @(
-            $workflowActionMatches |
-                Where-Object { [IO.Path]::GetFileName($_.WorkflowPath) -ne 'continuous_release.yml' }
-        )
-
         @($workflowActionMatches).Count | Should -BeGreaterThan 0
         ($workflowActionMatches | Select-Object -ExpandProperty Version -Unique) | Should -Be @($standardsVersion)
-        ($buildMatches | Select-Object -ExpandProperty Ref -Unique) | Should -Be @($expectedStandardsSha)
-        ($releaseMatches | Select-Object -ExpandProperty Ref -Unique) | Should -Be @($expectedReleaseStandardsSha)
+        ($workflowActionMatches | Select-Object -ExpandProperty Ref -Unique) | Should -Be @($expectedStandardsSha)
     }
 
     It 'uses safe shared release workflows' {

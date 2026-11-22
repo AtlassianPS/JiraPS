@@ -2,10 +2,6 @@
 
 ## Unreleased
 
-### Changed
-
-- Adopt the shared alpha/beta release route with optional source branch selection, exact candidate validation, and explicit major authorization.
-
 This release focuses on Cloud and Data Center compatibility, strongly typed objects, and automation.
 
 ### Highlights for users
@@ -114,8 +110,9 @@ See [`about_JiraPS_MigrationV3`](https://atlassianps.org/docs/JiraPS/about/migra
 
 ### Internal
 
-- Build and test tooling uses AtlassianPS.Standards 0.4.0, Pester 6.2, and PlatyPS 1.0.
+- Build and test tooling uses AtlassianPS.Standards 0.5.0, Pester 6.2, and PlatyPS 1.0.
   Shared-standards scripts and workflow actions use the version declared in `Tools/build.requirements.psd1`; dependency updates honor `-WhatIf` before bootstrap side effects.
+- Alpha and beta releases use the shared release route with optional source branch selection, exact candidate validation, and explicit major authorization.
 - Shared standards tooling handles help generation, package validation, environment loading, test-module resolution, and release-note extraction.
   `CHANGELOG.md` supplies both GitHub release notes and PSGallery manifest release notes.
 - Continuous delivery promotes CI-tested artifacts after release-intent validation.
