@@ -29,7 +29,7 @@ Describe 'AtlassianPS.Standards version consistency' -Tag Unit {
             Where-Object { $_.ModuleName -eq 'AtlassianPS.Standards' } |
             Select-Object -First 1
         $standardsVersion = [string] $standardsRequirement.RequiredVersion
-        $expectedStandardsSha = 'fa0c5f72ddb2b96712ffb8f8f0623fa7220d9dd8'
+        $expectedStandardsSha = '7efc986344a4e8c4ffb108d5e3b69f45ef3857c4'
 
         $workflowPaths = Get-ChildItem -Path (Join-Path -Path $projectRoot -ChildPath '.github/workflows') -File -Filter '*.yml' |
             Select-Object -ExpandProperty FullName
@@ -87,8 +87,12 @@ Describe 'AtlassianPS.Standards version consistency' -Tag Unit {
         $releaseIntentContent | Should -Not -Match '\bedited\b'
 
         $continuousReleaseContent | Should -Match 'workflows/module_release\.yml@[0-9a-f]{40}'
+        $continuousReleaseContent | Should -Match 'prerelease_branch:'
+        $continuousReleaseContent | Should -Match 'prerelease-branch: \$\{\{ inputs.prerelease_branch \}\}'
         $continuousReleaseContent | Should -Match '(?ms)workflow_run:.*?branches:\s*\[master\]'
         $continuousReleaseContent | Should -Match 'module-name:\s+JiraPS'
+        $continuousReleaseContent | Should -Match 'options: \[stable, alpha, beta\]'
+        $continuousReleaseContent | Should -Match 'major-authorization: \$\{\{ inputs\.major_authorization \}\}'
         $continuousReleaseContent | Should -Match "vars\.JIRAPS_CD_ENABLED == 'true'"
         $continuousReleaseContent | Should -Match '(?ms)options:\s+- major'
         $continuousReleaseContent | Should -Not -Match '(?m)^\s+tags:'
