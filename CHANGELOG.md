@@ -42,6 +42,7 @@ See [`about_JiraPS_MigrationV3`](https://atlassianps.org/docs/JiraPS/about/migra
 - `New-JiraSession` supports Cloud API tokens through `-ApiToken` and `-EmailAddress`, and Data Center personal access tokens through `-PersonalAccessToken` (aliases `-PAT`, `-BearerToken`).
   Token parameters accept `SecureString` values. (#576)
 - `Get-JiraStatus` retrieves statuses by ID or name, or lists all statuses.
+- `Add-JiraIssueComment -Internal` posts Jira Service Management internal comments that customers cannot see, on Cloud and Data Center.
 - `Get-JiraIssue -IncludeHistory` returns issue history entries, with `-GetHistory` retained as an alias.
 - `Invoke-JiraIssueTransition -TimeSpent` records a worklog entry as part of an issue transition. (#343, [@alexsuslin])
 - `Set-JiraIssue` and `Invoke-JiraIssueTransition` support `-Unassign` to remove an assignee.

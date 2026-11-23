@@ -168,6 +168,19 @@ InModuleScope JiraPS {
                 }
             }
 
+            Context "Internal Comments" {
+                It "stores the internal comment property" {
+                    if (-not $tempIssue) {
+                        Set-ItResult -Skipped -Because "JIRA_TEST_PROJECT not configured"
+                        return
+                    }
+                    $result = Add-JiraIssueComment -Issue $tempIssue.Key -Comment "Internal comment $(Get-Date -Format 'HHmmss')" -Internal
+
+                    $property = Invoke-JiraMethod -Method GET -URI "/rest/api/2/comment/$($result.ID)/properties/sd.public.comment"
+                    $property.value.internal | Should -BeTrue
+                }
+            }
+
             Context "Error Handling" {
                 It "fails for non-existent issue" {
                     { Add-JiraIssueComment -Issue 'NONEXISTENT-99999' -Comment 'Test' -ErrorAction Stop } |
